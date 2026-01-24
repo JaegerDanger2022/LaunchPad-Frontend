@@ -1,0 +1,36 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background ring (gray) -->
+  <circle
+    cx="200"
+    cy="200"
+    r="150"
+    fill="none"
+    stroke="#d1d5db"
+    stroke-width="30"
+  />
+  
+  <!-- Progress ring (orange) - 40% -->
+  <circle
+    cx="200"
+    cy="200"
+    r="150"
+    fill="none"
+    stroke="#ff6b35"
+    stroke-width="30"
+    stroke-dasharray="942.48"
+    stroke-dashoffset="565.49"
+    stroke-linecap="round"
+    transform="rotate(-90 200 200)"
+  />
+  
+  <!-- Percentage text -->
+  <text
+    x="200"
+    y="220"
+    font-family="Arial, sans-serif"
+    font-size="80"
+    font-weight="bold"
+    fill="#ff6b35"
+    text-anchor="middle"
+  >40%</text>
+</svg>
