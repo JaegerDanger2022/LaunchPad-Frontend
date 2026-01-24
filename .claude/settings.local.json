@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npm install:*)",
       "Bash(npm uninstall:*)",
-      "Bash(netstat:*)"
+      "Bash(netstat:*)",
+      "Bash(cd:*)",
+      "Bash(npm run:*)"
     ]
   }
 }
