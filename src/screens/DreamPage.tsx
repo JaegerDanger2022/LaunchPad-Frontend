@@ -1,8 +1,21 @@
-import React from "react";
-import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
+import React, { useRef, useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  Animated,
+  Dimensions,
+  PanResponder,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Color } from "../constants/GlobalStyles";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
+
+const { width: screenWidth } = Dimensions.get("window");
+const HEADER_HEIGHT = 80;
 
 interface SubtaskCard {
   id: string;
@@ -13,8 +26,40 @@ interface SubtaskCard {
   image: any;
 }
 
-const DreamPage = () => {
+const DreamPage = ({ onNavigate }) => {
   const goalTitle = "I want to visit the bahamas";
+
+  // Animated values for elastic header
+  const dragY = useRef(new Animated.Value(0)).current;
+  const [dragAmount, setDragAmount] = useState(0);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: (_evt, gestureState) => {
+        if (gestureState.dy > 0) {
+          // Only allow downward drag
+          const newDrag = Math.min(gestureState.dy, 100);
+          dragY.setValue(newDrag);
+          setDragAmount(newDrag);
+        }
+      },
+      onPanResponderRelease: () => {
+        // Spring back
+        Animated.spring(dragY, {
+          toValue: 0,
+          tension: 40,
+          friction: 10,
+          useNativeDriver: false,
+        }).start();
+        setDragAmount(0);
+      },
+    })
+  ).current;
+
+  // Calculate SVG path for elastic curve
+  const elasticPath = `M 0 0 L 0 ${HEADER_HEIGHT} Q ${screenWidth / 2} ${HEADER_HEIGHT + dragAmount * 0.5} ${screenWidth} ${HEADER_HEIGHT} L ${screenWidth} 0 Z`;
 
   const subtasks: SubtaskCard[] = [
     {
@@ -45,38 +90,62 @@ const DreamPage = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFF8F5" }}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <View style={{ flex: 1 }} {...panResponder.panHandlers}>
+        {/* Elastic Header Background */}
         <View
-          style={{ paddingHorizontal: 22, paddingTop: 30, paddingBottom: 40 }}>
-          {/* Back Button */}
-          <TouchableOpacity
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: HEADER_HEIGHT + 100,
+            zIndex: 1,
+            overflow: "hidden",
+          }}>
+          <Svg
+            width={screenWidth}
+            height={HEADER_HEIGHT + 100}
+            style={{ position: "absolute", top: 0 }}>
+            <Path d={elasticPath} fill="#FFF8F5" stroke="none" />
+          </Svg>
+        </View>
+
+        <ScrollView showsVerticalScrollIndicator={false} scrollEnabled={dragAmount < 10}>
+          <View
             style={{
-              width: 30,
-              height: 30,
-              marginBottom: 30,
-              alignItems: "center",
-              justifyContent: "center",
+              paddingHorizontal: 22,
+              paddingTop: 30,
+              paddingBottom: 40,
             }}>
+            {/* Back Button */}
+            <TouchableOpacity
+              style={{
+                width: 30,
+                height: 30,
+                marginBottom: 30,
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+              <Text
+                style={{
+                  fontSize: 24,
+                  color: Color.colorBlack,
+                  fontWeight: "600",
+                }}>
+                ←
+              </Text>
+            </TouchableOpacity>
+
+            {/* Goal Header */}
             <Text
               style={{
-                fontSize: 24,
+                fontSize: 20,
+                fontWeight: "400",
                 color: Color.colorBlack,
-                fontWeight: "600",
+                marginBottom: 40,
               }}>
-              ←
+              Goal: <Text style={{ fontWeight: "400" }}>{goalTitle}</Text>
             </Text>
-          </TouchableOpacity>
-
-          {/* Goal Header */}
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "400",
-              color: Color.colorBlack,
-              marginBottom: 40,
-            }}>
-            Goal: <Text style={{ fontWeight: "400" }}>{goalTitle}</Text>
-          </Text>
 
           {/* Subtasks Grid - 2 Items Per Row */}
           <View style={{ gap: 16 }}>
@@ -188,11 +257,12 @@ const DreamPage = () => {
                 );
               },
             )}
-          </View>
+              </View>
+            </View>
+          </ScrollView>
         </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-};
+      </SafeAreaView>
+    );
+  };
 
 export default DreamPage;

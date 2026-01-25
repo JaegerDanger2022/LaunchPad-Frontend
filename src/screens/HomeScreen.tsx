@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
-import { View, Text, ScrollView, Image, Animated } from "react-native";
+import { View, Text, ScrollView, Image, Animated, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Color } from "../constants/GlobalStyles";
@@ -15,7 +15,7 @@ import { TopNavbar } from "../components/TopNavbar";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { TabBar, type TabType } from "../components/TabBar";
 
-const HomeScreen = () => {
+const HomeScreen = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState<TabType>("recents");
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -239,53 +239,57 @@ const HomeScreen = () => {
               </View>
 
               {/* Action Button */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  height: 50,
-                  borderRadius: 10,
-                  overflow: "hidden",
-                }}>
-                <LinearGradient
-                  style={{
-                    position: "absolute",
-                    width: "100%",
-                    height: "100%",
-                  }}
-                  locations={[0.38, 1]}
-                  colors={[Color.colorOrangered, "rgba(247, 153, 113, 0.86)"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                />
+              <TouchableOpacity
+                onPress={() => onNavigate("Milestone")}
+                activeOpacity={0.8}>
                 <View
                   style={{
-                    flex: 0.7,
+                    flexDirection: "row",
                     alignItems: "center",
-                    justifyContent: "center",
-                    zIndex: 1,
+                    height: 50,
+                    borderRadius: 10,
+                    overflow: "hidden",
                   }}>
-                  <Text
+                  <LinearGradient
                     style={{
-                      fontSize: 16,
-                      color: Color.colorWhite,
-                      fontFamily: "InstrumentSans-Bold",
-                      fontWeight: "700",
-                      textAlign: "center",
+                      position: "absolute",
+                      width: "100%",
+                      height: "100%",
+                    }}
+                    locations={[0.38, 1]}
+                    colors={[Color.colorOrangered, "rgba(247, 153, 113, 0.86)"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  />
+                  <View
+                    style={{
+                      flex: 0.7,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      zIndex: 1,
                     }}>
-                    LET'S GOOO!
-                  </Text>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        color: Color.colorWhite,
+                        fontFamily: "InstrumentSans-Bold",
+                        fontWeight: "700",
+                        textAlign: "center",
+                      }}>
+                      LET'S GOOO!
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      flex: 0.3,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      zIndex: 1,
+                    }}>
+                    <ArrowRightIcon size={20} color="#fff" />
+                  </View>
                 </View>
-                <View
-                  style={{
-                    flex: 0.3,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    zIndex: 1,
-                  }}>
-                  <ArrowRightIcon size={20} color="#fff" />
-                </View>
-              </View>
+              </TouchableOpacity>
             </LinearGradient>
           </View>
 
