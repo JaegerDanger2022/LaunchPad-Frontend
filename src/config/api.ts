@@ -4,9 +4,9 @@ export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000";
 
 export interface UserRegistrationData {
-  userId: string;
-  firstName: string;
-  lastName: string;
+  user_id: string;
+  firstname: string;
+  lastname: string;
   email: string;
 }
 
@@ -41,6 +41,12 @@ export async function registerUserToDatabase(
         );
       }
       console.error("Error response data:", errorData);
+      if (errorData.detail && Array.isArray(errorData.detail)) {
+        console.error("Validation errors:");
+        errorData.detail.forEach((err: any) => {
+          console.error(`  - Field: ${err.loc?.[1] || 'unknown'}, Message: ${err.msg}`);
+        });
+      }
       throw new Error(
         errorData.message || `HTTP ${response.status}: ${response.statusText}`,
       );

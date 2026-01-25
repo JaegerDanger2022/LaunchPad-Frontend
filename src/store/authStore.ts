@@ -64,9 +64,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       // Register user to MongoDB
       if (userCredential.user) {
         await registerUserToDatabase({
-          userId: userCredential.user.uid,
-          firstName,
-          lastName,
+          user_id: userCredential.user.uid,
+          firstname: firstName,
+          lastname: lastName,
           email,
         });
       }
