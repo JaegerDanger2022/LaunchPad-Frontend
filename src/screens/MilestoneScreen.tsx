@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StatusBar,
   Animated,
+  PanResponder,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -18,6 +19,38 @@ const MilestoneScreen = ({
 }) => {
   const [completedSteps, setCompletedSteps] = useState(0);
   const slideAnim = useRef(new Animated.Value(1000)).current;
+  const dragY = useRef(new Animated.Value(0)).current;
+  const [dragAmount, setDragAmount] = useState(0);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: (_evt, gestureState) => {
+        if (gestureState.dy > 0) {
+          // Only allow downward drag
+          const newDrag = Math.min(gestureState.dy, 100);
+          dragY.setValue(newDrag);
+          setDragAmount(newDrag);
+        }
+      },
+      onPanResponderRelease: (_evt, gestureState) => {
+        // If dragged more than 50px down, close the screen
+        if (gestureState.dy > 50) {
+          handleClose();
+        } else {
+          // Spring back
+          Animated.spring(dragY, {
+            toValue: 0,
+            tension: 40,
+            friction: 10,
+            useNativeDriver: true,
+          }).start();
+          setDragAmount(0);
+        }
+      },
+    }),
+  ).current;
 
   useEffect(() => {
     // Slide up animation on mount
@@ -59,13 +92,14 @@ const MilestoneScreen = ({
       {/* Modal sliding from bottom */}
       <Animated.View
         style={{
-          transform: [{ translateY: slideAnim }],
+          transform: [{ translateY: slideAnim }, { translateY: dragY }],
           backgroundColor: Color.colorWhite,
           borderTopLeftRadius: 30,
           borderTopRightRadius: 30,
           overflow: "hidden",
           flex: 8,
-        }}>
+        }}
+        {...panResponder.panHandlers}>
         {/* Top Section with Gradient */}
         <LinearGradient
           colors={["#4FA9DB", "#5CB8E8"]}
