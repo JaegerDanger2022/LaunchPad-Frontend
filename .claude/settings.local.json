@@ -5,7 +5,9 @@
       "Bash(npm uninstall:*)",
       "Bash(netstat:*)",
       "Bash(cd:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "WebFetch(domain:reactnavigation.org)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

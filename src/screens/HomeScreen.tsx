@@ -8,7 +8,6 @@ import {
   Animated,
   TouchableOpacity,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Color } from "../constants/GlobalStyles";
@@ -23,8 +22,11 @@ import { TopNavbar } from "../components/TopNavbar";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { TabBar, type TabType } from "../components/TabBar";
 
-const HomeScreen = () => {
-  const navigation = useNavigation();
+const HomeScreen = ({
+  onNavigate,
+}: {
+  onNavigate: (screen: string) => void;
+}) => {
   const [activeTab, setActiveTab] = useState<TabType>("recents");
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -252,7 +254,7 @@ const HomeScreen = () => {
 
               {/* Action Button */}
               <TouchableOpacity
-                onPress={() => navigation.navigate("Milestone" as never)}
+                onPress={() => onNavigate("Milestone")}
                 activeOpacity={0.8}>
                 <View
                   style={{
