@@ -99,6 +99,33 @@ const DreamPage = ({
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFF8F5" }}>
+      {/* Back Button - Fixed Position */}
+      <View
+        style={{
+          position: "absolute",
+          top: 16,
+          left: 22,
+          zIndex: 10,
+        }}>
+        <TouchableOpacity
+          onPress={() => onNavigate("Home")}
+          style={{
+            width: 40,
+            height: 40,
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+          <Text
+            style={{
+              fontSize: 28,
+              color: Color.colorOrangered,
+              fontWeight: "700",
+            }}>
+            ‹
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={{ flex: 1 }} {...panResponder.panHandlers}>
         {/* Elastic Header Background */}
         <View
@@ -128,25 +155,6 @@ const DreamPage = ({
               paddingTop: 30,
               paddingBottom: 40,
             }}>
-            {/* Back Button */}
-            <TouchableOpacity
-              onPress={() => onNavigate("Home")}
-              style={{
-                width: 30,
-                height: 30,
-                marginBottom: 30,
-                alignItems: "center",
-                justifyContent: "center",
-              }}>
-              <Text
-                style={{
-                  fontSize: 24,
-                  color: Color.colorBlack,
-                  fontWeight: "600",
-                }}>
-                ←
-              </Text>
-            </TouchableOpacity>
 
             {/* Goal Header */}
             <Text
@@ -172,8 +180,10 @@ const DreamPage = ({
                       key={rowIndex}
                       style={{ flexDirection: "row", gap: 16 }}>
                       {rowItems.map((subtask) => (
-                        <View
+                        <TouchableOpacity
                           key={subtask.id}
+                          onPress={() => onNavigate("Milestone")}
+                          activeOpacity={0.8}
                           style={{
                             flex: 1,
                             height: 280,
@@ -263,7 +273,7 @@ const DreamPage = ({
                               </Text>
                             </View>
                           </LinearGradient>
-                        </View>
+                        </TouchableOpacity>
                       ))}
 
                       {/* Spacer for odd-numbered rows */}
