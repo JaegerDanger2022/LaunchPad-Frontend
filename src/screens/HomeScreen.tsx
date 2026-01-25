@@ -29,14 +29,37 @@ const HomeScreen = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>("recents");
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+  const communityFadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
+    // Fade out and slide down
+    fadeAnim.setValue(0);
+    slideAnim.setValue(20);
+
+    // Then fade in and slide up
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [activeTab, fadeAnim, slideAnim]);
+
+  useEffect(() => {
+    // Animate community wins section on mount
+    Animated.timing(communityFadeAnim, {
       toValue: 1,
-      duration: 300,
+      duration: 500,
       useNativeDriver: true,
     }).start();
-  }, [activeTab, fadeAnim]);
+  }, [communityFadeAnim]);
 
   const goalCardsData: GoalCardData[] = useMemo(
     () => [
@@ -321,6 +344,7 @@ const HomeScreen = ({
             <Animated.View
               style={{
                 opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
               }}>
               {activeTab === "recents" ? (
                 /* Goal Cards Row */
@@ -355,13 +379,18 @@ const HomeScreen = ({
           </View>
 
           {/* Community Wins Section */}
-          <View
+          <Animated.View
             style={{
               flexDirection: "column",
               marginHorizontal: 17,
               marginTop: 20,
               marginBottom: 20,
               zIndex: 10,
+              opacity: communityFadeAnim,
+              transform: [{ translateY: communityFadeAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [20, 0],
+              }) }],
             }}>
             {/* Title */}
             <Text
@@ -422,7 +451,7 @@ const HomeScreen = ({
                 </Text>
               </View>
             </View>
-          </View>
+          </Animated.View>
         </View>
       </ScrollView>
     </SafeAreaView>
