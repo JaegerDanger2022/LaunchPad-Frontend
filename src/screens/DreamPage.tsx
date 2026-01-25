@@ -13,6 +13,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Color } from "../constants/GlobalStyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
+import { ChevronLeft } from "lucide-react-native";
 
 const { width: screenWidth } = Dimensions.get("window");
 const HEADER_HEIGHT = 80;
@@ -103,26 +104,23 @@ const DreamPage = ({
       <View
         style={{
           position: "absolute",
-          top: 16,
+          top: 50,
           left: 22,
           zIndex: 10,
         }}>
         <TouchableOpacity
           onPress={() => onNavigate("Home")}
           style={{
-            width: 40,
-            height: 40,
+            width: 60,
+            height: 60,
             alignItems: "center",
             justifyContent: "center",
           }}>
-          <Text
-            style={{
-              fontSize: 28,
-              color: Color.colorOrangered,
-              fontWeight: "700",
-            }}>
-            ‹
-          </Text>
+          <ChevronLeft
+            size={50}
+            color={Color.colorOrangered}
+            strokeWidth={2.5}
+          />
         </TouchableOpacity>
       </View>
 
@@ -155,7 +153,6 @@ const DreamPage = ({
               paddingTop: 30,
               paddingBottom: 40,
             }}>
-
             {/* Goal Header */}
             <Text
               style={{
