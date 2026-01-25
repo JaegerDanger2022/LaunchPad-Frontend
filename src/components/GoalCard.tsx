@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ProgressRingIcon } from './icons/SVGIcons';
 import { Color } from '../constants/GlobalStyles';
@@ -13,11 +13,16 @@ export interface GoalCardData {
 
 interface GoalCardProps {
   data: GoalCardData;
+  onPress?: () => void;
 }
 
-export const GoalCard: React.FC<GoalCardProps> = ({ data }) => {
+export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
   return (
-    <View
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      style={{ flex: 1 }}>
+      <View
       style={{
         flex: 1,
         height: 228,
@@ -70,6 +75,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ data }) => {
           <ProgressRingIcon size={30} color={data.progressColor} />
         </View>
       </LinearGradient>
-    </View>
+      </View>
+    </TouchableOpacity>
   );
 };

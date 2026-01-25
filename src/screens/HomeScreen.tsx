@@ -1,12 +1,6 @@
 import * as React from "react";
 import { useState, useEffect, useRef, useMemo } from "react";
-import {
-  View,
-  Text,
-  Image,
-  Animated,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, Image, Animated, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Color } from "../constants/GlobalStyles";
@@ -35,6 +29,7 @@ const HomeScreen = ({
   useEffect(() => {
     // Fade out and slide down
     fadeAnim.setValue(0);
+
     slideAnim.setValue(20);
 
     // Then fade in and slide up
@@ -63,19 +58,19 @@ const HomeScreen = ({
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    { useNativeDriver: false }
+    { useNativeDriver: false },
   );
 
   const heroOpacity = scrollY.interpolate({
     inputRange: [0, 150],
     outputRange: [1, 0.5],
-    extrapolate: 'clamp',
+    extrapolate: "clamp",
   });
 
   const heroScale = scrollY.interpolate({
     inputRange: [0, 150],
     outputRange: [1, 0.95],
-    extrapolate: 'clamp',
+    extrapolate: "clamp",
   });
 
   const goalCardsData: GoalCardData[] = useMemo(
@@ -93,7 +88,7 @@ const HomeScreen = ({
         progressColor: "#6dc0c3",
       },
     ],
-    []
+    [],
   );
 
   return (
@@ -375,7 +370,11 @@ const HomeScreen = ({
                     gap: 14,
                   }}>
                   {goalCardsData.map((card, index) => (
-                    <GoalCard key={index} data={card} />
+                    <GoalCard
+                      key={index}
+                      data={card}
+                      onPress={() => onNavigate("Dream")}
+                    />
                   ))}
                 </View>
               ) : (
@@ -408,10 +407,14 @@ const HomeScreen = ({
               marginBottom: 20,
               zIndex: 10,
               opacity: communityFadeAnim,
-              transform: [{ translateY: communityFadeAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [20, 0],
-              }) }],
+              transform: [
+                {
+                  translateY: communityFadeAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [20, 0],
+                  }),
+                },
+              ],
             }}>
             {/* Title */}
             <Text
