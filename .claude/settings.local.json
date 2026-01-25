@@ -7,7 +7,13 @@
       "Bash(cd:*)",
       "Bash(npm run:*)",
       "WebFetch(domain:reactnavigation.org)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(npx expo start --clear)",
+      "Bash(npx lsof:*)",
+      "Bash(xargs kill:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx expo start:*)"
     ]
   }
 }

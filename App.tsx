@@ -1,11 +1,24 @@
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer, NavigationProp } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import HomeScreen from './src/screens/HomeScreen';
 import MilestoneScreen from './src/screens/MilestoneScreen';
 import DreamPage from './src/screens/DreamPage';
+import LoginScreen from './src/screens/auth/LoginScreen';
+import SignupScreen from './src/screens/auth/SignupScreen';
+import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
+import { useAuthStore } from './src/store/authStore';
+import { Color } from './src/constants/GlobalStyles';
 
 export type RootStackParamList = {
+  // Auth screens
+  Login: undefined;
+  Signup: undefined;
+  ForgotPassword: undefined;
+
+  // App screens
   Home: undefined;
   Milestone: undefined;
   Dream: undefined;
@@ -38,37 +51,69 @@ const DreamPageWrapper = ({ navigation }: any) => (
   }} />
 );
 
+// Auth Navigator
+function AuthNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Signup" component={SignupScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+    </Stack.Navigator>
+  );
+}
+
+// App Navigator
+function AppNavigator() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}>
+      <Stack.Screen
+        name="Home"
+        component={HomeScreenWrapper}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Milestone"
+        component={MilestoneScreenWrapper}
+        options={{
+          presentation: 'transparentModal',
+          headerShown: false,
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <Stack.Screen
+        name="Dream"
+        component={DreamPageWrapper}
+        options={{
+          headerShown: false,
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
 export default function App() {
+  const { isAuthenticated, loading, initializeAuth } = useAuthStore();
+
+  useEffect(() => {
+    initializeAuth();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Color.colorSnow }}>
+        <ActivityIndicator size="large" color={Color.colorOrangered} />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-        }}>
-        <Stack.Screen
-          name="Home"
-          component={HomeScreenWrapper}
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="Milestone"
-          component={MilestoneScreenWrapper}
-          options={{
-            presentation: 'transparentModal',
-            headerShown: false,
-            animation: 'slide_from_bottom',
-          }}
-        />
-        <Stack.Screen
-          name="Dream"
-          component={DreamPageWrapper}
-          options={{
-            headerShown: false,
-          }}
-        />
-      </Stack.Navigator>
+      {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
       <StatusBar style="dark" />
     </NavigationContainer>
   );

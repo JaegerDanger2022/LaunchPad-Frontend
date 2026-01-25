@@ -10,11 +10,9 @@ import {
   onAuthStateChanged,
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
+import { ensureGoogleSignInInitialized, isGoogleSignInAvailable } from '../config/googleSignIn';
+import { registerUserToDatabase } from '../config/api';
 import * as SecureStore from 'expo-secure-store';
-import {
-  GoogleSignin,
-  statusCodes,
-} from '@react-native-google-signin/google-signin';
 
 interface AuthState {
   user: User | null;
@@ -23,7 +21,7 @@ interface AuthState {
   isAuthenticated: boolean;
 
   // Actions
-  signUp: (email: string, password: string, name: string) => Promise<void>;
+  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   googleSignIn: () => Promise<void>;
   logout: () => Promise<void>;
@@ -58,10 +56,21 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 
-  signUp: async (email: string, password: string, name: string) => {
+  signUp: async (email: string, password: string, firstName: string, lastName: string) => {
     try {
       set({ loading: true, error: null });
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+      // Register user to MongoDB
+      if (userCredential.user) {
+        await registerUserToDatabase({
+          userId: userCredential.user.uid,
+          firstName,
+          lastName,
+          email,
+        });
+      }
+
       set({ user: userCredential.user, isAuthenticated: true, loading: false });
     } catch (error: any) {
       const errorMessage = getErrorMessage(error.code);
@@ -86,6 +95,16 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ loading: true, error: null });
 
+      // Check if Google Sign-In module is available
+      const isAvailable = await ensureGoogleSignInInitialized();
+
+      if (!isAvailable) {
+        throw new Error('Google Sign-In is not available in this environment. Please build the app with: expo prebuild && npm run build:ios/android');
+      }
+
+      // Dynamically import Google Sign-In to handle Expo Go environments
+      const { GoogleSignin, statusCodes } = await import('@react-native-google-signin/google-signin');
+
       // Ensure Google Sign-In is configured
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
@@ -99,15 +118,29 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
     } catch (error: any) {
       let errorMessage = 'Google Sign-In failed';
-      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        errorMessage = 'Sign-in cancelled';
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        errorMessage = 'Sign-in in progress';
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        errorMessage = 'Google Play Services not available';
-      } else if (error.message) {
-        errorMessage = error.message;
+
+      // Import statusCodes for error checking
+      try {
+        const { statusCodes } = await import('@react-native-google-signin/google-signin');
+        if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+          errorMessage = 'Sign-in cancelled';
+        } else if (error.code === statusCodes.IN_PROGRESS) {
+          errorMessage = 'Sign-in in progress';
+        } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+          errorMessage = 'Google Play Services not available';
+        } else if (error.message?.includes('not available')) {
+          errorMessage = error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+      } catch {
+        if (error.message?.includes('not available')) {
+          errorMessage = error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
       }
+
       set({ error: errorMessage, loading: false });
       throw error;
     }
@@ -141,17 +174,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   clearError: () => set({ error: null }),
 }));
 
-// Initialize Google Sign-In
-export const initializeGoogleSignIn = async (webClientId: string) => {
-  try {
-    GoogleSignin.configure({
-      webClientId,
-      offlineAccess: false,
-    });
-  } catch (error) {
-    console.error('Failed to initialize Google Sign-In:', error);
-  }
-};
+// Export availability checker for UI
+export const checkGoogleSignInAvailable = isGoogleSignInAvailable;
 
 // Helper function to convert Firebase error codes to user-friendly messages
 export const getErrorMessage = (code: string): string => {

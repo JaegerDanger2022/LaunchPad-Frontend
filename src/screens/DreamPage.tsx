@@ -1,9 +1,8 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
   Image,
-  ScrollView,
   TouchableOpacity,
   Animated,
   Dimensions,
@@ -14,9 +13,9 @@ import { Color } from "../constants/GlobalStyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { ChevronLeft } from "lucide-react-native";
+import { Badge } from "../components/common/Badge";
 
 const { width: screenWidth } = Dimensions.get("window");
-const HEADER_HEIGHT = 80;
 
 interface SubtaskCard {
   id: string;
@@ -32,11 +31,34 @@ const DreamPage = ({
 }: {
   onNavigate: (screen: string) => void;
 }) => {
-  const goalTitle = "I want to visit the bahamas";
-
-  // Animated values for elastic header
+  // Animated values for elastic header and scroll
   const dragY = useRef(new Animated.Value(0)).current;
+  const scrollY = useRef(new Animated.Value(0)).current;
   const [dragAmount, setDragAmount] = useState(0);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Handle scroll animation
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    { useNativeDriver: false },
+  );
+
+  // Listen to scroll position and update state
+  useEffect(() => {
+    const listener = scrollY.addListener(({ value }) => {
+      setScrollPosition(value);
+    });
+    return () => scrollY.removeListener(listener);
+  }, [scrollY]);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    // Simulate refresh delay
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -51,27 +73,54 @@ const DreamPage = ({
         }
       },
       onPanResponderRelease: (_evt, gestureState) => {
-        // If dragged more than 50px down, close the screen
+        // If dragged more than 50px down, refresh the page
         if (gestureState.dy > 50) {
-          onNavigate("Home");
-        } else {
-          // Spring back
-          Animated.spring(dragY, {
-            toValue: 0,
-            tension: 40,
-            friction: 10,
-            useNativeDriver: false,
-          }).start();
-          setDragAmount(0);
+          handleRefresh();
         }
+        // Always spring back
+        Animated.spring(dragY, {
+          toValue: 0,
+          tension: 40,
+          friction: 10,
+          useNativeDriver: false,
+        }).start();
+        setDragAmount(0);
       },
     }),
   ).current;
 
-  // Calculate SVG path for elastic curve
-  const elasticPath = `M 0 0 L 0 ${HEADER_HEIGHT} Q ${screenWidth / 2} ${HEADER_HEIGHT + dragAmount * 0.5} ${screenWidth} ${HEADER_HEIGHT} L ${screenWidth} 0 Z`;
+  // Calculate curve depth: full curve at top (200px), straight line when scrolled (0px)
+  const baseCurveDepth = Math.max(0, 200 - scrollPosition * 2);
+  const curveDepth = baseCurveDepth + dragAmount;
+
+  // Calculate SVG path: combines scroll animation (curve straightens) + drag animation (curve extends)
+  const elasticPath = `M 0 0 L ${screenWidth} 0 L ${screenWidth} ${curveDepth} Q ${screenWidth / 2} ${curveDepth + 50} 0 ${curveDepth} Z`;
 
   const subtasks: SubtaskCard[] = [
+    {
+      id: "1",
+      title: "Find & book flights",
+      bgColor: "#537787",
+      tags: ["Planning", "Decision"],
+      duration: "60 mins",
+      image: require("../assets/images/placeholder-flights.png"),
+    },
+    {
+      id: "2",
+      title: "Book lodging",
+      bgColor: "#E6BD6E",
+      tags: ["Planning", "Decision"],
+      duration: "60 mins",
+      image: require("../assets/images/placeholder-lodging.png"),
+    },
+    {
+      id: "3",
+      title: "Share plans and get feedback",
+      bgColor: "#206A77",
+      tags: ["Planning", "Decision"],
+      duration: "60 mins",
+      image: require("../assets/images/placeholder-feedback.png"),
+    },
     {
       id: "1",
       title: "Find & book flights",
@@ -99,71 +148,104 @@ const DreamPage = ({
   ];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFF8F5" }}>
-      {/* Back Button - Fixed Position */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#1a1a2e" }}>
+      {/* Back Button - Fixed Position with Semi-transparent Background */}
       <View
         style={{
           position: "absolute",
-          top: 50,
+          top: 16,
           left: 22,
           zIndex: 10,
+          width: 48,
+          height: 48,
+          borderRadius: 12,
+          backgroundColor: "rgba(255, 255, 255, 0.2)",
+          alignItems: "center",
+          justifyContent: "center",
         }}>
         <TouchableOpacity
           onPress={() => onNavigate("Home")}
           style={{
-            width: 60,
-            height: 60,
+            width: 48,
+            height: 48,
             alignItems: "center",
             justifyContent: "center",
           }}>
-          <ChevronLeft
-            size={50}
-            color={Color.colorOrangered}
-            strokeWidth={2.5}
-          />
+          <ChevronLeft size={24} color={Color.colorWhite} strokeWidth={2.5} />
         </TouchableOpacity>
       </View>
 
       <View style={{ flex: 1 }} {...panResponder.panHandlers}>
-        {/* Elastic Header Background */}
-        <View
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: HEADER_HEIGHT + 100,
-            zIndex: 1,
-            overflow: "hidden",
-          }}>
-          <Svg
-            width={screenWidth}
-            height={HEADER_HEIGHT + 100}
-            style={{ position: "absolute", top: 0 }}>
-            <Path d={elasticPath} fill="#FFF8F5" stroke="none" />
-          </Svg>
+        {/* Blue Curved Header Background with Content */}
+
+        {/* SVG Curve at bottom */}
+        <Svg
+          width={screenWidth}
+          height={320}
+          style={{ position: "absolute", top: 0 }}>
+          <Path d={elasticPath} fill="#4FA9DB" stroke="none" />
+        </Svg>
+
+        {/* Header Content */}
+        <View style={{ paddingHorizontal: 22, paddingTop: 75, zIndex: 2 }}>
+          {/* Collection Badge */}
+          <View
+            style={{
+              alignSelf: "flex-start",
+              backgroundColor: "rgba(255, 255, 255, 0.3)",
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 12,
+              marginBottom: 20,
+            }}>
+            <Text
+              style={{
+                color: Color.colorWhite,
+                fontSize: 12,
+                fontWeight: "600",
+                fontFamily: "InstrumentSans-Medium",
+              }}>
+              Collection
+            </Text>
+          </View>
+
+          {/* Title */}
+          <Text
+            style={{
+              fontSize: 32,
+              fontWeight: "700",
+              color: Color.colorWhite,
+              fontFamily: "InstrumentSans-Bold",
+              marginBottom: 8,
+            }}>
+            Take 5
+          </Text>
+
+          {/* Subtitle */}
+          <Text
+            style={{
+              fontSize: 16,
+              color: Color.colorWhite,
+              fontFamily: "InstrumentSans-Regular",
+              fontWeight: "400",
+              opacity: 0.9,
+            }}>
+            5 minutes a day is all it takes to feel your best.
+          </Text>
         </View>
 
-        <ScrollView
+        <Animated.ScrollView>
+          {/* Do not delete */}
+          {/*  onScroll={handleScroll}
+          scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
-          scrollEnabled={dragAmount < 10}>
+          scrollEnabled={dragAmount < 10} */}
           <View
             style={{
               paddingHorizontal: 22,
-              paddingTop: 30,
+              paddingTop: 20,
               paddingBottom: 40,
             }}>
-            {/* Goal Header */}
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: "400",
-                color: Color.colorBlack,
-                marginBottom: 40,
-              }}>
-              Goal: <Text style={{ fontWeight: "400" }}>{goalTitle}</Text>
-            </Text>
-
             {/* Subtasks Grid - 2 Items Per Row */}
             <View style={{ gap: 16 }}>
               {Array.from({ length: Math.ceil(subtasks.length / 2) }).map(
@@ -281,7 +363,7 @@ const DreamPage = ({
               )}
             </View>
           </View>
-        </ScrollView>
+        </Animated.ScrollView>
       </View>
     </SafeAreaView>
   );

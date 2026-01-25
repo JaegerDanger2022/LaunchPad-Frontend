@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { View, Text, Image, Animated, TouchableOpacity } from "react-native";
+import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Color } from "../constants/GlobalStyles";
@@ -21,10 +22,12 @@ const HomeScreen = ({
   onNavigate: (screen: string) => void;
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>("recents");
+  const [isAtBottom, setIsAtBottom] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const communityFadeAnim = useRef(new Animated.Value(0)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
+  const bottomEffectAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Fade out and slide down
@@ -58,7 +61,39 @@ const HomeScreen = ({
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    { useNativeDriver: false },
+    {
+      useNativeDriver: false,
+      listener: (event: any) => {
+        const contentOffsetY = event.nativeEvent.contentOffset.y;
+        const contentHeight = event.nativeEvent.contentSize.height;
+        const layoutHeight = event.nativeEvent.layoutMeasurement.height;
+
+        // Check if we're at bottom (within 50px of the end)
+        const isBottom = contentOffsetY + layoutHeight >= contentHeight - 50;
+
+        if (isBottom && !isAtBottom) {
+          setIsAtBottom(true);
+          // Trigger haptic feedback
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          // Trigger bottom effect animation
+          Animated.sequence([
+            Animated.timing(bottomEffectAnim, {
+              toValue: 1,
+              duration: 300,
+              useNativeDriver: true,
+            }),
+            Animated.timing(bottomEffectAnim, {
+              toValue: 0,
+              duration: 300,
+              delay: 1000,
+              useNativeDriver: true,
+            }),
+          ]).start();
+        } else if (!isBottom && isAtBottom) {
+          setIsAtBottom(false);
+        }
+      },
+    },
   );
 
   const heroOpacity = scrollY.interpolate({
@@ -98,11 +133,11 @@ const HomeScreen = ({
       <Animated.ScrollView
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        style={{ flex: 1, paddingBottom: 100 }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}>
         <View
           style={{
-            flex: 1,
             flexDirection: "column",
             backgroundColor: Color.colorWhite,
             overflow: "hidden",
@@ -430,7 +465,8 @@ const HomeScreen = ({
                       lineHeight: 20,
                       marginBottom: 24,
                     }}>
-                    Discover inspiring goals and ideas from our community to get started on your journey
+                    Discover inspiring goals and ideas from our community to get
+                    started on your journey
                   </Text>
 
                   {/* Decorative Dots */}
@@ -489,51 +525,99 @@ const HomeScreen = ({
             </Text>
 
             {/* Card Content */}
-            <View
+            <LinearGradient
+              colors={["#e0e6f3", "#f0f3ff"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
               style={{
-                backgroundColor: Color.colorLavender,
-                borderRadius: 10,
-                paddingHorizontal: 15,
-                paddingVertical: 15,
-                flexDirection: "row",
-                alignItems: "flex-start",
-                gap: 12,
+                borderRadius: 16,
+                paddingHorizontal: 18,
+                paddingVertical: 18,
+                flexDirection: "column",
+                gap: 14,
+                borderWidth: 1,
+                borderColor: "rgba(180, 197, 253, 0.3)",
+                overflow: "hidden",
               }}>
-              {/* Avatar */}
+              {/* Avatar and User Info Row */}
               <View
                 style={{
-                  marginTop: 5,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 12,
                 }}>
-                <AvatarIcon size={36} color={Color.colorLightsteelblue} />
-              </View>
+                {/* Avatar Circle */}
+                <View
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    backgroundColor: "rgba(180, 197, 253, 0.4)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}>
+                  <AvatarIcon size={28} color={Color.colorLightsteelblue} />
+                </View>
 
-              {/* Text Content */}
-              <View
-                style={{
-                  flex: 1,
-                  flexDirection: "column",
-                  gap: 4,
-                }}>
+                {/* User Name */}
                 <Text
                   style={{
                     color: Color.colorBlack,
-                    fontFamily: "InstrumentSans-Medium",
-                    fontWeight: "500",
-                    fontSize: 20,
-                    textAlign: "left",
+                    fontFamily: "InstrumentSans-Bold",
+                    fontWeight: "700",
+                    fontSize: 16,
                   }}>
                   Jessica M.
                 </Text>
+              </View>
+
+              {/* Achievement Text */}
+              <Text
+                style={{
+                  fontSize: 14,
+                  textAlign: "left",
+                  color: Color.colorBlack,
+                  fontFamily: "InstrumentSans-Regular",
+                  fontWeight: "400",
+                  lineHeight: 20,
+                }}>
+                🎉 Just booked my solo trip to Tokyo!
+              </Text>
+
+              {/* Action Badge */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 8,
+                }}>
+                <View
+                  style={{
+                    backgroundColor: "rgba(0, 212, 170, 0.2)",
+                    paddingHorizontal: 10,
+                    paddingVertical: 6,
+                    borderRadius: 12,
+                  }}>
+                  <Text
+                    style={{
+                      color: "#00D4AA",
+                      fontSize: 12,
+                      fontWeight: "600",
+                      fontFamily: "InstrumentSans-Medium",
+                    }}>
+                    +85 XP
+                  </Text>
+                </View>
                 <Text
                   style={{
-                    fontSize: 12,
-                    textAlign: "left",
-                    color: Color.colorBlack,
+                    color: "#A0A0A0",
+                    fontSize: 11,
+                    fontFamily: "InstrumentSans-Regular",
                   }}>
-                  Just booked my solo {"\n"}trip to Tokyo!
+                  2 hours ago
                 </Text>
               </View>
-            </View>
+            </LinearGradient>
           </Animated.View>
         </View>
       </Animated.ScrollView>

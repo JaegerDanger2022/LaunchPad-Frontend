@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,17 +13,23 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { EyeIcon, EyeOffIcon, CheckCircle2Icon } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Color } from '../../constants/GlobalStyles';
-import { useAuthStore } from '../../store/authStore';
+import { useAuthStore, checkGoogleSignInAvailable } from '../../store/authStore';
 
 const SignupScreen = ({ navigation }: any) => {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [googleSignInAvailable, setGoogleSignInAvailable] = useState(false);
   const { signUp, googleSignIn, loading, error, clearError } = useAuthStore();
+
+  useEffect(() => {
+    setGoogleSignInAvailable(checkGoogleSignInAvailable());
+  }, []);
 
   const isValidEmail = (e: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,7 +38,8 @@ const SignupScreen = ({ navigation }: any) => {
 
   const passwordsMatch = password === confirmPassword && password.length >= 6;
   const canSubmit =
-    name.length >= 2 &&
+    firstName.length >= 2 &&
+    lastName.length >= 2 &&
     email &&
     isValidEmail(email) &&
     password.length >= 6 &&
@@ -45,7 +52,7 @@ const SignupScreen = ({ navigation }: any) => {
 
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      await signUp(email, password, name);
+      await signUp(email, password, firstName, lastName);
     } catch (err) {
       // Error is handled by the store
     }
@@ -131,7 +138,7 @@ const SignupScreen = ({ navigation }: any) => {
               </View>
             )}
 
-            {/* Full Name Input */}
+            {/* First Name Input */}
             <View style={{ marginBottom: 16 }}>
               <Text
                 style={{
@@ -141,7 +148,7 @@ const SignupScreen = ({ navigation }: any) => {
                   fontFamily: 'InstrumentSans-Bold',
                   marginBottom: 8,
                 }}>
-                Full Name
+                First Name
               </Text>
               <TextInput
                 style={{
@@ -155,12 +162,48 @@ const SignupScreen = ({ navigation }: any) => {
                   fontFamily: 'InstrumentSans-Regular',
                   color: Color.colorBlack,
                 }}
-                placeholder="John Doe"
+                placeholder="John"
                 placeholderTextColor="#A0A0A0"
                 autoCapitalize="words"
-                value={name}
+                value={firstName}
                 onChangeText={(text) => {
-                  setName(text);
+                  setFirstName(text);
+                  if (error) clearError();
+                }}
+                editable={!loading}
+              />
+            </View>
+
+            {/* Last Name Input */}
+            <View style={{ marginBottom: 16 }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: Color.colorBlack,
+                  fontFamily: 'InstrumentSans-Bold',
+                  marginBottom: 8,
+                }}>
+                Last Name
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: Color.colorWhite,
+                  borderWidth: 1,
+                  borderColor: '#E0E0E0',
+                  borderRadius: 10,
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
+                  fontSize: 16,
+                  fontFamily: 'InstrumentSans-Regular',
+                  color: Color.colorBlack,
+                }}
+                placeholder="Doe"
+                placeholderTextColor="#A0A0A0"
+                autoCapitalize="words"
+                value={lastName}
+                onChangeText={(text) => {
+                  setLastName(text);
                   if (error) clearError();
                 }}
                 editable={!loading}
@@ -411,38 +454,67 @@ const SignupScreen = ({ navigation }: any) => {
               <View style={{ flex: 1, height: 1, backgroundColor: '#E0E0E0' }} />
             </View>
 
-            {/* Google Sign-In Button */}
-            <TouchableOpacity
-              onPress={handleGoogleSignIn}
-              disabled={loading}
-              activeOpacity={0.8}
-              style={{
-                marginBottom: 24,
-                opacity: loading ? 0.6 : 1,
-              }}>
+            {/* Google Sign-In Button - Only show if available */}
+            {googleSignInAvailable && (
+              <TouchableOpacity
+                onPress={handleGoogleSignIn}
+                disabled={loading}
+                activeOpacity={0.8}
+                style={{
+                  marginBottom: 12,
+                  opacity: loading ? 0.6 : 1,
+                }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: Color.colorWhite,
+                    borderWidth: 1,
+                    borderColor: '#E0E0E0',
+                    borderRadius: 10,
+                    paddingVertical: 14,
+                    gap: 8,
+                  }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: Color.colorBlack,
+                      fontFamily: 'InstrumentSans-Bold',
+                      fontWeight: '600',
+                    }}>
+                    Sign up with Google
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {/* Info message for Expo Go users */}
+            {!googleSignInAvailable && (
               <View
                 style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: Color.colorWhite,
-                  borderWidth: 1,
-                  borderColor: '#E0E0E0',
-                  borderRadius: 10,
-                  paddingVertical: 14,
-                  gap: 8,
+                  backgroundColor: '#FFF3CD',
+                  borderLeftWidth: 4,
+                  borderLeftColor: '#FFC107',
+                  paddingHorizontal: 12,
+                  paddingVertical: 10,
+                  borderRadius: 8,
+                  marginBottom: 20,
                 }}>
                 <Text
                   style={{
-                    fontSize: 16,
-                    color: Color.colorBlack,
-                    fontFamily: 'InstrumentSans-Bold',
-                    fontWeight: '600',
+                    color: '#856404',
+                    fontSize: 12,
+                    fontFamily: 'InstrumentSans-Regular',
+                    lineHeight: 16,
                   }}>
-                  Sign up with Google
+                  Google Sign-In requires building the app. Use email/password signup for now, or run: {"\n"}
+                  <Text style={{ fontFamily: 'InstrumentSans-Bold', fontWeight: '600' }}>
+                    expo prebuild {"&&"} npm run build:ios/android
+                  </Text>
                 </Text>
               </View>
-            </TouchableOpacity>
+            )}
 
             {/* Login Link */}
             <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 4 }}>

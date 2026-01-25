@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,18 +8,23 @@ import {
   Platform,
   ActivityIndicator,
   ScrollView,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { EyeIcon, EyeOffIcon, Mail } from 'lucide-react-native';
-import * as Haptics from 'expo-haptics';
-import { Color } from '../../constants/GlobalStyles';
-import { useAuthStore } from '../../store/authStore';
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { EyeIcon, EyeOffIcon } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
+import { Color } from "../../constants/GlobalStyles";
+import { useAuthStore, checkGoogleSignInAvailable } from "../../store/authStore";
 
 const LoginScreen = ({ navigation }: any) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [googleSignInAvailable, setGoogleSignInAvailable] = useState(false);
   const { login, googleSignIn, loading, error, clearError } = useAuthStore();
+
+  useEffect(() => {
+    setGoogleSignInAvailable(checkGoogleSignInAvailable());
+  }, []);
 
   const isValidEmail = (e: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -52,7 +57,7 @@ const LoginScreen = ({ navigation }: any) => {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1, backgroundColor: Color.colorSnow }}>
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
@@ -60,7 +65,7 @@ const LoginScreen = ({ navigation }: any) => {
         <View style={{ flex: 1 }}>
           {/* Orange Gradient Header */}
           <LinearGradient
-            colors={['#fb6322', '#f79971']}
+            colors={["#fb6322", "#f79971"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{
@@ -71,9 +76,9 @@ const LoginScreen = ({ navigation }: any) => {
             <Text
               style={{
                 fontSize: 32,
-                fontWeight: '700',
+                fontWeight: "700",
                 color: Color.colorWhite,
-                fontFamily: 'InstrumentSans-Bold',
+                fontFamily: "InstrumentSans-Bold",
                 marginBottom: 8,
               }}>
               Welcome Back!
@@ -82,8 +87,8 @@ const LoginScreen = ({ navigation }: any) => {
               style={{
                 fontSize: 16,
                 color: Color.colorWhite,
-                fontFamily: 'InstrumentSans-Regular',
-                fontWeight: '400',
+                fontFamily: "InstrumentSans-Regular",
+                fontWeight: "400",
                 opacity: 0.9,
               }}>
               Log in to continue your journey
@@ -102,9 +107,9 @@ const LoginScreen = ({ navigation }: any) => {
             {error && (
               <View
                 style={{
-                  backgroundColor: '#ffebee',
+                  backgroundColor: "#ffebee",
                   borderLeftWidth: 4,
-                  borderLeftColor: '#e74c3c',
+                  borderLeftColor: "#e74c3c",
                   paddingHorizontal: 12,
                   paddingVertical: 10,
                   borderRadius: 8,
@@ -112,9 +117,9 @@ const LoginScreen = ({ navigation }: any) => {
                 }}>
                 <Text
                   style={{
-                    color: '#c0392b',
+                    color: "#c0392b",
                     fontSize: 14,
-                    fontFamily: 'InstrumentSans-Regular',
+                    fontFamily: "InstrumentSans-Regular",
                   }}>
                   {error}
                 </Text>
@@ -126,9 +131,9 @@ const LoginScreen = ({ navigation }: any) => {
               <Text
                 style={{
                   fontSize: 14,
-                  fontWeight: '600',
+                  fontWeight: "600",
                   color: Color.colorBlack,
-                  fontFamily: 'InstrumentSans-Bold',
+                  fontFamily: "InstrumentSans-Bold",
                   marginBottom: 8,
                 }}>
                 Email Address
@@ -137,12 +142,12 @@ const LoginScreen = ({ navigation }: any) => {
                 style={{
                   backgroundColor: Color.colorWhite,
                   borderWidth: 1,
-                  borderColor: error ? '#e74c3c' : '#E0E0E0',
+                  borderColor: error ? "#e74c3c" : "#E0E0E0",
                   borderRadius: 10,
                   paddingHorizontal: 16,
                   paddingVertical: 12,
                   fontSize: 16,
-                  fontFamily: 'InstrumentSans-Regular',
+                  fontFamily: "InstrumentSans-Regular",
                   color: Color.colorBlack,
                 }}
                 placeholder="you@example.com"
@@ -163,20 +168,20 @@ const LoginScreen = ({ navigation }: any) => {
               <Text
                 style={{
                   fontSize: 14,
-                  fontWeight: '600',
+                  fontWeight: "600",
                   color: Color.colorBlack,
-                  fontFamily: 'InstrumentSans-Bold',
+                  fontFamily: "InstrumentSans-Bold",
                   marginBottom: 8,
                 }}>
                 Password
               </Text>
               <View
                 style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
+                  flexDirection: "row",
+                  alignItems: "center",
                   backgroundColor: Color.colorWhite,
                   borderWidth: 1,
-                  borderColor: error ? '#e74c3c' : '#E0E0E0',
+                  borderColor: error ? "#e74c3c" : "#E0E0E0",
                   borderRadius: 10,
                   paddingHorizontal: 16,
                 }}>
@@ -185,7 +190,7 @@ const LoginScreen = ({ navigation }: any) => {
                     flex: 1,
                     paddingVertical: 12,
                     fontSize: 16,
-                    fontFamily: 'InstrumentSans-Regular',
+                    fontFamily: "InstrumentSans-Regular",
                     color: Color.colorBlack,
                   }}
                   placeholder="••••••••"
@@ -212,16 +217,16 @@ const LoginScreen = ({ navigation }: any) => {
 
             {/* Forgot Password Link */}
             <TouchableOpacity
-              onPress={() => navigation.navigate('ForgotPassword')}
+              onPress={() => navigation.navigate("ForgotPassword")}
               disabled={loading}
               style={{ marginBottom: 24 }}>
               <Text
                 style={{
-                  textAlign: 'right',
-                  color: '#fb6322',
+                  textAlign: "right",
+                  color: "#fb6322",
                   fontSize: 14,
-                  fontFamily: 'InstrumentSans-Bold',
-                  fontWeight: '600',
+                  fontFamily: "InstrumentSans-Bold",
+                  fontWeight: "600",
                 }}>
                 Forgot Password?
               </Text>
@@ -237,13 +242,13 @@ const LoginScreen = ({ navigation }: any) => {
                 opacity: canSubmit ? 1 : 0.5,
               }}>
               <LinearGradient
-                colors={['#fb6322', '#f79971']}
+                colors={["#fb6322", "#f79971"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={{
                   borderRadius: 10,
                   paddingVertical: 14,
-                  alignItems: 'center',
+                  alignItems: "center",
                 }}>
                 {loading ? (
                   <ActivityIndicator size="small" color={Color.colorWhite} />
@@ -252,8 +257,8 @@ const LoginScreen = ({ navigation }: any) => {
                     style={{
                       color: Color.colorWhite,
                       fontSize: 16,
-                      fontFamily: 'InstrumentSans-Bold',
-                      fontWeight: '700',
+                      fontFamily: "InstrumentSans-Bold",
+                      fontWeight: "700",
                     }}>
                     LOG IN
                   </Text>
@@ -264,75 +269,113 @@ const LoginScreen = ({ navigation }: any) => {
             {/* Divider */}
             <View
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
+                flexDirection: "row",
+                alignItems: "center",
                 marginVertical: 24,
                 gap: 12,
               }}>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#E0E0E0' }} />
+              <View
+                style={{ flex: 1, height: 1, backgroundColor: "#E0E0E0" }}
+              />
               <Text
                 style={{
                   fontSize: 12,
-                  color: '#A0A0A0',
-                  fontFamily: 'InstrumentSans-Regular',
+                  color: "#A0A0A0",
+                  fontFamily: "InstrumentSans-Regular",
                 }}>
                 or continue with
               </Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#E0E0E0' }} />
+              <View
+                style={{ flex: 1, height: 1, backgroundColor: "#E0E0E0" }}
+              />
             </View>
 
-            {/* Google Sign-In Button */}
-            <TouchableOpacity
-              onPress={handleGoogleSignIn}
-              disabled={loading}
-              activeOpacity={0.8}
-              style={{
-                marginBottom: 24,
-                opacity: loading ? 0.6 : 1,
-              }}>
+            {/* Google Sign-In Button - Only show if available */}
+            {googleSignInAvailable && (
+              <TouchableOpacity
+                onPress={handleGoogleSignIn}
+                disabled={loading}
+                activeOpacity={0.8}
+                style={{
+                  marginBottom: 12,
+                  opacity: loading ? 0.6 : 1,
+                }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: Color.colorWhite,
+                    borderWidth: 1,
+                    borderColor: "#E0E0E0",
+                    borderRadius: 10,
+                    paddingVertical: 14,
+                    gap: 8,
+                  }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: Color.colorBlack,
+                      fontFamily: "InstrumentSans-Bold",
+                      fontWeight: "600",
+                    }}>
+                    Sign in with Google
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {/* Info message for Expo Go users */}
+            {!googleSignInAvailable && (
               <View
                 style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: Color.colorWhite,
-                  borderWidth: 1,
-                  borderColor: '#E0E0E0',
-                  borderRadius: 10,
-                  paddingVertical: 14,
-                  gap: 8,
+                  backgroundColor: "#FFF3CD",
+                  borderLeftWidth: 4,
+                  borderLeftColor: "#FFC107",
+                  paddingHorizontal: 12,
+                  paddingVertical: 10,
+                  borderRadius: 8,
+                  marginBottom: 20,
                 }}>
                 <Text
                   style={{
-                    fontSize: 16,
-                    color: Color.colorBlack,
-                    fontFamily: 'InstrumentSans-Bold',
-                    fontWeight: '600',
+                    color: "#856404",
+                    fontSize: 12,
+                    fontFamily: "InstrumentSans-Regular",
+                    lineHeight: 16,
                   }}>
-                  Sign in with Google
+                  Google Sign-In requires building the app. Use email/password login for now, or run: {"\n"}
+                  <Text style={{ fontFamily: "InstrumentSans-Bold", fontWeight: "600" }}>
+                    expo prebuild {"&&"} npm run build:ios/android
+                  </Text>
                 </Text>
               </View>
-            </TouchableOpacity>
+            )}
 
             {/* Sign Up Link */}
-            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 4 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                gap: 4,
+              }}>
               <Text
                 style={{
                   fontSize: 14,
-                  color: '#A0A0A0',
-                  fontFamily: 'InstrumentSans-Regular',
+                  color: "#A0A0A0",
+                  fontFamily: "InstrumentSans-Regular",
                 }}>
                 Don't have an account?
               </Text>
               <TouchableOpacity
-                onPress={() => navigation.navigate('Signup')}
+                onPress={() => navigation.navigate("Signup")}
                 disabled={loading}>
                 <Text
                   style={{
                     fontSize: 14,
-                    color: '#fb6322',
-                    fontFamily: 'InstrumentSans-Bold',
-                    fontWeight: '600',
+                    color: "#fb6322",
+                    fontFamily: "InstrumentSans-Bold",
+                    fontWeight: "600",
                   }}>
                   Sign Up
                 </Text>
