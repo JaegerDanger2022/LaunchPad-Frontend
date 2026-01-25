@@ -54,7 +54,7 @@ const HomeScreen = ({
   ];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Color.colorWhite }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Color.colorSnow }}>
       <TopNavbar title="Ready to win, Kyla-Marie?" />
       <BottomNavbar />
       <ScrollView

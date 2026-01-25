@@ -15,7 +15,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title }) => {
         alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 11,
-        paddingTop: 25,
+        paddingTop: 50,
         paddingBottom: 15,
         backgroundColor: Color.colorSnow,
       }}>
