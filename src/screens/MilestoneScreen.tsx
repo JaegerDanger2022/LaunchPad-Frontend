@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -11,16 +11,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path } from "react-native-svg";
 import { Color } from "../constants/GlobalStyles";
+import { useAppStore } from "../store/appStore";
 
 const MilestoneScreen = ({
   onNavigate,
 }: {
   onNavigate: (screen: string) => void;
 }) => {
-  const [completedSteps, setCompletedSteps] = useState(0);
+  const completedSteps = useAppStore((state) => state.completedSteps);
+  const setCompletedSteps = useAppStore((state) => state.setCompletedSteps);
   const slideAnim = useRef(new Animated.Value(1000)).current;
   const dragY = useRef(new Animated.Value(0)).current;
-  const [dragAmount, setDragAmount] = useState(0);
+  const dragAmount = useRef(0).current;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -31,7 +33,6 @@ const MilestoneScreen = ({
           // Only allow downward drag
           const newDrag = Math.min(gestureState.dy, 100);
           dragY.setValue(newDrag);
-          setDragAmount(newDrag);
         }
       },
       onPanResponderRelease: (_evt, gestureState) => {
@@ -46,7 +47,6 @@ const MilestoneScreen = ({
             friction: 10,
             useNativeDriver: true,
           }).start();
-          setDragAmount(0);
         }
       },
     }),
@@ -74,7 +74,7 @@ const MilestoneScreen = ({
 
   const handlePress = () => {
     if (completedSteps < 3) {
-      setCompletedSteps((prev) => prev + 1);
+      setCompletedSteps(completedSteps + 1);
     }
   };
 

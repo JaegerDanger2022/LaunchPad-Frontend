@@ -1,11 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
 import HomeScreen from './src/screens/HomeScreen';
 import MilestoneScreen from './src/screens/MilestoneScreen';
 import DreamPage from './src/screens/DreamPage';
+import { useAppStore } from './src/store/appStore';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState('Home');
+  const currentScreen = useAppStore((state) => state.currentScreen);
+  const setCurrentScreen = useAppStore((state) => state.setCurrentScreen);
 
   return (
     <>

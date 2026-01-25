@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -38,20 +38,23 @@ const HomeScreen = ({
     }).start();
   }, [activeTab, fadeAnim]);
 
-  const goalCardsData: GoalCardData[] = [
-    {
-      title: "I want to start a podcast about tech careers",
-      bgImage: require("../assets/images/goal-podcast.png"),
-      bgColor: Color.colorBurlywood,
-      progressColor: "#6B9BD1",
-    },
-    {
-      title: "I want to visit the bahamas",
-      bgImage: require("../assets/images/goal-bahamas.png"),
-      bgColor: Color.colorCadetblue,
-      progressColor: "#6dc0c3",
-    },
-  ];
+  const goalCardsData: GoalCardData[] = useMemo(
+    () => [
+      {
+        title: "I want to start a podcast about tech careers",
+        bgImage: require("../assets/images/goal-podcast.png"),
+        bgColor: Color.colorBurlywood,
+        progressColor: "#6B9BD1",
+      },
+      {
+        title: "I want to visit the bahamas",
+        bgImage: require("../assets/images/goal-bahamas.png"),
+        bgColor: Color.colorCadetblue,
+        progressColor: "#6dc0c3",
+      },
+    ],
+    []
+  );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Color.colorSnow }}>
