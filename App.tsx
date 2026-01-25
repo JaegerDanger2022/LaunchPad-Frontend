@@ -1,11 +1,42 @@
 import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer, NavigationProp } from '@react-navigation/native';
+import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import HomeScreen from './src/screens/HomeScreen';
 import MilestoneScreen from './src/screens/MilestoneScreen';
 import DreamPage from './src/screens/DreamPage';
 
-const Stack = createNativeStackNavigator();
+export type RootStackParamList = {
+  Home: undefined;
+  Milestone: undefined;
+  Dream: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+// Wrapper components that accept navigation as a prop
+const HomeScreenWrapper = ({ navigation }: any) => (
+  <HomeScreen onNavigate={(screen) => navigation.navigate(screen as keyof RootStackParamList)} />
+);
+
+const MilestoneScreenWrapper = ({ navigation }: any) => (
+  <MilestoneScreen onNavigate={(screen) => {
+    if (screen === 'Home') {
+      navigation.goBack();
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList);
+    }
+  }} />
+);
+
+const DreamPageWrapper = ({ navigation }: any) => (
+  <DreamPage onNavigate={(screen) => {
+    if (screen === 'Home') {
+      navigation.goBack();
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList);
+    }
+  }} />
+);
 
 export default function App() {
   return (
@@ -16,14 +47,14 @@ export default function App() {
         }}>
         <Stack.Screen
           name="Home"
-          component={HomeScreen}
+          component={HomeScreenWrapper}
           options={{
             headerShown: false,
           }}
         />
         <Stack.Screen
           name="Milestone"
-          component={MilestoneScreen}
+          component={MilestoneScreenWrapper}
           options={{
             presentation: 'transparentModal',
             headerShown: false,
@@ -32,7 +63,7 @@ export default function App() {
         />
         <Stack.Screen
           name="Dream"
-          component={DreamPage}
+          component={DreamPageWrapper}
           options={{
             headerShown: false,
           }}
