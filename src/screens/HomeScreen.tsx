@@ -1,6 +1,13 @@
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
-import { View, Text, ScrollView, Image, Animated, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  Animated,
+  TouchableOpacity,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Color } from "../constants/GlobalStyles";
@@ -15,7 +22,11 @@ import { TopNavbar } from "../components/TopNavbar";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { TabBar, type TabType } from "../components/TabBar";
 
-const HomeScreen = ({ onNavigate }) => {
+const HomeScreen = ({
+  onNavigate,
+}: {
+  onNavigate: (screen: string) => void;
+}) => {
   const [activeTab, setActiveTab] = useState<TabType>("recents");
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -47,7 +58,7 @@ const HomeScreen = ({ onNavigate }) => {
       <TopNavbar title="Ready to win, Kyla-Marie?" />
       <BottomNavbar />
       <ScrollView
-        style={{ flex: 1, paddingTop: 86, paddingBottom: 100 }}
+        style={{ flex: 1, paddingTop: 120, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}>
         <View
           style={{
@@ -176,7 +187,7 @@ const HomeScreen = ({ onNavigate }) => {
                       alignItems: "center",
                       justifyContent: "center",
                     }}>
-                    <ClockIcon size={20} color="#000" />
+                    <ClockIcon size={20} color="#a29f9b" />
                   </View>
                   <View
                     style={{
