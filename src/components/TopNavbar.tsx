@@ -11,18 +11,12 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title }) => {
   return (
     <View
       style={{
-        position: "absolute",
-        top: 30,
-        left: 0,
-        right: 0,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
         paddingHorizontal: 11,
         paddingTop: 25,
-        paddingBottom: 0,
-        height: 86,
-        zIndex: 20,
+        paddingBottom: 15,
         backgroundColor: Color.colorSnow,
       }}>
       <BellIcon size={30} color={Color.colorBlack} />
