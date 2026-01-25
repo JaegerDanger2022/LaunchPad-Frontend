@@ -58,7 +58,7 @@ const HomeScreen = ({
       <TopNavbar title="Ready to win, Kyla-Marie?" />
       <BottomNavbar />
       <ScrollView
-        style={{ flex: 1, paddingTop: 120, paddingBottom: 100 }}
+        style={{ flex: 1, paddingTop: 86, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}>
         <View
           style={{

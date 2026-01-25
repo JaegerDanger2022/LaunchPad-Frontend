@@ -23,7 +23,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title }) => {
         paddingBottom: 0,
         height: 86,
         zIndex: 20,
-        backgroundColor: Color.colorWhite,
+        backgroundColor: Color.colorSnow,
       }}>
       <BellIcon size={30} color={Color.colorBlack} />
       <View

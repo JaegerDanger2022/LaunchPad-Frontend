@@ -18,9 +18,9 @@ export const BottomNavbar: React.FC = () => {
         alignItems: "center",
         borderTopRightRadius: 40,
         borderTopLeftRadius: 40,
-        backgroundColor: Color.colorWhite,
+        backgroundColor: Color.colorSnow,
         borderWidth: 1,
-        borderColor: Color.colorBlack,
+        borderColor: Color.colorSnow,
         borderStyle: "solid",
         gap: 20,
         zIndex: 20,
@@ -56,7 +56,7 @@ export const BottomNavbar: React.FC = () => {
       </View>
 
       {/* Inactive Home Icon */}
-      <HomeIcon size={50} color={Color.colorBlack} />
+      {/* <HomeIcon size={50} color={Color.colorBlack} /> */}
     </View>
   );
 };
