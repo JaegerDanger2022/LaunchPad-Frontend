@@ -9,6 +9,7 @@ import {
   Dimensions,
   PanResponder,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Color } from "../constants/GlobalStyles";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -26,11 +27,8 @@ interface SubtaskCard {
   image: any;
 }
 
-const DreamPage = ({
-  onNavigate,
-}: {
-  onNavigate: (screen: string) => void;
-}) => {
+const DreamPage = () => {
+  const navigation = useNavigation();
   const goalTitle = "I want to visit the bahamas";
 
   // Animated values for elastic header
@@ -52,7 +50,7 @@ const DreamPage = ({
       onPanResponderRelease: (_evt, gestureState) => {
         // If dragged more than 50px down, close the screen
         if (gestureState.dy > 50) {
-          onNavigate("Home");
+          navigation.goBack();
         } else {
           // Spring back
           Animated.spring(dragY, {
@@ -130,6 +128,7 @@ const DreamPage = ({
             }}>
             {/* Back Button */}
             <TouchableOpacity
+              onPress={() => navigation.goBack()}
               style={{
                 width: 30,
                 height: 30,

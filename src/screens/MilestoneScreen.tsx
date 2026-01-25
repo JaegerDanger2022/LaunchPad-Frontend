@@ -7,17 +7,15 @@ import {
   Animated,
   PanResponder,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path } from "react-native-svg";
 import { Color } from "../constants/GlobalStyles";
 import { useAppStore } from "../store/appStore";
 
-const MilestoneScreen = ({
-  onNavigate,
-}: {
-  onNavigate: (screen: string) => void;
-}) => {
+const MilestoneScreen = () => {
+  const navigation = useNavigation();
   const completedSteps = useAppStore((state) => state.completedSteps);
   const setCompletedSteps = useAppStore((state) => state.setCompletedSteps);
   const slideAnim = useRef(new Animated.Value(1000)).current;
@@ -68,7 +66,7 @@ const MilestoneScreen = ({
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
-      onNavigate("Home");
+      navigation.goBack();
     });
   };
 
