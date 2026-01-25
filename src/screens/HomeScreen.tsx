@@ -3,7 +3,6 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import {
   View,
   Text,
-  ScrollView,
   Image,
   Animated,
   TouchableOpacity,
@@ -31,6 +30,7 @@ const HomeScreen = ({
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const communityFadeAnim = useRef(new Animated.Value(0)).current;
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Fade out and slide down
@@ -61,6 +61,23 @@ const HomeScreen = ({
     }).start();
   }, [communityFadeAnim]);
 
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    { useNativeDriver: false }
+  );
+
+  const heroOpacity = scrollY.interpolate({
+    inputRange: [0, 150],
+    outputRange: [1, 0.5],
+    extrapolate: 'clamp',
+  });
+
+  const heroScale = scrollY.interpolate({
+    inputRange: [0, 150],
+    outputRange: [1, 0.95],
+    extrapolate: 'clamp',
+  });
+
   const goalCardsData: GoalCardData[] = useMemo(
     () => [
       {
@@ -83,7 +100,9 @@ const HomeScreen = ({
     <SafeAreaView style={{ flex: 1, backgroundColor: Color.colorSnow }}>
       <TopNavbar title="Ready to win, Kyla-Marie?" />
       <BottomNavbar />
-      <ScrollView
+      <Animated.ScrollView
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         style={{ flex: 1, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}>
         <View
@@ -106,7 +125,7 @@ const HomeScreen = ({
           />
 
           {/*  Hero Card Section */}
-          <View
+          <Animated.View
             style={{
               flexDirection: "column",
               marginHorizontal: 37,
@@ -115,6 +134,8 @@ const HomeScreen = ({
               borderRadius: 35,
               overflow: "hidden",
               zIndex: 10,
+              opacity: heroOpacity,
+              transform: [{ scale: heroScale }],
             }}>
             {/* Hero Background Image */}
             <Image
@@ -328,7 +349,7 @@ const HomeScreen = ({
                 </View>
               </TouchableOpacity>
             </LinearGradient>
-          </View>
+          </Animated.View>
 
           {/* Recents and Favorites Section */}
           <View
@@ -453,7 +474,7 @@ const HomeScreen = ({
             </View>
           </Animated.View>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 };
