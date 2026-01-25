@@ -49,15 +49,20 @@ const DreamPage = ({
           setDragAmount(newDrag);
         }
       },
-      onPanResponderRelease: () => {
-        // Spring back
-        Animated.spring(dragY, {
-          toValue: 0,
-          tension: 40,
-          friction: 10,
-          useNativeDriver: false,
-        }).start();
-        setDragAmount(0);
+      onPanResponderRelease: (_evt, gestureState) => {
+        // If dragged more than 50px down, close the screen
+        if (gestureState.dy > 50) {
+          onNavigate("Home");
+        } else {
+          // Spring back
+          Animated.spring(dragY, {
+            toValue: 0,
+            tension: 40,
+            friction: 10,
+            useNativeDriver: false,
+          }).start();
+          setDragAmount(0);
+        }
       },
     }),
   ).current;
