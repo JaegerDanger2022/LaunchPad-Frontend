@@ -21,10 +21,9 @@ export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.8}
-      style={{ flex: 1 }}>
+      style={{ width: '100%' }}>
       <View
       style={{
-        flex: 1,
         height: 228,
         borderRadius: 10,
         overflow: 'hidden',

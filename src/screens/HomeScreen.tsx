@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useState, useEffect, useRef, useMemo } from "react";
-import { View, Text, Image, Animated, TouchableOpacity } from "react-native";
+import { View, Text, Image, Animated, TouchableOpacity, FlatList, useWindowDimensions } from "react-native";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -32,10 +32,14 @@ const HomeScreen = ({
   const communityFadeAnim = useRef(new Animated.Value(0)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
   const bottomEffectAnim = useRef(new Animated.Value(0)).current;
+  const { width } = useWindowDimensions();
 
   // Get user data from auth store
   const { userData } = useAuthStore();
   const hasDreams = userData?.dreams && Array.isArray(userData.dreams) && userData.dreams.length > 0;
+
+  // Calculate column width (2 columns with 17px margins on each side and 14px gap)
+  const columnWidth = (width - 34 - 14) / 2;
 
   useEffect(() => {
     // Fade out and slide down
@@ -432,20 +436,23 @@ const HomeScreen = ({
                 transform: [{ translateY: slideAnim }],
               }}>
               {activeTab === "recents" ? (
-                /* Goal Cards Row */
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 14,
-                  }}>
-                  {dreamCardsData.map((card: GoalCardData, index: number) => (
-                    <GoalCard
-                      key={index}
-                      data={card}
-                      onPress={() => onNavigate("Dream")}
-                    />
-                  ))}
-                </View>
+                /* Goal Cards Grid - 2 columns */
+                <FlatList
+                  data={dreamCardsData}
+                  renderItem={({ item }) => (
+                    <View style={{ width: columnWidth }}>
+                      <GoalCard
+                        data={item}
+                        onPress={() => onNavigate("Dream")}
+                      />
+                    </View>
+                  )}
+                  keyExtractor={(_, index) => index.toString()}
+                  numColumns={2}
+                  columnWrapperStyle={{ gap: 14 }}
+                  scrollEnabled={false}
+                  nestedScrollEnabled={false}
+                />
               ) : (
                 /* No Inspiration Yet Placeholder */
                 <View
