@@ -17,6 +17,7 @@ import { BottomNavbar } from "../components/BottomNavbar";
 import { TabBar, type TabType } from "../components/TabBar";
 import { EmptyDreamsState } from "../components/EmptyDreamsState";
 import { DreamLoadingScreen } from "../components/DreamLoadingScreen";
+import { SkeletonDreamCards } from "../components/SkeletonDreamCards";
 import { useAuthStore } from "../store/authStore";
 
 const HomeScreen = ({
@@ -144,7 +145,7 @@ const HomeScreen = ({
     [userData?.dreams],
   );
 
-  // If user has no dreams, show only the empty dreams state with navbars
+  // If user has no dreams, show skeleton loaders while fetching
   if (!hasDreams) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: Color.colorSnow }}>
@@ -153,10 +154,7 @@ const HomeScreen = ({
         ) : (
           <>
             <TopNavbar name="Ready to win?" />
-            <EmptyDreamsState
-              onDreamCreating={() => setIsCreatingDream(true)}
-              onDreamCreated={() => setIsCreatingDream(false)}
-            />
+            <SkeletonDreamCards />
             <BottomNavbar />
           </>
         )}
