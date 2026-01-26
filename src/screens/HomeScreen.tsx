@@ -3,9 +3,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import {
   View,
   Text,
-  Image,
   Animated,
-  TouchableOpacity,
   FlatList,
   useWindowDimensions,
 } from "react-native";
@@ -13,13 +11,9 @@ import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
-import {
-  ClockIcon,
-  LightningIcon,
-  ArrowRightIcon,
-  AvatarIcon,
-} from "../components/icons/SVGIcons";
+import { AvatarIcon } from "../components/icons/SVGIcons";
 import { GoalCard, type GoalCardData } from "../components/GoalCard";
+import { HeroCard } from "../components/HeroCard";
 import { TopNavbar } from "../components/TopNavbar";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { TabBar, type TabType } from "../components/TabBar";
@@ -204,232 +198,12 @@ const HomeScreen = ({
             }}
           />
 
-          {/*  Hero Card Section */}
-          <Animated.View
-            style={{
-              flexDirection: "column",
-              marginHorizontal: 37,
-              marginTop: 10,
-              marginBottom: 20,
-              borderRadius: 35,
-              overflow: "hidden",
-              zIndex: 10,
-              opacity: heroOpacity,
-              transform: [{ scale: heroScale }],
-            }}>
-            {/* Hero Background Image */}
-            <Image
-              source={require("../assets/images/hero-bg.png")}
-              style={{
-                width: "100%",
-                height: 184,
-                borderTopLeftRadius: 35,
-                borderTopRightRadius: 35,
-              }}
-            />
-
-            {/* Up Next Badge - Positioned absolutely over image */}
-            <View
-              style={{
-                position: "absolute",
-                top: 11,
-                left: 20,
-                height: 42,
-                width: 159,
-                zIndex: 5,
-              }}>
-              <LinearGradient
-                style={{
-                  backgroundColor: "transparent",
-                  borderRadius: 35,
-                  height: 42,
-                  width: 159,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-                locations={[0, 1]}
-                colors={[Color.colorOrangered, "#f79971"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}>
-                <Text
-                  style={{
-                    color: Color.colorWhite,
-                    fontFamily: "InstrumentSans-Bold",
-                    fontWeight: "700",
-                    fontSize: 20,
-                    textAlign: "center",
-                  }}>
-                  Up next
-                </Text>
-              </LinearGradient>
-            </View>
-
-            {/* Gradient Background for Bottom Section */}
-            <LinearGradient
-              style={{
-                width: "100%",
-                paddingHorizontal: 20,
-                paddingVertical: 15,
-                borderBottomLeftRadius: 35,
-                borderBottomRightRadius: 35,
-              }}
-              locations={[0, 1]}
-              colors={[themeColors.bg_secondary, themeColors.bg_secondary]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}>
-              {/* Task Title */}
-              <Text
-                style={{
-                  fontSize: 20,
-                  textAlign: "left",
-                  color: themeColors.text_primary,
-                  fontFamily: "InstrumentSans-Bold",
-                  fontWeight: "700",
-                  marginBottom: 12,
-                }}>
-                Seek feedback on pilot
-              </Text>
-
-              {/* Chips Row */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  gap: 15,
-                  marginBottom: 15,
-                }}>
-                {/* ETA / Time Chip */}
-                <View
-                  style={{
-                    backgroundColor: Color.colorDarkgray,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    borderRadius: 20,
-                    height: 32,
-                    width: 89,
-                    paddingHorizontal: 8,
-                  }}>
-                  <View
-                    style={{
-                      width: "30%",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}>
-                    <ClockIcon size={20} color="#a29f9b" />
-                  </View>
-                  <View
-                    style={{
-                      width: "70%",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}>
-                    <Text
-                      style={{
-                        color: Color.colorWhite,
-                        fontSize: 15,
-                        fontFamily: "InstrumentSans-Bold",
-                        fontWeight: "700",
-                      }}>
-                      20 min
-                    </Text>
-                  </View>
-                </View>
-
-                {/* XP Chip */}
-                <LinearGradient
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    borderRadius: 20,
-                    height: 32,
-                    width: 89,
-                    paddingHorizontal: 8,
-                  }}
-                  locations={[0.11, 1]}
-                  colors={["#bdf1cd", "#bdf1cd"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 0, y: 1 }}>
-                  <View
-                    style={{
-                      width: "30%",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}>
-                    <LightningIcon size={20} color="#ff9000" />
-                  </View>
-                  <View
-                    style={{
-                      width: "70%",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}>
-                    <Text
-                      style={{
-                        color: Color.colorDarkorange,
-                        fontSize: 15,
-                        fontFamily: "InstrumentSans-Bold",
-                        fontWeight: "700",
-                        textAlign: "center",
-                      }}>
-                      +65 XP
-                    </Text>
-                  </View>
-                </LinearGradient>
-              </View>
-
-              {/* Action Button */}
-              <TouchableOpacity
-                onPress={() => onNavigate("Milestone")}
-                activeOpacity={0.8}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    height: 50,
-                    borderRadius: 10,
-                    overflow: "hidden",
-                  }}>
-                  <LinearGradient
-                    style={{
-                      position: "absolute",
-                      width: "100%",
-                      height: "100%",
-                    }}
-                    locations={[0.38, 1]}
-                    colors={[Color.colorOrangered, "rgba(247, 153, 113, 0.86)"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                  />
-                  <View
-                    style={{
-                      flex: 0.7,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      zIndex: 1,
-                    }}>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        color: Color.colorWhite,
-                        fontFamily: "InstrumentSans-Bold",
-                        fontWeight: "700",
-                        textAlign: "center",
-                      }}>
-                      LET'S GOOO!
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      flex: 0.3,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      zIndex: 1,
-                    }}>
-                    <ArrowRightIcon size={20} color="#fff" />
-                  </View>
-                </View>
-              </TouchableOpacity>
-            </LinearGradient>
-          </Animated.View>
+          {/* Hero Card Section */}
+          <HeroCard
+            heroOpacity={heroOpacity}
+            heroScale={heroScale}
+            onNavigate={onNavigate}
+          />
 
           {/* Recents and Favorites Section */}
           <View

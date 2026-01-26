@@ -9,11 +9,12 @@ import {
   PanResponder,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Color } from "../constants/GlobalStyles";
+import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { ChevronLeft } from "lucide-react-native";
 import { Badge } from "../components/common/Badge";
+import { useThemeStore } from "../store/themeStore";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -31,6 +32,8 @@ const DreamPage = ({
 }: {
   onNavigate: (screen: string) => void;
 }) => {
+  const { theme } = useThemeStore();
+  const themeColors = getThemeColors(theme);
   // Animated values for elastic header and scroll
   const dragY = useRef(new Animated.Value(0)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -148,7 +151,7 @@ const DreamPage = ({
   ];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#1a1a2e" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
       {/* Back Button - Fixed Position with Semi-transparent Background */}
       <View
         style={{

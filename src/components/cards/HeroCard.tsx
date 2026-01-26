@@ -1,8 +1,8 @@
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors } from '../../constants/Colors';
-import { Badge } from '../common/Badge';
-import { Button } from '../common/Button';
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Colors } from "../../constants/Colors";
+import { Badge } from "../common/Badge";
+import { Button } from "../common/Button";
 
 interface HeroCardProps {
   badge: string;
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     backgroundColor: Colors.cardBg,
     borderRadius: 20,
-    overflow: 'hidden',
+    overflow: "hidden",
     shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -77,15 +77,15 @@ const styles = StyleSheet.create({
   imageContainer: {
     height: 140,
     backgroundColor: Colors.cardBgLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
   },
   imagePlaceholder: {
     fontSize: 60,
   },
   badge: {
-    position: 'absolute',
+    position: "absolute",
     top: 12,
     left: 12,
     backgroundColor: Colors.white,
@@ -98,18 +98,18 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.textPrimary,
     lineHeight: 22,
   },
   metricsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
     marginBottom: 8,
   },
   metric: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     backgroundColor: Colors.white,
     paddingHorizontal: 10,
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   },
   metricText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.primary,
   },
   xpMetric: {
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   },
   xpText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.success,
   },
   xpIcon: {
