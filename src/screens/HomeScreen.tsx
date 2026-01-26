@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { AvatarIcon } from "../components/icons/SVGIcons";
 import { GoalCard, type GoalCardData } from "../components/GoalCard";
-import { HeroCard } from "../components/HeroCard";
+import { HeroCard } from "../components/cards/HeroCard";
 import { TopNavbar } from "../components/TopNavbar";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { TabBar, type TabType } from "../components/TabBar";

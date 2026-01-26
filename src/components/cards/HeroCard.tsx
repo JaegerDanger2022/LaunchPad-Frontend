@@ -1,10 +1,23 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { Colors } from "../../constants/Colors";
-import { Badge } from "../common/Badge";
-import { Button } from "../common/Button";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  Animated,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import {
+  ClockIcon,
+  LightningIcon,
+  ArrowRightIcon,
+} from "./icons/SVGIcons";
+import { Color, getThemeColors } from "../constants/GlobalStyles";
+import { useThemeStore } from "../store/themeStore";
 
 interface HeroCardProps {
+  heroOpacity: Animated.AnimatedInterpolation<number>;
+  heroScale: Animated.AnimatedInterpolation<number>;
   badge: string;
   title: string;
   timeMinutes: number;
@@ -13,126 +26,242 @@ interface HeroCardProps {
 }
 
 export const HeroCard: React.FC<HeroCardProps> = ({
+  heroOpacity,
+  heroScale,
   badge,
   title,
   timeMinutes,
   xpPoints,
   onPress,
 }) => {
+  const { theme } = useThemeStore();
+  const themeColors = getThemeColors(theme);
+
   return (
-    <View style={styles.card}>
-      {/* Background Image Placeholder */}
-      <View style={styles.imageContainer}>
-        <Text style={styles.imagePlaceholder}>🎨</Text>
-        <Badge
-          text={badge}
-          backgroundColor={Colors.white}
-          textColor={Colors.primary}
-          style={styles.badge}
-        />
+    <Animated.View
+      style={{
+        flexDirection: "column",
+        marginHorizontal: 37,
+        marginTop: 10,
+        marginBottom: 20,
+        borderRadius: 35,
+        overflow: "hidden",
+        zIndex: 10,
+        opacity: heroOpacity,
+        transform: [{ scale: heroScale }],
+      }}>
+      {/* Hero Background Image */}
+      <Image
+        source={require("../assets/images/hero-bg.png")}
+        style={{
+          width: "100%",
+          height: 184,
+          borderTopLeftRadius: 35,
+          borderTopRightRadius: 35,
+        }}
+      />
+
+      {/* Up Next Badge - Positioned absolutely over image */}
+      <View
+        style={{
+          position: "absolute",
+          top: 11,
+          left: 20,
+          height: 42,
+          width: 159,
+          zIndex: 5,
+        }}>
+        <LinearGradient
+          style={{
+            backgroundColor: "transparent",
+            borderRadius: 35,
+            height: 42,
+            width: 159,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          locations={[0, 1]}
+          colors={[Color.colorOrangered, "#f79971"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}>
+          <Text
+            style={{
+              color: Color.colorWhite,
+              fontFamily: "InstrumentSans-Bold",
+              fontWeight: "700",
+              fontSize: 20,
+              textAlign: "center",
+            }}>
+            {badge}
+          </Text>
+        </LinearGradient>
       </View>
 
-      {/* Content */}
-      <View style={styles.content}>
-        <Text style={styles.title}>{title}</Text>
+      {/* Gradient Background for Bottom Section */}
+      <LinearGradient
+        style={{
+          width: "100%",
+          paddingHorizontal: 20,
+          paddingVertical: 15,
+          borderBottomLeftRadius: 35,
+          borderBottomRightRadius: 35,
+        }}
+        locations={[0, 1]}
+        colors={[themeColors.bg_secondary, themeColors.bg_secondary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}>
+        {/* Task Title */}
+        <Text
+          style={{
+            fontSize: 20,
+            textAlign: "left",
+            color: themeColors.text_primary,
+            fontFamily: "InstrumentSans-Bold",
+            fontWeight: "700",
+            marginBottom: 12,
+          }}>
+          {title}
+        </Text>
 
-        {/* Metrics */}
-        <View style={styles.metricsContainer}>
-          <View style={styles.metric}>
-            <Text style={styles.metricIcon}>⏱️</Text>
-            <Text style={styles.metricText}>{timeMinutes} min</Text>
+        {/* Chips Row */}
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 15,
+            marginBottom: 15,
+          }}>
+          {/* ETA / Time Chip */}
+          <View
+            style={{
+              backgroundColor: Color.colorDarkgray,
+              flexDirection: "row",
+              alignItems: "center",
+              borderRadius: 20,
+              height: 32,
+              width: 89,
+              paddingHorizontal: 8,
+            }}>
+            <View
+              style={{
+                width: "30%",
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+              <ClockIcon size={20} color="#a29f9b" />
+            </View>
+            <View
+              style={{
+                width: "70%",
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+              <Text
+                style={{
+                  color: Color.colorWhite,
+                  fontSize: 15,
+                  fontFamily: "InstrumentSans-Bold",
+                  fontWeight: "700",
+                }}>
+                {timeMinutes} min
+              </Text>
+            </View>
           </View>
-          <View style={[styles.metric, styles.xpMetric]}>
-            <Text style={styles.xpText}>+ {xpPoints} XP</Text>
-            <Text style={styles.xpIcon}>⚡</Text>
-          </View>
+
+          {/* XP Chip */}
+          <LinearGradient
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              borderRadius: 20,
+              height: 32,
+              width: 89,
+              paddingHorizontal: 8,
+            }}
+            locations={[0.11, 1]}
+            colors={["#bdf1cd", "#bdf1cd"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}>
+            <View
+              style={{
+                width: "30%",
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+              <LightningIcon size={20} color="#ff9000" />
+            </View>
+            <View
+              style={{
+                width: "70%",
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+              <Text
+                style={{
+                  color: Color.colorDarkorange,
+                  fontSize: 15,
+                  fontFamily: "InstrumentSans-Bold",
+                  fontWeight: "700",
+                  textAlign: "center",
+                }}>
+                +{xpPoints} XP
+              </Text>
+            </View>
+          </LinearGradient>
         </View>
 
-        {/* Button */}
-        <Button
-          title="LET'S GOOO!"
+        {/* Action Button */}
+        <TouchableOpacity
           onPress={onPress}
-          icon="→"
-          variant="primary"
-          fullWidth
-        />
-      </View>
-    </View>
+          activeOpacity={0.8}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              height: 50,
+              borderRadius: 10,
+              overflow: "hidden",
+            }}>
+            <LinearGradient
+              style={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+              }}
+              locations={[0.38, 1]}
+              colors={[Color.colorOrangered, "rgba(247, 153, 113, 0.86)"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            />
+            <View
+              style={{
+                flex: 0.7,
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 1,
+              }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  color: Color.colorWhite,
+                  fontFamily: "InstrumentSans-Bold",
+                  fontWeight: "700",
+                  textAlign: "center",
+                }}>
+                LET'S GOOO!
+              </Text>
+            </View>
+            <View
+              style={{
+                flex: 0.3,
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 1,
+              }}>
+              <ArrowRightIcon size={20} color="#fff" />
+            </View>
+          </View>
+        </TouchableOpacity>
+      </LinearGradient>
+    </Animated.View>
   );
 };
-
-const styles = StyleSheet.create({
-  card: {
-    marginHorizontal: 24,
-    marginVertical: 16,
-    backgroundColor: Colors.cardBg,
-    borderRadius: 20,
-    overflow: "hidden",
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  imageContainer: {
-    height: 140,
-    backgroundColor: Colors.cardBgLight,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-  },
-  imagePlaceholder: {
-    fontSize: 60,
-  },
-  badge: {
-    position: "absolute",
-    top: 12,
-    left: 12,
-    backgroundColor: Colors.white,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  content: {
-    padding: 20,
-    gap: 12,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: Colors.textPrimary,
-    lineHeight: 22,
-  },
-  metricsContainer: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 8,
-  },
-  metric: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: Colors.white,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  metricIcon: {
-    fontSize: 14,
-  },
-  metricText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: Colors.primary,
-  },
-  xpMetric: {
-    backgroundColor: Colors.successLight,
-  },
-  xpText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: Colors.success,
-  },
-  xpIcon: {
-    fontSize: 14,
-  },
-});
