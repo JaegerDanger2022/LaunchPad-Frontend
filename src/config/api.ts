@@ -40,26 +40,21 @@ export async function registerUserToDatabase(
     console.log(`Response status: ${response.status} ${response.statusText}`);
 
     if (!response.ok) {
-      let errorData;
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
       try {
-        errorData = await response.json();
-      } catch {
-        const text = await response.text();
-        console.error("Response body (text):", text);
-        throw new Error(
-          `HTTP ${response.status}: ${response.statusText} - ${text}`,
-        );
+        const errorData = await response.json();
+        console.error("Error response data:", errorData);
+        if (errorData.detail && Array.isArray(errorData.detail)) {
+          console.error("Validation errors:");
+          errorData.detail.forEach((err: any) => {
+            console.error(`  - Field: ${err.loc?.[1] || 'unknown'}, Message: ${err.msg}`);
+          });
+        }
+        errorMessage = errorData.message || errorMessage;
+      } catch (parseError) {
+        console.error("Could not parse error response as JSON");
       }
-      console.error("Error response data:", errorData);
-      if (errorData.detail && Array.isArray(errorData.detail)) {
-        console.error("Validation errors:");
-        errorData.detail.forEach((err: any) => {
-          console.error(`  - Field: ${err.loc?.[1] || 'unknown'}, Message: ${err.msg}`);
-        });
-      }
-      throw new Error(
-        errorData.message || `HTTP ${response.status}: ${response.statusText}`,
-      );
+      throw new Error(errorMessage);
     }
 
     const result = await response.json();
@@ -93,21 +88,16 @@ export async function fetchUserData(userId: string): Promise<UserData | null> {
         return null;
       }
 
-      let errorData;
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
       try {
-        errorData = await response.json();
-      } catch {
-        const text = await response.text();
-        console.error("Response body (text):", text);
-        throw new Error(
-          `HTTP ${response.status}: ${response.statusText} - ${text}`,
-        );
+        const errorData = await response.json();
+        console.error("Error response data:", errorData);
+        errorMessage = errorData.detail || errorMessage;
+      } catch (parseError) {
+        console.error("Could not parse error response as JSON");
       }
 
-      console.error("Error response data:", errorData);
-      throw new Error(
-        errorData.detail || `HTTP ${response.status}: ${response.statusText}`,
-      );
+      throw new Error(errorMessage);
     }
 
     const userData = await response.json();
@@ -160,26 +150,21 @@ export async function createDream(
     console.log(`Response status: ${response.status} ${response.statusText}`);
 
     if (!response.ok) {
-      let errorData;
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
       try {
-        errorData = await response.json();
-      } catch {
-        const text = await response.text();
-        console.error("Response body (text):", text);
-        throw new Error(
-          `HTTP ${response.status}: ${response.statusText} - ${text}`,
-        );
+        const errorData = await response.json();
+        console.error("Error response data:", errorData);
+        if (errorData.detail && Array.isArray(errorData.detail)) {
+          console.error("Validation errors:");
+          errorData.detail.forEach((err: any) => {
+            console.error(`  - Field: ${err.loc?.[1] || 'unknown'}, Message: ${err.msg}`);
+          });
+        }
+        errorMessage = errorData.message || errorMessage;
+      } catch (parseError) {
+        console.error("Could not parse error response as JSON");
       }
-      console.error("Error response data:", errorData);
-      if (errorData.detail && Array.isArray(errorData.detail)) {
-        console.error("Validation errors:");
-        errorData.detail.forEach((err: any) => {
-          console.error(`  - Field: ${err.loc?.[1] || 'unknown'}, Message: ${err.msg}`);
-        });
-      }
-      throw new Error(
-        errorData.message || `HTTP ${response.status}: ${response.statusText}`,
-      );
+      throw new Error(errorMessage);
     }
 
     const result = await response.json();
