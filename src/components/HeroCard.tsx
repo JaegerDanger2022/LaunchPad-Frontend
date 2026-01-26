@@ -16,15 +16,23 @@ import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { useThemeStore } from "../store/themeStore";
 
 interface HeroCardProps {
-  heroOpacity: Animated.AnimatedInterpolation;
-  heroScale: Animated.AnimatedInterpolation;
-  onNavigate: (screen: string) => void;
+  heroOpacity: Animated.AnimatedInterpolation<number>;
+  heroScale: Animated.AnimatedInterpolation<number>;
+  badge: string;
+  title: string;
+  timeMinutes: number;
+  xpPoints: number;
+  onPress: () => void;
 }
 
 export const HeroCard: React.FC<HeroCardProps> = ({
   heroOpacity,
   heroScale,
-  onNavigate,
+  badge,
+  title,
+  timeMinutes,
+  xpPoints,
+  onPress,
 }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
@@ -84,7 +92,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
               fontSize: 20,
               textAlign: "center",
             }}>
-            Up next
+            {badge}
           </Text>
         </LinearGradient>
       </View>
@@ -112,7 +120,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
             fontWeight: "700",
             marginBottom: 12,
           }}>
-          Seek feedback on pilot
+          {title}
         </Text>
 
         {/* Chips Row */}
@@ -154,7 +162,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
                   fontFamily: "InstrumentSans-Bold",
                   fontWeight: "700",
                 }}>
-                20 min
+                {timeMinutes} min
               </Text>
             </View>
           </View>
@@ -195,7 +203,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
                   fontWeight: "700",
                   textAlign: "center",
                 }}>
-                +65 XP
+                +{xpPoints} XP
               </Text>
             </View>
           </LinearGradient>
@@ -203,7 +211,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
 
         {/* Action Button */}
         <TouchableOpacity
-          onPress={() => onNavigate("Milestone")}
+          onPress={onPress}
           activeOpacity={0.8}>
           <View
             style={{

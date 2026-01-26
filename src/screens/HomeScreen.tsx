@@ -202,7 +202,11 @@ const HomeScreen = ({
           <HeroCard
             heroOpacity={heroOpacity}
             heroScale={heroScale}
-            onNavigate={onNavigate}
+            badge="Up next"
+            title="Seek feedback on pilot"
+            timeMinutes={20}
+            xpPoints={65}
+            onPress={() => onNavigate("Milestone")}
           />
 
           {/* Recents and Favorites Section */}
