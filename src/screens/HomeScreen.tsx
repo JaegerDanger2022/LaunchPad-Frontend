@@ -1,6 +1,14 @@
 import * as React from "react";
 import { useState, useEffect, useRef, useMemo } from "react";
-import { View, Text, Image, Animated, TouchableOpacity, FlatList, useWindowDimensions } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  Animated,
+  TouchableOpacity,
+  FlatList,
+  useWindowDimensions,
+} from "react-native";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -40,7 +48,10 @@ const HomeScreen = ({
   const { userData } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
-  const hasDreams = userData?.dreams && Array.isArray(userData.dreams) && userData.dreams.length > 0;
+  const hasDreams =
+    userData?.dreams &&
+    Array.isArray(userData.dreams) &&
+    userData.dreams.length > 0;
 
   // Calculate column width (2 columns with 17px margins on each side and 14px gap)
   const columnWidth = (width - 34 - 14) / 2;
@@ -128,30 +139,30 @@ const HomeScreen = ({
     try {
       return `data:image/jpeg;base64,${binaryData}`;
     } catch (error) {
-      console.error('Error converting binary to image:', error);
+      console.error("Error converting binary to image:", error);
       return null;
     }
   };
 
-  const dreamCardsData: GoalCardData[] = useMemo(
-    () => {
-      if (!userData?.dreams || !Array.isArray(userData.dreams)) {
-        return [];
-      }
-      return userData.dreams.map((dream: any) => ({
-        title: dream.dream || "",
-        bgImage: dream.dream_image_bytes ? { uri: convertBinaryToImage(dream.dream_image_bytes) } : require("../assets/images/goal-podcast.png"),
-        bgColor: dream.dream_card_bg || Color.colorBurlywood,
-        progressColor: "#6B9BD1",
-      }));
-    },
-    [userData?.dreams],
-  );
+  const dreamCardsData: GoalCardData[] = useMemo(() => {
+    if (!userData?.dreams || !Array.isArray(userData.dreams)) {
+      return [];
+    }
+    return userData.dreams.map((dream: any) => ({
+      title: dream.dream || "",
+      bgImage: dream.dream_image_bytes
+        ? { uri: convertBinaryToImage(dream.dream_image_bytes) }
+        : require("../assets/images/goal-podcast.png"),
+      bgColor: dream.dream_card_bg || Color.colorBurlywood,
+      progressColor: "#6B9BD1",
+    }));
+  }, [userData?.dreams]);
 
   // If user has no dreams, show skeleton loaders while fetching
   if (!hasDreams) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
         {isCreatingDream ? (
           <DreamLoadingScreen visible={isCreatingDream} />
         ) : (
@@ -187,7 +198,7 @@ const HomeScreen = ({
               position: "absolute",
               top: -9,
               left: -3,
-              backgroundColor: Color.colorSnow,
+              backgroundColor: themeColors.bg_primary,
               width: 442,
               height: 941,
             }}
@@ -263,7 +274,7 @@ const HomeScreen = ({
                 borderBottomRightRadius: 35,
               }}
               locations={[0, 1]}
-              colors={theme === "light" ? ["#f9f0e4", "#f9f0e4"] : ["#0D0E2B", "#0D0E2B"]}
+              colors={[themeColors.bg_secondary, themeColors.bg_secondary]}
               start={{ x: 0, y: 0 }}
               end={{ x: 0, y: 1 }}>
               {/* Task Title */}
@@ -568,7 +579,7 @@ const HomeScreen = ({
 
             {/* Card Content */}
             <LinearGradient
-              colors={theme === "light" ? ["#e0e6f3", "#f0f3ff"] : ["#1a1b3f", "#16172d"]}
+              colors={[themeColors.bg_secondary, themeColors.bg_secondary]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={{
@@ -578,7 +589,7 @@ const HomeScreen = ({
                 flexDirection: "column",
                 gap: 14,
                 borderWidth: 1,
-                borderColor: theme === "light" ? "rgba(180, 197, 253, 0.3)" : "rgba(180, 197, 253, 0.2)",
+                borderColor: themeColors.border,
                 overflow: "hidden",
               }}>
               {/* Avatar and User Info Row */}

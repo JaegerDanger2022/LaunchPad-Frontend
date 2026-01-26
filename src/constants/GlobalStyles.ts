@@ -42,7 +42,7 @@ export const LightTheme = {
 
 /* Dark Theme */
 export const DarkTheme = {
-  bg_primary: "#040726",
+  bg_primary: "#0e1450",
   bg_secondary: "#0D0E2B",
   text_primary: "#ffffff",
   text_secondary: "#b0b0b0",
@@ -51,8 +51,8 @@ export const DarkTheme = {
 };
 
 /* Theme helper */
-export const getThemeColors = (theme: 'light' | 'dark') => {
-  return theme === 'light' ? LightTheme : DarkTheme;
+export const getThemeColors = (theme: "light" | "dark") => {
+  return theme === "light" ? LightTheme : DarkTheme;
 };
 
 /* Border radiuses */
