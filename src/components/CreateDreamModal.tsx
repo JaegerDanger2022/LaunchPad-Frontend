@@ -14,7 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { X } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Color } from '../constants/GlobalStyles';
-import { createDream, updateDreamThreadId } from '../config/api';
+import { createDream } from '../config/api';
 import { useAuthStore } from '../store/authStore';
 
 interface CreateDreamModalProps {
