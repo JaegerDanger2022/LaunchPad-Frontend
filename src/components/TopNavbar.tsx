@@ -6,12 +6,15 @@ import { Color } from "../constants/GlobalStyles";
 import { useAuthStore } from "../store/authStore";
 
 interface TopNavbarProps {
-  title: string;
+  name?: string;
 }
 
-export const TopNavbar: React.FC<TopNavbarProps> = ({ title }) => {
+export const TopNavbar: React.FC<TopNavbarProps> = ({ name }) => {
   const [showLogout, setShowLogout] = useState(false);
-  const { logout } = useAuthStore();
+  const { logout, userData } = useAuthStore();
+
+  // Use userData.firstname if available, otherwise fall back to name prop
+  const displayName = userData?.firstname || name || "User";
 
   const handleLogout = () => {
     Alert.alert("Log Out", "Are you sure you want to log out?", [
@@ -56,7 +59,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title }) => {
             color: Color.colorBlack,
             flex: 1,
           }}>
-          {title}
+          {displayName}
         </Text>
       </View>
 

@@ -15,6 +15,9 @@ import { GoalCard, type GoalCardData } from "../components/GoalCard";
 import { TopNavbar } from "../components/TopNavbar";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { TabBar, type TabType } from "../components/TabBar";
+import { EmptyDreamsState } from "../components/EmptyDreamsState";
+import { DreamLoadingScreen } from "../components/DreamLoadingScreen";
+import { useAuthStore } from "../store/authStore";
 
 const HomeScreen = ({
   onNavigate,
@@ -23,11 +26,16 @@ const HomeScreen = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>("recents");
   const [isAtBottom, setIsAtBottom] = useState(false);
+  const [isCreatingDream, setIsCreatingDream] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const communityFadeAnim = useRef(new Animated.Value(0)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
   const bottomEffectAnim = useRef(new Animated.Value(0)).current;
+
+  // Get user data from auth store
+  const { userData } = useAuthStore();
+  const hasDreams = userData?.dreams && Array.isArray(userData.dreams) && userData.dreams.length > 0;
 
   useEffect(() => {
     // Fade out and slide down
@@ -126,9 +134,29 @@ const HomeScreen = ({
     [],
   );
 
+  // If user has no dreams, show only the empty dreams state with navbars
+  if (!hasDreams) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: Color.colorSnow }}>
+        {isCreatingDream ? (
+          <DreamLoadingScreen visible={isCreatingDream} />
+        ) : (
+          <>
+            <TopNavbar name="Ready to win?" />
+            <EmptyDreamsState
+              onDreamCreating={() => setIsCreatingDream(true)}
+              onDreamCreated={() => setIsCreatingDream(false)}
+            />
+            <BottomNavbar />
+          </>
+        )}
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Color.colorSnow }}>
-      <TopNavbar title="Ready to win, Kyla-Marie?" />
+      <TopNavbar name="Ready to win, Kyla-Marie?" />
       <BottomNavbar />
       <Animated.ScrollView
         onScroll={handleScroll}

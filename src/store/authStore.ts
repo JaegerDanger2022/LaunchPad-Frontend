@@ -11,11 +11,12 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { ensureGoogleSignInInitialized, isGoogleSignInAvailable } from '../config/googleSignIn';
-import { registerUserToDatabase } from '../config/api';
+import { registerUserToDatabase, fetchUserData, UserData } from '../config/api';
 import * as SecureStore from 'expo-secure-store';
 
 interface AuthState {
   user: User | null;
+  userData: UserData | null;
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;
@@ -28,10 +29,12 @@ interface AuthState {
   resetPassword: (email: string) => Promise<void>;
   clearError: () => void;
   initializeAuth: () => void;
+  loadUserData: (userId: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  userData: null,
   loading: true,
   error: null,
   isAuthenticated: false,
@@ -45,9 +48,16 @@ export const useAuthStore = create<AuthState>((set) => ({
           const token = await user.getIdToken();
           await SecureStore.setItemAsync('userToken', token);
           set({ user, isAuthenticated: true, loading: false });
+
+          // Load user data from MongoDB
+          console.log('Auth state changed - loading user data');
+          const userData = await fetchUserData(user.uid);
+          if (userData) {
+            set({ userData });
+          }
         } else {
           await SecureStore.deleteItemAsync('userToken').catch(() => {});
-          set({ user: null, isAuthenticated: false, loading: false });
+          set({ user: null, userData: null, isAuthenticated: false, loading: false });
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -69,9 +79,13 @@ export const useAuthStore = create<AuthState>((set) => ({
           lastname: lastName,
           email,
         });
-      }
 
-      set({ user: userCredential.user, isAuthenticated: true, loading: false });
+        // Load user data immediately after registration
+        const userData = await fetchUserData(userCredential.user.uid);
+        set({ user: userCredential.user, userData, isAuthenticated: true, loading: false });
+      } else {
+        set({ user: userCredential.user, isAuthenticated: true, loading: false });
+      }
     } catch (error: any) {
       const errorMessage = getErrorMessage(error.code);
       set({ error: errorMessage, loading: false });
@@ -83,7 +97,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ loading: true, error: null });
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      set({ user: userCredential.user, isAuthenticated: true, loading: false });
+
+      // Load user data from MongoDB
+      const userData = await fetchUserData(userCredential.user.uid);
+      set({ user: userCredential.user, userData, isAuthenticated: true, loading: false });
     } catch (error: any) {
       const errorMessage = getErrorMessage(error.code);
       set({ error: errorMessage, loading: false });
@@ -151,7 +168,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ loading: true });
       await signOut(auth);
       await SecureStore.deleteItemAsync('userToken').catch(() => {});
-      set({ user: null, isAuthenticated: false, loading: false });
+      set({ user: null, userData: null, isAuthenticated: false, loading: false });
     } catch (error: any) {
       const errorMessage = getErrorMessage(error.code);
       set({ error: errorMessage, loading: false });
@@ -172,6 +189,22 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  loadUserData: async (userId: string) => {
+    try {
+      console.log('Loading user data for:', userId);
+      const userData = await fetchUserData(userId);
+      if (userData) {
+        set({ userData });
+        console.log('User data loaded successfully');
+      } else {
+        console.warn('No user data found for:', userId);
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      // Don't set error state - this is not critical for app functionality
+    }
+  },
 }));
 
 // Export availability checker for UI

@@ -3,13 +3,13 @@ import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAZOBbHCb6uYMgiyHUxAGgNGvgQ9TJQae8",
-  authDomain: "dream-to-do-70d09.firebaseapp.com",
-  projectId: "dream-to-do-70d09",
-  storageBucket: "dream-to-do-70d09.firebasestorage.app",
-  messagingSenderId: "191645644567",
-  appId: "1:191645644567:web:82c9c71ef30676e24be952",
-  measurementId: "G-CXCNB8090L",
+  apiKey: "AIzaSyAT4KlTIC0Kv8620yYm4ReW-FaFLX5-XoI",
+  authDomain: "ghanai-462210.firebaseapp.com",
+  projectId: "ghanai-462210",
+  storageBucket: "ghanai-462210.firebasestorage.app",
+  messagingSenderId: "74552017471",
+  appId: "1:74552017471:web:13b8367e5343f262332e8a",
+  measurementId: "G-7QZEP20RW0",
 };
 
 const app = initializeApp(firebaseConfig);
