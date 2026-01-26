@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { Color } from "../constants/GlobalStyles";
+import { Color, getThemeColors } from "../constants/GlobalStyles";
+import { useThemeStore } from "../store/themeStore";
 
 export type TabType = "recents" | "inspiration";
 
@@ -10,6 +11,9 @@ interface TabBarProps {
 }
 
 export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
+  const { theme } = useThemeStore();
+  const themeColors = getThemeColors(theme);
+
   const handleTabPress = (tab: TabType) => {
     onTabChange(tab);
   };
@@ -29,7 +33,7 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
         <View
           style={{
             backgroundColor:
-              activeTab === "recents" ? Color.colorOrangered : Color.colorWhite,
+              activeTab === "recents" ? Color.colorOrangered : themeColors.bg_secondary,
             borderRadius: 35,
             height: activeTab === "recents" ? 36 : 30,
             paddingHorizontal: activeTab === "recents" ? 16 : 14,
@@ -37,12 +41,12 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
             alignItems: "center",
             borderWidth: activeTab === "recents" ? 0 : 1,
             borderStyle: "solid",
-            borderColor: Color.colorBlack,
+            borderColor: themeColors.text_primary,
           }}>
           <Text
             style={{
               color:
-                activeTab === "recents" ? Color.colorWhite : Color.colorBlack,
+                activeTab === "recents" ? Color.colorWhite : themeColors.text_primary,
               fontFamily: "InstrumentSans-Bold",
               fontWeight: "700",
               fontSize: activeTab === "recents" ? 16 : 15,
@@ -62,7 +66,7 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
             backgroundColor:
               activeTab === "inspiration"
                 ? Color.colorOrangered
-                : Color.colorWhite,
+                : themeColors.bg_secondary,
             borderRadius: 35,
             height: activeTab === "inspiration" ? 36 : 30,
             paddingHorizontal: activeTab === "inspiration" ? 16 : 14,
@@ -70,14 +74,14 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
             alignItems: "center",
             borderWidth: activeTab === "inspiration" ? 0 : 1,
             borderStyle: "solid",
-            borderColor: Color.colorBlack,
+            borderColor: themeColors.text_primary,
           }}>
           <Text
             style={{
               color:
                 activeTab === "inspiration"
                   ? Color.colorWhite
-                  : Color.colorBlack,
+                  : themeColors.text_primary,
               fontFamily: "InstrumentSans-Bold",
               fontWeight: "700",
               fontSize: activeTab === "inspiration" ? 16 : 15,

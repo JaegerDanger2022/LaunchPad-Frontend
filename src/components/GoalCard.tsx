@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { ProgressRingIcon } from "./icons/SVGIcons";
 import { Color } from "../constants/GlobalStyles";
+import { useThemeStore } from "../store/themeStore";
 
 // Helper function to convert hex color to rgba
 const hexToRgba = (hex: string, alpha: number): string => {
@@ -25,6 +26,8 @@ interface GoalCardProps {
 }
 
 export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
+  const { theme } = useThemeStore();
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -52,9 +55,15 @@ export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
             borderBottomLeftRadius: 10,
             borderBottomRightRadius: 10,
             justifyContent: "space-between",
-            backgroundColor: `${data.bgColor}40`,
+            backgroundColor: theme === "light" ? `${data.bgColor}40` : hexToRgba(data.bgColor, 0.2),
+            borderTopWidth: 1,
+            borderTopColor: theme === "light" ? "rgba(255, 255, 255, 0.6)" : "rgba(255, 255, 255, 0.15)",
+            borderLeftWidth: 0.5,
+            borderLeftColor: theme === "light" ? "rgba(255, 255, 255, 0.3)" : "rgba(255, 255, 255, 0.1)",
+            borderRightWidth: 0.5,
+            borderRightColor: theme === "light" ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.05)",
           }}
-          colors={[`${data.bgColor}60`, `${data.bgColor}40`]}
+          colors={theme === "light" ? [`${data.bgColor}60`, `${data.bgColor}40`] : [hexToRgba(data.bgColor, 0.3), hexToRgba(data.bgColor, 0.15)]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}>
           <Text

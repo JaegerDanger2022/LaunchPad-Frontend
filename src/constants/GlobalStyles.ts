@@ -30,6 +30,31 @@ export const Color = {
   colorWhite: "#fff",
 };
 
+/* Light Theme */
+export const LightTheme = {
+  bg_primary: "#fff8f5",
+  bg_secondary: "#ffffff",
+  text_primary: "#000000",
+  text_secondary: "#a29f9b",
+  text_tertiary: "#666666",
+  border: "rgba(0, 0, 0, 0.1)",
+};
+
+/* Dark Theme */
+export const DarkTheme = {
+  bg_primary: "#040726",
+  bg_secondary: "#0D0E2B",
+  text_primary: "#ffffff",
+  text_secondary: "#b0b0b0",
+  text_tertiary: "#808080",
+  border: "rgba(255, 255, 255, 0.1)",
+};
+
+/* Theme helper */
+export const getThemeColors = (theme: 'light' | 'dark') => {
+  return theme === 'light' ? LightTheme : DarkTheme;
+};
+
 /* Border radiuses */
 export const Border = {
   br_10: 10,

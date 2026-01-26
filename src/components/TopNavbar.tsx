@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { BellIcon, AvatarIcon } from "./icons/SVGIcons";
-import { LogOut } from "lucide-react-native";
-import { Color } from "../constants/GlobalStyles";
+import { LogOut, Sun, Moon } from "lucide-react-native";
+import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { useAuthStore } from "../store/authStore";
+import { useThemeStore } from "../store/themeStore";
 
 interface TopNavbarProps {
   name?: string;
@@ -12,6 +13,8 @@ interface TopNavbarProps {
 export const TopNavbar: React.FC<TopNavbarProps> = ({ name }) => {
   const [showLogout, setShowLogout] = useState(false);
   const { logout, userData } = useAuthStore();
+  const { theme, toggleTheme } = useThemeStore();
+  const themeColors = getThemeColors(theme);
 
   // Use userData.firstname if available, otherwise fall back to name prop
   const displayName = userData?.firstname || name || "User";
@@ -39,9 +42,18 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ name }) => {
         paddingHorizontal: 11,
         paddingTop: 50,
         paddingBottom: 15,
-        backgroundColor: Color.colorSnow,
+        backgroundColor: themeColors.bg_primary,
       }}>
-      <BellIcon size={30} color={Color.colorBlack} />
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <BellIcon size={30} color={themeColors.text_primary} />
+        <TouchableOpacity onPress={() => toggleTheme()}>
+          {theme === "light" ? (
+            <Moon size={24} color={themeColors.text_primary} />
+          ) : (
+            <Sun size={24} color={themeColors.text_primary} />
+          )}
+        </TouchableOpacity>
+      </View>
       <View
         style={{
           flex: 1,
@@ -56,7 +68,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ name }) => {
             fontFamily: "Inter-Bold",
             fontWeight: "700",
             textAlign: "left",
-            color: Color.colorBlack,
+            color: themeColors.text_primary,
             flex: 1,
           }}>
           {displayName}
@@ -76,7 +88,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ name }) => {
               position: "absolute",
               right: 0,
               top: 50,
-              backgroundColor: Color.colorWhite,
+              backgroundColor: themeColors.bg_secondary,
               borderRadius: 8,
               paddingHorizontal: 16,
               paddingVertical: 12,

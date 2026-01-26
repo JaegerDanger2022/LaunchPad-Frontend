@@ -4,7 +4,7 @@ import { View, Text, Image, Animated, TouchableOpacity, FlatList, useWindowDimen
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Color } from "../constants/GlobalStyles";
+import { Color, getThemeColors } from "../constants/GlobalStyles";
 import {
   ClockIcon,
   LightningIcon,
@@ -19,6 +19,7 @@ import { EmptyDreamsState } from "../components/EmptyDreamsState";
 import { DreamLoadingScreen } from "../components/DreamLoadingScreen";
 import { SkeletonDreamCards } from "../components/SkeletonDreamCards";
 import { useAuthStore } from "../store/authStore";
+import { useThemeStore } from "../store/themeStore";
 
 const HomeScreen = ({
   onNavigate,
@@ -37,6 +38,8 @@ const HomeScreen = ({
 
   // Get user data from auth store
   const { userData } = useAuthStore();
+  const { theme } = useThemeStore();
+  const themeColors = getThemeColors(theme);
   const hasDreams = userData?.dreams && Array.isArray(userData.dreams) && userData.dreams.length > 0;
 
   // Calculate column width (2 columns with 17px margins on each side and 14px gap)
@@ -148,7 +151,7 @@ const HomeScreen = ({
   // If user has no dreams, show skeleton loaders while fetching
   if (!hasDreams) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: Color.colorSnow }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
         {isCreatingDream ? (
           <DreamLoadingScreen visible={isCreatingDream} />
         ) : (
@@ -163,7 +166,7 @@ const HomeScreen = ({
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Color.colorSnow }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
       <TopNavbar name="Ready to win, Kyla-Marie?" />
       <BottomNavbar />
       <Animated.ScrollView
@@ -175,7 +178,7 @@ const HomeScreen = ({
         <View
           style={{
             flexDirection: "column",
-            backgroundColor: Color.colorWhite,
+            backgroundColor: themeColors.bg_primary,
             overflow: "hidden",
           }}>
           {/* Background gradient container */}
@@ -260,7 +263,7 @@ const HomeScreen = ({
                 borderBottomRightRadius: 35,
               }}
               locations={[0, 1]}
-              colors={["#f9f0e4", "#f9f0e4"]}
+              colors={theme === "light" ? ["#f9f0e4", "#f9f0e4"] : ["#0D0E2B", "#0D0E2B"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 0, y: 1 }}>
               {/* Task Title */}
@@ -268,7 +271,7 @@ const HomeScreen = ({
                 style={{
                   fontSize: 20,
                   textAlign: "left",
-                  color: Color.colorBlack,
+                  color: themeColors.text_primary,
                   fontFamily: "InstrumentSans-Bold",
                   fontWeight: "700",
                   marginBottom: 12,
@@ -486,7 +489,7 @@ const HomeScreen = ({
                     style={{
                       fontSize: 20,
                       fontWeight: "700",
-                      color: Color.colorBlack,
+                      color: themeColors.text_primary,
                       fontFamily: "InstrumentSans-Bold",
                       marginBottom: 12,
                       textAlign: "center",
@@ -498,7 +501,7 @@ const HomeScreen = ({
                   <Text
                     style={{
                       fontSize: 14,
-                      color: "#A0A0A0",
+                      color: themeColors.text_secondary,
                       fontFamily: "InstrumentSans-Regular",
                       textAlign: "center",
                       lineHeight: 20,
@@ -555,7 +558,7 @@ const HomeScreen = ({
               style={{
                 fontSize: 20,
                 textAlign: "left",
-                color: Color.colorBlack,
+                color: themeColors.text_primary,
                 fontFamily: "InstrumentSans-Bold",
                 fontWeight: "700",
                 marginBottom: 12,
@@ -565,7 +568,7 @@ const HomeScreen = ({
 
             {/* Card Content */}
             <LinearGradient
-              colors={["#e0e6f3", "#f0f3ff"]}
+              colors={theme === "light" ? ["#e0e6f3", "#f0f3ff"] : ["#1a1b3f", "#16172d"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={{
@@ -575,7 +578,7 @@ const HomeScreen = ({
                 flexDirection: "column",
                 gap: 14,
                 borderWidth: 1,
-                borderColor: "rgba(180, 197, 253, 0.3)",
+                borderColor: theme === "light" ? "rgba(180, 197, 253, 0.3)" : "rgba(180, 197, 253, 0.2)",
                 overflow: "hidden",
               }}>
               {/* Avatar and User Info Row */}
@@ -601,7 +604,7 @@ const HomeScreen = ({
                 {/* User Name */}
                 <Text
                   style={{
-                    color: Color.colorBlack,
+                    color: themeColors.text_primary,
                     fontFamily: "InstrumentSans-Bold",
                     fontWeight: "700",
                     fontSize: 16,
@@ -615,7 +618,7 @@ const HomeScreen = ({
                 style={{
                   fontSize: 14,
                   textAlign: "left",
-                  color: Color.colorBlack,
+                  color: themeColors.text_primary,
                   fontFamily: "InstrumentSans-Regular",
                   fontWeight: "400",
                   lineHeight: 20,
