@@ -10,8 +10,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path } from "react-native-svg";
-import { Color } from "../constants/GlobalStyles";
+import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { useAppStore } from "../store/appStore";
+import { useThemeStore } from "../store/themeStore";
 
 const MilestoneScreen = ({
   onNavigate,
@@ -20,6 +21,8 @@ const MilestoneScreen = ({
 }) => {
   const completedSteps = useAppStore((state) => state.completedSteps);
   const setCompletedSteps = useAppStore((state) => state.setCompletedSteps);
+  const { theme } = useThemeStore();
+  const themeColors = getThemeColors(theme);
   const slideAnim = useRef(new Animated.Value(1000)).current;
   const dragY = useRef(new Animated.Value(0)).current;
   const dragAmount = useRef(0).current;
@@ -93,7 +96,7 @@ const MilestoneScreen = ({
       <Animated.View
         style={{
           transform: [{ translateY: slideAnim }, { translateY: dragY }],
-          backgroundColor: Color.colorWhite,
+          backgroundColor: themeColors.bg_primary,
           borderTopLeftRadius: 30,
           borderTopRightRadius: 30,
           overflow: "hidden",
@@ -220,7 +223,7 @@ const MilestoneScreen = ({
             style={{
               fontSize: 18,
               fontWeight: "700",
-              color: Color.colorBlack,
+              color: themeColors.text_primary,
               marginBottom: 25,
             }}>
             Do it 3 times this week to succeed
@@ -241,7 +244,7 @@ const MilestoneScreen = ({
                   height: 52,
                   borderRadius: 26,
                   backgroundColor:
-                    num <= completedSteps ? "#00D4AA" : Color.colorWhite,
+                    num <= completedSteps ? "#00D4AA" : themeColors.bg_secondary,
                   alignItems: "center",
                   justifyContent: "center",
                   shadowColor: Color.colorBlack,
@@ -252,7 +255,7 @@ const MilestoneScreen = ({
                 }}>
                 <Text
                   style={{
-                    color: num <= completedSteps ? Color.colorWhite : "#A0A0A0",
+                    color: num <= completedSteps ? Color.colorWhite : themeColors.text_secondary,
                     fontSize: 18,
                     fontWeight: "600",
                   }}>
@@ -289,7 +292,7 @@ const MilestoneScreen = ({
           <TouchableOpacity style={{ width: "100%", paddingVertical: 10 }}>
             <Text
               style={{
-                color: "#8E8E93",
+                color: themeColors.text_secondary,
                 textAlign: "center",
                 fontSize: 16,
                 fontWeight: "500",
