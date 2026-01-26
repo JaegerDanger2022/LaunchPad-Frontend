@@ -126,7 +126,7 @@ export async function fetchUserData(userId: string): Promise<UserData | null> {
 export async function createDream(
   userId: string,
   userRequest: string,
-): Promise<void> {
+): Promise<string | null> {
   try {
     console.log(
       `Attempting to create dream for userId: ${userId}`,
@@ -184,8 +184,59 @@ export async function createDream(
 
     const result = await response.json();
     console.log("Dream created successfully:", result);
+    return result.thread_id || null;
   } catch (error: any) {
     console.error("Error creating dream:");
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Full error:", error);
+    throw error;
+  }
+}
+
+export async function updateDreamThreadId(
+  userId: string,
+  dreamId: string,
+  threadId: string,
+): Promise<void> {
+  try {
+    console.log(
+      `Attempting to update dream thread_id for userId: ${userId}, dreamId: ${dreamId}`,
+    );
+
+    const response = await fetch(`${API_BASE_URL}/dreams/${dreamId}/thread`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        thread_id: threadId,
+      }),
+    });
+
+    console.log(`Response status: ${response.status} ${response.statusText}`);
+
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        const text = await response.text();
+        console.error("Response body (text):", text);
+        throw new Error(
+          `HTTP ${response.status}: ${response.statusText} - ${text}`,
+        );
+      }
+      console.error("Error response data:", errorData);
+      throw new Error(
+        errorData.message || `HTTP ${response.status}: ${response.statusText}`,
+      );
+    }
+
+    console.log("Dream thread_id updated successfully");
+  } catch (error: any) {
+    console.error("Error updating dream thread_id:");
     console.error("Error name:", error.name);
     console.error("Error message:", error.message);
     console.error("Full error:", error);

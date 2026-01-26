@@ -14,7 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { X } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Color } from '../constants/GlobalStyles';
-import { createDream } from '../config/api';
+import { createDream, updateDreamThreadId } from '../config/api';
 import { useAuthStore } from '../store/authStore';
 
 interface CreateDreamModalProps {
@@ -55,11 +55,16 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
       // Notify parent that we're creating the dream (show loading screen)
       onDreamCreating?.();
 
-      // Create the dream
-      await createDream(user.uid, dreamInput.trim());
+      // Create the dream and get the thread_id
+      const threadId = await createDream(user.uid, dreamInput.trim());
 
       // Reload user data to get the updated dreams
       await loadUserData(user.uid);
+
+      // Log the thread_id for reference (saved on backend during dream creation)
+      if (threadId) {
+        console.log('Dream created with thread_id:', threadId);
+      }
 
       // Clear input
       setDreamInput('');

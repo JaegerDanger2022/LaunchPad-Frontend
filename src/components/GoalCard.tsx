@@ -31,7 +31,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
         backgroundColor: data.bgColor,
       }}>
       <Image
-        source={data.bgImage}
+        source={data.bgImage || require('../assets/images/goal-podcast.png')}
         style={{
           width: '100%',
           height: 120,

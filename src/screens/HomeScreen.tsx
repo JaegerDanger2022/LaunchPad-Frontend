@@ -116,22 +116,28 @@ const HomeScreen = ({
     extrapolate: "clamp",
   });
 
-  const goalCardsData: GoalCardData[] = useMemo(
-    () => [
-      {
-        title: "I want to start a podcast about tech careers",
-        bgImage: require("../assets/images/goal-podcast.png"),
-        bgColor: Color.colorBurlywood,
+  const convertBinaryToImage = (binaryData: string) => {
+    try {
+      return `data:image/jpeg;base64,${binaryData}`;
+    } catch (error) {
+      console.error('Error converting binary to image:', error);
+      return null;
+    }
+  };
+
+  const dreamCardsData: GoalCardData[] = useMemo(
+    () => {
+      if (!userData?.dreams || !Array.isArray(userData.dreams)) {
+        return [];
+      }
+      return userData.dreams.map((dream: any) => ({
+        title: dream.dream || "",
+        bgImage: dream.dream_image_bytes ? { uri: convertBinaryToImage(dream.dream_image_bytes) } : require("../assets/images/goal-podcast.png"),
+        bgColor: dream.dream_card_bg || Color.colorBurlywood,
         progressColor: "#6B9BD1",
-      },
-      {
-        title: "I want to visit the bahamas",
-        bgImage: require("../assets/images/goal-bahamas.png"),
-        bgColor: Color.colorCadetblue,
-        progressColor: "#6dc0c3",
-      },
-    ],
-    [],
+      }));
+    },
+    [userData?.dreams],
   );
 
   // If user has no dreams, show only the empty dreams state with navbars
@@ -432,7 +438,7 @@ const HomeScreen = ({
                     flexDirection: "row",
                     gap: 14,
                   }}>
-                  {goalCardsData.map((card, index) => (
+                  {dreamCardsData.map((card: GoalCardData, index: number) => (
                     <GoalCard
                       key={index}
                       data={card}
