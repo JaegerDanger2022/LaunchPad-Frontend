@@ -2,13 +2,12 @@ import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import LottieView from "lottie-react-native";
-import { Color } from "../../constants/GlobalStyles";
+import { Color, ChallengeTypeName } from "../../constants/GlobalStyles";
 
 interface MilestoneCardProps {
   id: string;
   title: string;
   bgColor: string;
-  tags: string[];
   duration: string;
   image: any;
   animation?: any;
@@ -26,7 +25,6 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
   id,
   title,
   bgColor,
-  tags,
   duration,
   image,
   animation,
@@ -99,40 +97,36 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
           {title}
         </Text>
 
-        {/* Tags and Duration */}
+        {/* Challenge Type and Duration */}
         <View style={{ gap: 8 }}>
+          {/* Challenge Type Name */}
           <View
             style={{
               flexDirection: "row",
-              gap: 12,
+              alignItems: "center",
+              gap: 6,
             }}>
-            {tags.map((tag, index) => (
-              <View
-                key={index}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 6,
-                }}>
-                <View
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: 1,
-                    backgroundColor: "rgba(255, 255, 255, 0.6)",
-                  }}
-                />
-                <Text
-                  style={{
-                    color: Color.colorWhite,
-                    fontSize: 12,
-                    fontWeight: "400",
-                    fontFamily: "InriaSans-Regular",
-                  }}>
-                  {tag}
-                </Text>
-              </View>
-            ))}
+            <View
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 1,
+                backgroundColor: "rgba(255, 255, 255, 0.6)",
+              }}
+            />
+            <Text
+              style={{
+                color: Color.colorWhite,
+                fontSize: 12,
+                fontWeight: "400",
+                fontFamily: "InriaSans-Regular",
+              }}>
+              {challengeType
+                ? ChallengeTypeName[
+                    challengeType as keyof typeof ChallengeTypeName
+                  ]
+                : "Task"}
+            </Text>
           </View>
 
           {/* Duration */}

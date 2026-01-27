@@ -26,7 +26,6 @@ interface Milestone {
   id: string;
   title: string;
   bgColor: string;
-  tags: string[];
   duration: string;
   image?: any;
   animation?: any;
@@ -109,7 +108,6 @@ const DreamPage = ({
                 milestone.bgColor ||
                 dream.dream_card_bg ||
                 "#537787",
-              tags: milestone.tags || ["Task"],
               duration: milestone.time_estimate || "60 mins",
               image,
               animation,
