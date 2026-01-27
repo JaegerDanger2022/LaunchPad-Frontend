@@ -15,7 +15,8 @@
       "Bash(taskkill:*)",
       "Bash(npx expo start:*)",
       "Bash(npx expo install:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git add:*)"
     ]
   }
 }
