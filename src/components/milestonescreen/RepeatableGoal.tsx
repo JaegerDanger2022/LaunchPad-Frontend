@@ -4,6 +4,7 @@ import { Color, getThemeColors } from "../../constants/GlobalStyles";
 import { useThemeStore } from "../../store/themeStore";
 import { useAuthStore } from "../../store/authStore";
 import { updateMilestoneStatus } from "../../config/api";
+import { SuccessAnimationOverlay } from "../animations/SuccessAnimationOverlay";
 
 interface RepeatableGoalProps {
   completedSteps: number;
@@ -24,6 +25,7 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
   const themeColors = getThemeColors(theme);
   const { user } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
 
   const handlePress = async () => {
     console.log("=== RepeatableGoal Button Pressed ===");
@@ -38,6 +40,11 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
       setIsLoading(true);
       const newCompletedSteps = completedSteps + 1;
       const status = newCompletedSteps === 3 ? "completed" : "in_progress";
+
+      // Show animation immediately if this is the final completion
+      if (status === "completed") {
+        setShowSuccessAnimation(true);
+      }
 
       console.log("Making API call with:", {
         userId: user.uid,
@@ -181,6 +188,15 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
           marginBottom: 8,
         }}
       />
+
+      {/* Success Animation Overlay */}
+      {showSuccessAnimation && (
+        <SuccessAnimationOverlay
+          visible={showSuccessAnimation}
+          onComplete={() => setShowSuccessAnimation(false)}
+          duration={2000}
+        />
+      )}
     </View>
   );
 };

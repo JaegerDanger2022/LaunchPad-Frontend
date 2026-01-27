@@ -10,6 +10,7 @@ import { Color, getThemeColors } from "../../constants/GlobalStyles";
 import { useThemeStore } from "../../store/themeStore";
 import { useAuthStore } from "../../store/authStore";
 import { updateMilestoneStatus } from "../../config/api";
+import { SuccessAnimationOverlay } from "../animations/SuccessAnimationOverlay";
 
 interface OneTimeGoalProps {
   isCompleted: boolean;
@@ -28,6 +29,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
   const themeColors = getThemeColors(theme);
   const { user } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
 
   const handlePress = async () => {
     // console.log("=== OneTimeGoal Button Pressed ===");
@@ -36,6 +38,9 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
     // console.log("threadId:", threadId);
 
     onPress();
+
+    // Show animation immediately on click
+    setShowSuccessAnimation(true);
 
     // Call API if we have the necessary data
     if (user?.uid && milestoneId && threadId) {
@@ -156,6 +161,15 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
           marginBottom: 8,
         }}
       />
+
+      {/* Success Animation Overlay */}
+      {showSuccessAnimation && (
+        <SuccessAnimationOverlay
+          visible={showSuccessAnimation}
+          onComplete={() => setShowSuccessAnimation(false)}
+          duration={2000}
+        />
+      )}
     </View>
   );
 };
