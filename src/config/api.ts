@@ -209,16 +209,16 @@ export async function updateMilestoneStatus(
       status,
     };
 
-    const response = await fetch(
-      `${API_BASE_URL}/update-status/${userId}/${threadId}/${milestoneId}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+    const url = `${API_BASE_URL}/milestone/update-status/${userId}/${threadId}/${milestoneId}`;
+    console.log("Full URL being called:", url);
+
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify(payload),
+    });
 
     console.log(`Response status: ${response.status} ${response.statusText}`);
 

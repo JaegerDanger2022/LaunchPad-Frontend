@@ -30,6 +30,7 @@ interface AuthState {
   clearError: () => void;
   initializeAuth: () => void;
   loadUserData: (userId: string) => Promise<void>;
+  updateMilestoneStatusLocal: (threadId: string, milestoneId: string, status: string) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -204,6 +205,31 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.error('Error loading user data:', error);
       // Don't set error state - this is not critical for app functionality
     }
+  },
+
+  updateMilestoneStatusLocal: (threadId: string, milestoneId: string, status: string) => {
+    set((state) => {
+      if (!state.userData?.dreams) return state;
+
+      // Create a deep copy of userData to avoid mutations
+      const updatedUserData = JSON.parse(JSON.stringify(state.userData));
+
+      // Find and update the milestone with matching threadId and milestoneId
+      for (const dream of updatedUserData.dreams) {
+        if (dream.thread_id === threadId && dream.roadmap?.milestones) {
+          const milestone = dream.roadmap.milestones.find(
+            (m: any) => m.id === milestoneId
+          );
+          if (milestone) {
+            milestone.status = status;
+            console.log(`Updated milestone ${milestoneId} status to ${status}`);
+            break;
+          }
+        }
+      }
+
+      return { userData: updatedUserData };
+    });
   },
 }));
 

@@ -294,10 +294,11 @@ const MilestoneScreen = ({
             onPress={handlePress}
             milestoneId={milestoneId}
             threadId={threadId}
+            milestoneStatus={milestone?.status}
           />
         ) : (
           <OneTimeGoal
-            isCompleted={isCompleted}
+            isCompleted={isCompleted || milestone?.status === "completed"}
             onPress={() => setIsCompleted(true)}
             milestoneId={milestoneId}
             threadId={threadId}

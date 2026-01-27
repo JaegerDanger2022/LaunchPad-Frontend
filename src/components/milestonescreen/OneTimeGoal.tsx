@@ -31,10 +31,10 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePress = async () => {
-    console.log("=== OneTimeGoal Button Pressed ===");
-    console.log("userId:", user?.uid);
-    console.log("milestoneId:", milestoneId);
-    console.log("threadId:", threadId);
+    // console.log("=== OneTimeGoal Button Pressed ===");
+    // console.log("userId:", user?.uid);
+    // console.log("milestoneId:", milestoneId);
+    // console.log("threadId:", threadId);
 
     onPress();
 
@@ -56,6 +56,12 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
         );
         console.log("API Response:", response);
         console.log("Milestone status updated successfully");
+
+        // Update local state in Zustand
+        if (response.success) {
+          const { updateMilestoneStatusLocal } = useAuthStore.getState();
+          updateMilestoneStatusLocal(threadId, milestoneId, "completed");
+        }
 
         // Show success toast
         ToastAndroid.show("Goal completed! 🎉", ToastAndroid.SHORT);
@@ -109,17 +115,17 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
 
       <TouchableOpacity
         onPress={handlePress}
-        disabled={isLoading}
+        disabled={isLoading || isCompleted}
         activeOpacity={0.8}
         style={{
           width: "100%",
           height: 60,
-          backgroundColor: isCompleted ? "#00D4AA" : "#00D4AA",
+          backgroundColor: isCompleted ? "#CCCCCC" : "#00D4AA",
           borderRadius: 20,
           alignItems: "center",
           justifyContent: "center",
           marginBottom: 12,
-          opacity: isLoading ? 0.7 : 1,
+          opacity: isLoading || isCompleted ? 0.6 : 1,
         }}>
         <Text
           style={{

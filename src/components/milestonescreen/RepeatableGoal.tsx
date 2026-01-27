@@ -10,6 +10,7 @@ interface RepeatableGoalProps {
   onPress: () => void;
   milestoneId?: string;
   threadId?: string;
+  milestoneStatus?: string;
 }
 
 export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
@@ -17,6 +18,7 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
   onPress,
   milestoneId,
   threadId,
+  milestoneStatus,
 }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
@@ -54,6 +56,12 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
         );
         console.log("API Response:", response);
         console.log("Milestone status updated successfully");
+
+        // Update local state in Zustand
+        if (response.success) {
+          const { updateMilestoneStatusLocal } = useAuthStore.getState();
+          updateMilestoneStatusLocal(threadId, milestoneId, status);
+        }
 
         // Show success toast
         ToastAndroid.show(
@@ -134,17 +142,17 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
 
       <TouchableOpacity
         onPress={handlePress}
-        disabled={isLoading}
+        disabled={isLoading || milestoneStatus === "completed"}
         activeOpacity={0.8}
         style={{
           width: "100%",
           height: 60,
-          backgroundColor: "#00D4AA",
+          backgroundColor: milestoneStatus === "completed" ? "#CCCCCC" : "#00D4AA",
           borderRadius: 20,
           alignItems: "center",
           justifyContent: "center",
           marginBottom: 12,
-          opacity: isLoading ? 0.7 : 1,
+          opacity: isLoading || milestoneStatus === "completed" ? 0.6 : 1,
         }}>
         <Text
           style={{
