@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path } from "react-native-svg";
+import LottieView from "lottie-react-native";
 import {
   Color,
   getThemeColors,
@@ -23,6 +24,12 @@ import { RepeatableGoal } from "../components/milestonescreen/RepeatableGoal";
 import { OneTimeGoal } from "../components/milestonescreen/OneTimeGoal";
 
 const { height: screenHeight } = Dimensions.get("window");
+
+// Challenge type animation mapping
+const challengeTypeAnimations: Record<string, any> = {
+  power_move: require("../assets/animations/power_move.json"),
+  // Add other animations as they become available
+};
 
 // Helper function to generate gradient colors from a hex color
 const generateGradientColors = (hexColor: string): [string, string] => {
@@ -264,6 +271,28 @@ const MilestoneScreen = ({
                 paddingHorizontal: 40,
                 marginTop: 40,
               }}>
+              {/* Challenge Type Animation - Above Title */}
+              {milestone?.challenge_type &&
+              challengeTypeAnimations[milestone.challenge_type] ? (
+                <View
+                  style={{
+                    alignItems: "center",
+                    marginBottom: 16,
+                  }}>
+                  <LottieView
+                    source={
+                      challengeTypeAnimations[milestone.challenge_type]
+                    }
+                    autoPlay
+                    loop={false}
+                    style={{
+                      width: 80,
+                      height: 80,
+                    }}
+                  />
+                </View>
+              ) : null}
+
               <Text
                 style={{
                   color: Color.colorBlack,

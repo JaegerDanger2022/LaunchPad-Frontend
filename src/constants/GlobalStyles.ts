@@ -41,6 +41,17 @@ export const ChallengeTypeColors = {
   celebration_moment: "#FFA502",
 };
 
+/* Challenge Type Names */
+export const ChallengeTypeName = {
+  power_move: "Power Move",
+  knowledge_quest: "Knowledge Quest",
+  prep_ritual: "Prep Ritual",
+  courage_check: "Courage Check",
+  skill_flex: "Skill Flex",
+  decision_point: "Decision Point",
+  celebration_moment: "Celebration Moment",
+};
+
 /* Light Theme */
 export const LightTheme = {
   bg_primary: "#fff8f5",

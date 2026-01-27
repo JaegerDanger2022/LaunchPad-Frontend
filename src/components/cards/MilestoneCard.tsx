@@ -12,8 +12,15 @@ interface MilestoneCardProps {
   duration: string;
   image: any;
   animation?: any;
+  challengeType?: string;
   onPress: () => void;
 }
+
+// Challenge type animation mapping
+const challengeTypeAnimations: Record<string, any> = {
+  power_move: require("../../assets/animations/power_move.json"),
+  // Add other animations as they become available
+};
 
 export const MilestoneCard: React.FC<MilestoneCardProps> = ({
   id,
@@ -23,6 +30,7 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
   duration,
   image,
   animation,
+  challengeType,
   onPress,
 }) => {
   return (
@@ -37,14 +45,35 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
         overflow: "hidden",
         backgroundColor: bgColor,
       }}>
-      {/* Image (without animation) */}
-      <Image
-        source={image}
-        style={{
-          width: "100%",
-          height: 160,
-        }}
-      />
+      {/* Animation or Image */}
+      {animation ? (
+        <View
+          style={{
+            width: "100%",
+            height: 160,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: bgColor,
+          }}>
+          <LottieView
+            source={animation}
+            autoPlay
+            loop={false}
+            style={{
+              width: 120,
+              height: 120,
+            }}
+          />
+        </View>
+      ) : (
+        <Image
+          source={image}
+          style={{
+            width: "100%",
+            height: 160,
+          }}
+        />
+      )}
 
       {/* Card Content with Gradient */}
       <LinearGradient
@@ -59,21 +88,6 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
         colors={[bgColor, bgColor]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}>
-        {/* Animation above title */}
-        {animation && (
-          <View style={{ alignItems: "center", marginBottom: 8 }}>
-            <LottieView
-              source={animation}
-              autoPlay
-              loop
-              style={{
-                width: 60,
-                height: 60,
-              }}
-            />
-          </View>
-        )}
-
         {/* Title */}
         <Text
           style={{
