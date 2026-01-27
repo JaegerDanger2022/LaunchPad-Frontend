@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   Alert,
-  ToastAndroid,
 } from "react-native";
 import Svg, { Line } from "react-native-svg";
 import { Color, getThemeColors } from "../../constants/GlobalStyles";
@@ -62,9 +61,6 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
           const { updateMilestoneStatusLocal } = useAuthStore.getState();
           updateMilestoneStatusLocal(threadId, milestoneId, "completed");
         }
-
-        // Show success toast
-        ToastAndroid.show("Goal completed! 🎉", ToastAndroid.SHORT);
       } catch (error: any) {
         console.error("Failed to update milestone status:", error.message);
         console.error("Full error:", error);

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Alert, ToastAndroid } from "react-native";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { Color, getThemeColors } from "../../constants/GlobalStyles";
 import { useThemeStore } from "../../store/themeStore";
 import { useAuthStore } from "../../store/authStore";
@@ -62,12 +62,6 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
           const { updateMilestoneStatusLocal } = useAuthStore.getState();
           updateMilestoneStatusLocal(threadId, milestoneId, status);
         }
-
-        // Show success toast
-        ToastAndroid.show(
-          newCompletedSteps === 3 ? "Goal completed!" : "Great job! Keep going!",
-          ToastAndroid.SHORT,
-        );
       } catch (error: any) {
         console.error("Failed to update milestone status:", error.message);
         console.error("Full error:", error);
