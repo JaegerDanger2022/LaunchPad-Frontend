@@ -6,6 +6,7 @@ import {
   Animated,
   FlatList,
   useWindowDimensions,
+  StatusBar,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -49,6 +50,11 @@ const HomeScreen = ({
 
   // Calculate column width (2 columns with 17px margins on each side and 14px gap)
   const columnWidth = (width - 34 - 14) / 2;
+
+  useEffect(() => {
+    // Update status bar based on theme
+    StatusBar.setBarStyle(theme === "light" ? "dark-content" : "light-content", true);
+  }, [theme]);
 
   useEffect(() => {
     // Fade out and slide down

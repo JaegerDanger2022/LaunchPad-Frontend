@@ -11,9 +11,9 @@ import {
   ClockIcon,
   LightningIcon,
   ArrowRightIcon,
-} from "./icons/SVGIcons";
-import { Color, getThemeColors } from "../constants/GlobalStyles";
-import { useThemeStore } from "../store/themeStore";
+} from "../icons/SVGIcons";
+import { Color, getThemeColors } from "../../constants/GlobalStyles";
+import { useThemeStore } from "../../store/themeStore";
 
 interface HeroCardProps {
   heroOpacity: Animated.AnimatedInterpolation<number>;
@@ -52,7 +52,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
       }}>
       {/* Hero Background Image */}
       <Image
-        source={require("../assets/images/hero-bg.png")}
+        source={require("../../assets/images/hero-bg.png")}
         style={{
           width: "100%",
           height: 184,
@@ -133,7 +133,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
           {/* ETA / Time Chip */}
           <View
             style={{
-              backgroundColor: Color.colorDarkgray,
+              backgroundColor: theme === "light" ? "#f0f0f0" : Color.colorDarkgray,
               flexDirection: "row",
               alignItems: "center",
               borderRadius: 20,
@@ -147,7 +147,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
                 alignItems: "center",
                 justifyContent: "center",
               }}>
-              <ClockIcon size={20} color="#a29f9b" />
+              <ClockIcon size={20} color={theme === "light" ? "#666666" : "#a29f9b"} />
             </View>
             <View
               style={{
@@ -157,7 +157,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
               }}>
               <Text
                 style={{
-                  color: Color.colorWhite,
+                  color: theme === "light" ? Color.colorBlack : Color.colorWhite,
                   fontSize: 15,
                   fontFamily: "InstrumentSans-Bold",
                   fontWeight: "700",
@@ -197,7 +197,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
               }}>
               <Text
                 style={{
-                  color: Color.colorDarkorange,
+                  color: theme === "light" ? Color.colorDarkorange : Color.colorWhite,
                   fontSize: 15,
                   fontFamily: "InstrumentSans-Bold",
                   fontWeight: "700",

@@ -38,6 +38,7 @@ const MilestoneScreen = ({
   const dragAmount = useRef(0).current;
   const handleScaleAnim = useRef(new Animated.Value(1)).current;
   const [milestone, setMilestone] = React.useState<any>(null);
+  const [threadId, setThreadId] = React.useState<string>("");
   const [isCompleted, setIsCompleted] = React.useState(false);
 
   // Drag handle hover animation
@@ -62,14 +63,21 @@ const MilestoneScreen = ({
     startHandleHover();
   }, []);
 
-  // Extract milestone data from userId
+  // Extract milestone data by milestone ID
   React.useEffect(() => {
     if (milestoneId && userData?.dreams) {
-      const [dreamIndex, milestoneIndex] = milestoneId.split("-").map(Number);
-      const dream = userData.dreams[dreamIndex];
-      const milestoneData = dream?.roadmap?.milestones?.[milestoneIndex];
-      if (milestoneData) {
-        setMilestone(milestoneData);
+      // Search through all dreams and milestones to find the one with matching ID
+      for (const dream of userData.dreams) {
+        if (dream.roadmap?.milestones) {
+          const foundMilestone = dream.roadmap.milestones.find(
+            (m: any) => m.id === milestoneId
+          );
+          if (foundMilestone) {
+            setMilestone(foundMilestone);
+            setThreadId(dream?.thread_id || "");
+            break;
+          }
+        }
       }
     }
   }, [milestoneId, userData]);
@@ -281,9 +289,19 @@ const MilestoneScreen = ({
 
         {/* Bottom Action Section */}
         {milestone?.streak_eligible ? (
-          <RepeatableGoal completedSteps={completedSteps} onPress={handlePress} />
+          <RepeatableGoal
+            completedSteps={completedSteps}
+            onPress={handlePress}
+            milestoneId={milestoneId}
+            threadId={threadId}
+          />
         ) : (
-          <OneTimeGoal isCompleted={isCompleted} onPress={() => setIsCompleted(true)} />
+          <OneTimeGoal
+            isCompleted={isCompleted}
+            onPress={() => setIsCompleted(true)}
+            milestoneId={milestoneId}
+            threadId={threadId}
+          />
         )}
       </Animated.View>
     </View>

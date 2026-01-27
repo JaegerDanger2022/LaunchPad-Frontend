@@ -1,20 +1,79 @@
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import Svg, { Line } from "react-native-svg";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, Alert, ToastAndroid } from "react-native";
 import { Color, getThemeColors } from "../../constants/GlobalStyles";
 import { useThemeStore } from "../../store/themeStore";
+import { useAuthStore } from "../../store/authStore";
+import { updateMilestoneStatus } from "../../config/api";
 
 interface RepeatableGoalProps {
   completedSteps: number;
   onPress: () => void;
+  milestoneId?: string;
+  threadId?: string;
 }
 
 export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
   completedSteps,
   onPress,
+  milestoneId,
+  threadId,
 }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
+  const { user } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handlePress = async () => {
+    console.log("=== RepeatableGoal Button Pressed ===");
+    console.log("userId:", user?.uid);
+    console.log("milestoneId:", milestoneId);
+    console.log("completedSteps:", completedSteps);
+
+    onPress();
+
+    // Call API if we have the necessary data
+    if (user?.uid && milestoneId && threadId) {
+      setIsLoading(true);
+      const newCompletedSteps = completedSteps + 1;
+      const status = newCompletedSteps === 3 ? "completed" : "in_progress";
+
+      console.log("Making API call with:", {
+        userId: user.uid,
+        threadId,
+        milestoneId,
+        status,
+        newCompletedSteps,
+      });
+
+      try {
+        const response = await updateMilestoneStatus(
+          user.uid,
+          threadId,
+          milestoneId,
+          status,
+        );
+        console.log("API Response:", response);
+        console.log("Milestone status updated successfully");
+
+        // Show success toast
+        ToastAndroid.show(
+          newCompletedSteps === 3 ? "Goal completed!" : "Great job! Keep going!",
+          ToastAndroid.SHORT,
+        );
+      } catch (error: any) {
+        console.error("Failed to update milestone status:", error.message);
+        console.error("Full error:", error);
+        Alert.alert("Error", "Failed to update milestone. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      console.warn("Missing required data for API call");
+      console.warn("userId exists:", !!user?.uid);
+      console.warn("milestoneId exists:", !!milestoneId);
+      console.warn("threadId exists:", !!threadId);
+    }
+  };
 
   return (
     <View
@@ -74,7 +133,8 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
       </View>
 
       <TouchableOpacity
-        onPress={onPress}
+        onPress={handlePress}
+        disabled={isLoading}
         activeOpacity={0.8}
         style={{
           width: "100%",
@@ -84,6 +144,7 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
           alignItems: "center",
           justifyContent: "center",
           marginBottom: 12,
+          opacity: isLoading ? 0.7 : 1,
         }}>
         <Text
           style={{

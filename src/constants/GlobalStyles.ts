@@ -42,8 +42,9 @@ export const LightTheme = {
 
 /* Dark Theme */
 export const DarkTheme = {
-  bg_primary: "#0e1450",
-  bg_secondary: "#0D0E2B",
+  bg_primary: "#050938",
+  bg_secondary: "#2B2D56",
+  bg_tetiary: "#1b1f52",
   text_primary: "#ffffff",
   text_secondary: "#b0b0b0",
   text_tertiary: "#808080",

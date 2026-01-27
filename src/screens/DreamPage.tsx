@@ -24,6 +24,8 @@ interface Milestone {
   tags: string[];
   duration: string;
   image: any;
+  roadmapId?: string;
+  milestoneId?: string;
 }
 
 const placeholderImages = [
@@ -74,6 +76,10 @@ const DreamPage = ({
                 placeholderImages[
                   allMilestones.length % placeholderImages.length
                 ],
+              // Store roadmapId (thread_id from dream) for API calls
+              roadmapId: dream.thread_id,
+              // Store actual milestone database ID for API calls
+              milestoneId: milestone.id,
             });
           },
         );
@@ -195,7 +201,11 @@ const DreamPage = ({
                           <MilestoneCard
                             key={milestone.id}
                             {...milestone}
-                            onPress={() => onNavigate("Milestone", { milestoneId: milestone.id })}
+                            onPress={() =>
+                              onNavigate("Milestone", {
+                                milestoneId: milestone.milestoneId,
+                              })
+                            }
                           />
                         ))}
 

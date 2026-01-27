@@ -1,20 +1,78 @@
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  ToastAndroid,
+} from "react-native";
 import Svg, { Line } from "react-native-svg";
 import { Color, getThemeColors } from "../../constants/GlobalStyles";
 import { useThemeStore } from "../../store/themeStore";
+import { useAuthStore } from "../../store/authStore";
+import { updateMilestoneStatus } from "../../config/api";
 
 interface OneTimeGoalProps {
   isCompleted: boolean;
   onPress: () => void;
+  milestoneId?: string;
+  threadId?: string;
 }
 
 export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
   isCompleted,
   onPress,
+  milestoneId,
+  threadId,
 }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
+  const { user } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handlePress = async () => {
+    console.log("=== OneTimeGoal Button Pressed ===");
+    console.log("userId:", user?.uid);
+    console.log("milestoneId:", milestoneId);
+    console.log("threadId:", threadId);
+
+    onPress();
+
+    // Call API if we have the necessary data
+    if (user?.uid && milestoneId && threadId) {
+      setIsLoading(true);
+      console.log("Making API call with:", {
+        userId: user.uid,
+        threadId,
+        milestoneId,
+        status: "completed",
+      });
+      try {
+        const response = await updateMilestoneStatus(
+          user.uid,
+          threadId,
+          milestoneId,
+          "completed",
+        );
+        console.log("API Response:", response);
+        console.log("Milestone status updated successfully");
+
+        // Show success toast
+        ToastAndroid.show("Goal completed! 🎉", ToastAndroid.SHORT);
+      } catch (error: any) {
+        console.error("Failed to update milestone status:", error.message);
+        console.error("Full error:", error);
+        Alert.alert("Error", "Failed to update milestone. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      console.warn("Missing required data for API call");
+      console.warn("userId exists:", !!user?.uid);
+      console.warn("milestoneId exists:", !!milestoneId);
+      console.warn("threadId exists:", !!threadId);
+    }
+  };
 
   return (
     <View
@@ -27,7 +85,15 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
       {/* Drag Handle */}
       <View style={{ marginBottom: 20 }}>
         <Svg width="40" height="4" viewBox="0 0 40 4">
-          <Line x1="0" y1="2" x2="40" y2="2" stroke={themeColors.text_secondary} strokeWidth="4" strokeLinecap="round" />
+          <Line
+            x1="0"
+            y1="2"
+            x2="40"
+            y2="2"
+            stroke={themeColors.text_secondary}
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
         </Svg>
       </View>
 
@@ -42,7 +108,8 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
       </Text>
 
       <TouchableOpacity
-        onPress={onPress}
+        onPress={handlePress}
+        disabled={isLoading}
         activeOpacity={0.8}
         style={{
           width: "100%",
@@ -52,6 +119,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
           alignItems: "center",
           justifyContent: "center",
           marginBottom: 12,
+          opacity: isLoading ? 0.7 : 1,
         }}>
         <Text
           style={{

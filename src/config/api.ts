@@ -47,7 +47,9 @@ export async function registerUserToDatabase(
         if (errorData.detail && Array.isArray(errorData.detail)) {
           console.error("Validation errors:");
           errorData.detail.forEach((err: any) => {
-            console.error(`  - Field: ${err.loc?.[1] || 'unknown'}, Message: ${err.msg}`);
+            console.error(
+              `  - Field: ${err.loc?.[1] || "unknown"}, Message: ${err.msg}`,
+            );
           });
         }
         errorMessage = errorData.message || errorMessage;
@@ -101,7 +103,7 @@ export async function fetchUserData(userId: string): Promise<UserData | null> {
     }
 
     const userData = await response.json();
-    console.log("User data fetched successfully:", userData);
+    // console.log("User data fetched successfully:", userData);
     return userData as UserData;
   } catch (error: any) {
     console.error("Error fetching user data:");
@@ -118,9 +120,7 @@ export async function createDream(
   userRequest: string,
 ): Promise<string | null> {
   try {
-    console.log(
-      `Attempting to create dream for userId: ${userId}`,
-    );
+    console.log(`Attempting to create dream for userId: ${userId}`);
     console.log("User request:", userRequest);
 
     const dreamPayload = {
@@ -157,7 +157,9 @@ export async function createDream(
         if (errorData.detail && Array.isArray(errorData.detail)) {
           console.error("Validation errors:");
           errorData.detail.forEach((err: any) => {
-            console.error(`  - Field: ${err.loc?.[1] || 'unknown'}, Message: ${err.msg}`);
+            console.error(
+              `  - Field: ${err.loc?.[1] || "unknown"}, Message: ${err.msg}`,
+            );
           });
         }
         errorMessage = errorData.message || errorMessage;
@@ -175,6 +177,68 @@ export async function createDream(
     return threadId;
   } catch (error: any) {
     console.error("Error creating dream:");
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Full error:", error);
+    throw error;
+  }
+}
+
+export interface UpdateMilestoneRequest {
+  status: string;
+}
+
+export interface UpdateMilestoneResponse {
+  success: boolean;
+  message: string;
+  milestone: any;
+}
+
+export async function updateMilestoneStatus(
+  userId: string,
+  threadId: string,
+  milestoneId: string,
+  status: string,
+): Promise<UpdateMilestoneResponse> {
+  try {
+    console.log(
+      `Attempting to update milestone status for userId: ${userId}, threadId: ${threadId}, milestoneId: ${milestoneId}, status: ${status}`,
+    );
+
+    const payload: UpdateMilestoneRequest = {
+      status,
+    };
+
+    const response = await fetch(
+      `${API_BASE_URL}/update-status/${userId}/${threadId}/${milestoneId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+
+    console.log(`Response status: ${response.status} ${response.statusText}`);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        console.error("Error response data:", errorData);
+        errorMessage = errorData.message || errorMessage;
+      } catch (parseError) {
+        console.error("Could not parse error response as JSON");
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log("Milestone status updated successfully:", result);
+    return result as UpdateMilestoneResponse;
+  } catch (error: any) {
+    console.error("Error updating milestone status:");
     console.error("Error name:", error.name);
     console.error("Error message:", error.message);
     console.error("Full error:", error);
