@@ -34,11 +34,14 @@ const HomeScreen = ({
   const [isAtBottom, setIsAtBottom] = useState(false);
   const [isAtTop, setIsAtTop] = useState(true);
   const [isCreatingDream, setIsCreatingDream] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const communityFadeAnim = useRef(new Animated.Value(0)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
   const bottomEffectAnim = useRef(new Animated.Value(0)).current;
+  const loadingSpinAnim = useRef(new Animated.Value(0)).current;
   const { width } = useWindowDimensions();
 
   // Get user data from auth store
@@ -131,12 +134,35 @@ const HomeScreen = ({
               useNativeDriver: true,
             }),
           ]).start();
-          // Refetch user data when reaching bottom
-          if (user?.uid) {
-            loadUserData(user.uid);
+
+          // Set refreshing state and start loading animation
+          setIsRefreshing(true);
+          Animated.loop(
+            Animated.timing(loadingSpinAnim, {
+              toValue: 1,
+              duration: 1000,
+              useNativeDriver: true,
+            })
+          ).start();
+
+          // Wait 1 second before refetching user data
+          if (refreshTimeoutRef.current) {
+            clearTimeout(refreshTimeoutRef.current);
           }
+          refreshTimeoutRef.current = setTimeout(() => {
+            if (user?.uid) {
+              loadUserData(user.uid).then(() => {
+                setIsRefreshing(false);
+              });
+            }
+          }, 1000);
         } else if (!isBottom && isAtBottom) {
           setIsAtBottom(false);
+          // Clear timeout if user scrolls away before refresh completes
+          if (refreshTimeoutRef.current) {
+            clearTimeout(refreshTimeoutRef.current);
+          }
+          setIsRefreshing(false);
         }
       },
     },
@@ -498,6 +524,36 @@ const HomeScreen = ({
           </Animated.View>
         </View>
       </Animated.ScrollView>
+
+      {/* Loading Spinner Overlay */}
+      {isRefreshing && (
+        <Animated.View
+          style={{
+            position: "absolute",
+            bottom: 80,
+            left: "50%",
+            marginLeft: -30,
+            transform: [
+              {
+                rotate: loadingSpinAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ["0deg", "360deg"],
+                }),
+              },
+            ],
+          }}>
+          <View
+            style={{
+              width: 60,
+              height: 60,
+              borderRadius: 30,
+              borderWidth: 3,
+              borderColor: Color.colorOrangered,
+              borderTopColor: "transparent",
+            }}
+          />
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 };
