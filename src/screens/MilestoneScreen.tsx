@@ -190,7 +190,7 @@ const MilestoneScreen = ({
           borderTopLeftRadius: 30,
           borderTopRightRadius: 30,
           overflow: "hidden",
-          flex: 8,
+          flex: 1,
         }}
         {...panResponder.panHandlers}>
         {/* Top Section with Gradient */}
@@ -203,7 +203,7 @@ const MilestoneScreen = ({
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={{
-            flex: 1,
+            flex: 2,
             borderBottomLeftRadius: 40,
             borderBottomRightRadius: 40,
           }}>
@@ -267,7 +267,10 @@ const MilestoneScreen = ({
             {/* Scrollable Content */}
             <ScrollView
               style={{ flex: 1 }}
-              contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-start" }}
+              contentContainerStyle={{
+                flexGrow: 1,
+                justifyContent: "flex-start",
+              }}
               showsVerticalScrollIndicator={false}>
               {/* Title */}
               <View

@@ -184,6 +184,16 @@ export async function createDream(
   }
 }
 
+export interface UpdateRecentsRequest {
+  thread_id: string;
+}
+
+export interface UpdateRecentsResponse {
+  success: boolean;
+  message: string;
+  recents: string[];
+}
+
 export interface UpdateMilestoneRequest {
   status: string;
 }
@@ -192,6 +202,59 @@ export interface UpdateMilestoneResponse {
   success: boolean;
   message: string;
   milestone: any;
+}
+
+export async function updateRecents(
+  userId: string,
+  threadId: string,
+): Promise<UpdateRecentsResponse> {
+  try {
+    console.log(
+      `Attempting to update recents for userId: ${userId}, threadId: ${threadId}`,
+    );
+
+    const payload: UpdateRecentsRequest = {
+      thread_id: threadId,
+    };
+
+    const url = `${API_BASE_URL}/users/${userId}/recents`;
+    console.log("Full URL being called:", url);
+
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    console.log(`Response status: ${response.status} ${response.statusText}`);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        console.error("Error response data:", errorData);
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        console.error("Could not parse error response as JSON");
+      }
+      console.error("Error updating recents:", errorMessage);
+      // Don't throw - allow app to continue even if recents update fails
+      return { success: false, message: errorMessage, recents: [] };
+    }
+
+    const result = await response.json();
+    console.log("Recents updated successfully:", result);
+    return result as UpdateRecentsResponse;
+  } catch (error: any) {
+    console.error("Error updating recents:");
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Full error:", error);
+    // Don't throw - allow app to continue even if recents update fails
+    return { success: false, message: error.message, recents: [] };
+  }
 }
 
 export async function updateMilestoneStatus(

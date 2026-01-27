@@ -11,7 +11,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { ensureGoogleSignInInitialized, isGoogleSignInAvailable } from '../config/googleSignIn';
-import { registerUserToDatabase, fetchUserData, UserData } from '../config/api';
+import { registerUserToDatabase, fetchUserData, UserData, updateRecents } from '../config/api';
 import * as SecureStore from 'expo-secure-store';
 
 interface AuthState {
@@ -235,7 +235,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   addToRecents: (threadId: string) => {
     set((state) => {
-      if (!state.userData?.dreams) return state;
+      if (!state.userData?.dreams || !state.user?.uid) return state;
 
       // Find the dream with the matching threadId
       const dreamToAdd = state.userData.dreams.find(
@@ -264,6 +264,11 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       // Keep only the last 3 items
       updatedUserData.recents = updatedUserData.recents.slice(0, 3);
+
+      // Call API to persist to database (fire and forget - don't block UI)
+      updateRecents(state.user.uid, threadId).catch((error) => {
+        console.error('Failed to sync recents to database:', error);
+      });
 
       return { userData: updatedUserData };
     });
