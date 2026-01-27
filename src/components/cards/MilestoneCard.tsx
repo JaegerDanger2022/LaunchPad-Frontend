@@ -87,25 +87,6 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
         colors={[bgColor, bgColor]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}>
-        {/* Challenge Type Animation - Above Title */}
-        {challengeType && challengeTypeAnimations[challengeType] ? (
-          <View
-            style={{
-              alignItems: "center",
-              marginBottom: 8,
-            }}>
-            <LottieView
-              source={challengeTypeAnimations[challengeType]}
-              autoPlay
-              loop={false}
-              style={{
-                width: 50,
-                height: 50,
-              }}
-            />
-          </View>
-        ) : null}
-
         {/* Title */}
         <Text
           style={{

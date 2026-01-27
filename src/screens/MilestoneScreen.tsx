@@ -281,9 +281,7 @@ const MilestoneScreen = ({
                     marginBottom: 16,
                   }}>
                   <LottieView
-                    source={
-                      challengeTypeAnimations[milestone.challenge_type]
-                    }
+                    source={challengeTypeAnimations[milestone.challenge_type]}
                     autoPlay
                     loop={false}
                     style={{
