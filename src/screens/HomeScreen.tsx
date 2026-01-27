@@ -42,7 +42,7 @@ const HomeScreen = ({
   const { width } = useWindowDimensions();
 
   // Get user data from auth store
-  const { userData, addToRecents } = useAuthStore();
+  const { userData, addToRecents, user, loadUserData } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const hasDreams =
@@ -131,6 +131,10 @@ const HomeScreen = ({
               useNativeDriver: true,
             }),
           ]).start();
+          // Refetch user data when reaching bottom
+          if (user?.uid) {
+            loadUserData(user.uid);
+          }
         } else if (!isBottom && isAtBottom) {
           setIsAtBottom(false);
         }
