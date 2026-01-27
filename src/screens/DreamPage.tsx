@@ -28,16 +28,33 @@ interface Milestone {
   bgColor: string;
   tags: string[];
   duration: string;
-  image: any;
+  image?: any;
+  animation?: any;
+  challengeType?: string;
   roadmapId?: string;
   milestoneId?: string;
 }
 
+// Animation mapping for challenge types
+const challengeTypeAnimations: Record<string, any> = {
+  power_move: require("../assets/animations/power_move.json"),
+  // Add other animations as they become available
+};
+
+// Fallback placeholder images
 const placeholderImages = [
   require("../assets/images/placeholder-flights.png"),
   require("../assets/images/placeholder-lodging.png"),
   require("../assets/images/placeholder-feedback.png"),
 ];
+
+// Helper function to get animation or fallback to image
+const getAnimationOrImage = (challengeType: string, fallbackImageIndex: number) => {
+  return {
+    animation: challengeTypeAnimations[challengeType] || null,
+    image: placeholderImages[fallbackImageIndex % placeholderImages.length],
+  };
+};
 
 const DreamPage = ({
   onNavigate,
@@ -77,6 +94,11 @@ const DreamPage = ({
       ) {
         dream.roadmap.milestones.forEach(
           (milestone: any, milestoneIndex: number) => {
+            const { animation, image } = getAnimationOrImage(
+              milestone.challenge_type,
+              allMilestones.length
+            );
+
             allMilestones.push({
               id: `${dreamIndex}-${milestoneIndex}`,
               title: milestone.title || milestone.name || "Untitled Milestone",
@@ -89,11 +111,9 @@ const DreamPage = ({
                 "#537787",
               tags: milestone.tags || ["Task"],
               duration: milestone.time_estimate || "60 mins",
-              // Cycle through placeholder images
-              image:
-                placeholderImages[
-                  allMilestones.length % placeholderImages.length
-                ],
+              image,
+              animation,
+              challengeType: milestone.challenge_type,
               // Store roadmapId (thread_id from dream) for API calls
               roadmapId: dream.thread_id,
               // Store actual milestone database ID for API calls

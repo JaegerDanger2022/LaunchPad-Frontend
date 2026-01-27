@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import LottieView from "lottie-react-native";
 import { Color } from "../../constants/GlobalStyles";
 
 interface MilestoneCardProps {
@@ -10,6 +11,7 @@ interface MilestoneCardProps {
   tags: string[];
   duration: string;
   image: any;
+  animation?: any;
   onPress: () => void;
 }
 
@@ -20,6 +22,7 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
   tags,
   duration,
   image,
+  animation,
   onPress,
 }) => {
   return (
@@ -34,7 +37,7 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
         overflow: "hidden",
         backgroundColor: bgColor,
       }}>
-      {/* Image */}
+      {/* Image (without animation) */}
       <Image
         source={image}
         style={{
@@ -56,6 +59,21 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
         colors={[bgColor, bgColor]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}>
+        {/* Animation above title */}
+        {animation && (
+          <View style={{ alignItems: "center", marginBottom: 8 }}>
+            <LottieView
+              source={animation}
+              autoPlay
+              loop
+              style={{
+                width: 60,
+                height: 60,
+              }}
+            />
+          </View>
+        )}
+
         {/* Title */}
         <Text
           style={{
