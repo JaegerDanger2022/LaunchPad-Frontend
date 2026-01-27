@@ -18,6 +18,7 @@ interface MilestoneCardProps {
 // Challenge type animation mapping
 const challengeTypeAnimations: Record<string, any> = {
   power_move: require("../../assets/animations/power_move.json"),
+  knowledge_quest: require("../../assets/animations/knowledge_quest.json"),
   // Add other animations as they become available
 };
 
