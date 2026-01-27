@@ -21,6 +21,7 @@ import { TabBar, type TabType } from "../components/TabBar";
 import { EmptyDreamsState } from "../components/EmptyDreamsState";
 import { DreamLoadingScreen } from "../components/DreamLoadingScreen";
 import { SkeletonDreamCards } from "../components/SkeletonDreamCards";
+import { NoRecentsState } from "../components/NoRecentsState";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 
@@ -244,28 +245,32 @@ const HomeScreen = ({
                 transform: [{ translateY: slideAnim }],
               }}>
               {activeTab === "recents" ? (
-                /* Goal Cards Grid - 2 columns */
-                <FlatList
-                  data={dreamCardsData}
-                  renderItem={({ item }) => (
-                    <View style={{ width: columnWidth }}>
-                      <GoalCard
-                        data={item}
-                        onPress={() => {
-                          if (item.status === "active" && item.threadId) {
-                            addToRecents(item.threadId);
-                          }
-                          onNavigate("Dream");
-                        }}
-                      />
-                    </View>
-                  )}
-                  keyExtractor={(_, index) => index.toString()}
-                  numColumns={2}
-                  columnWrapperStyle={{ gap: 14 }}
-                  scrollEnabled={false}
-                  nestedScrollEnabled={false}
-                />
+                /* Goal Cards Grid - 2 columns or No Recents */
+                dreamCardsData.length > 0 ? (
+                  <FlatList
+                    data={dreamCardsData}
+                    renderItem={({ item }) => (
+                      <View style={{ width: columnWidth }}>
+                        <GoalCard
+                          data={item}
+                          onPress={() => {
+                            if (item.status === "active" && item.threadId) {
+                              addToRecents(item.threadId);
+                            }
+                            onNavigate("Dream");
+                          }}
+                        />
+                      </View>
+                    )}
+                    keyExtractor={(_, index) => index.toString()}
+                    numColumns={2}
+                    columnWrapperStyle={{ gap: 14 }}
+                    scrollEnabled={false}
+                    nestedScrollEnabled={false}
+                  />
+                ) : (
+                  <NoRecentsState />
+                )
               ) : (
                 /* No Inspiration Yet Placeholder */
                 <View
