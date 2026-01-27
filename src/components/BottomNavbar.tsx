@@ -1,10 +1,15 @@
 import React from "react";
-import { View, Text } from "react-native";
-import { HomeIcon } from "./icons/SVGIcons";
+import { View, Text, TouchableOpacity } from "react-native";
+import { HomeIcon, DreamsIcon } from "./icons/SVGIcons";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { useThemeStore } from "../store/themeStore";
 
-export const BottomNavbar: React.FC = () => {
+interface BottomNavbarProps {
+  onNavigate?: (screen: string) => void;
+  activeTab?: "home" | "dreams";
+}
+
+export const BottomNavbar: React.FC<BottomNavbarProps> = ({ onNavigate, activeTab = "home" }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
 
@@ -30,37 +35,70 @@ export const BottomNavbar: React.FC = () => {
         zIndex: 20,
       }}>
       {/* Active Home Tab */}
-      <View
+      <TouchableOpacity
+        onPress={() => onNavigate?.("Home")}
         style={{
-          backgroundColor: Color.colorOrangered,
+          backgroundColor: activeTab === "home" ? Color.colorOrangered : "transparent",
           height: 43,
-          width: 117,
+          width: activeTab === "home" ? 117 : 43,
           alignItems: "center",
           justifyContent: "center",
           borderTopRightRadius: 40,
           borderTopLeftRadius: 40,
-          borderBottomRightRadius: 35,
-          borderBottomLeftRadius: 35,
+          borderBottomRightRadius: activeTab === "home" ? 35 : 21,
+          borderBottomLeftRadius: activeTab === "home" ? 35 : 21,
           borderWidth: 1,
-          borderColor: Color.colorWhite,
+          borderColor: activeTab === "home" ? Color.colorWhite : "transparent",
           borderStyle: "solid",
           flexDirection: "row",
           gap: 8,
         }}>
-        <HomeIcon size={31} color={Color.colorWhite} />
-        <Text
-          style={{
-            color: Color.colorWhite,
-            fontFamily: "InstrumentSans-Regular",
-            fontSize: 20,
-            textAlign: "center",
-          }}>
-          Home
-        </Text>
-      </View>
+        <HomeIcon size={31} color={activeTab === "home" ? Color.colorWhite : themeColors.text_secondary} />
+        {activeTab === "home" && (
+          <Text
+            style={{
+              color: Color.colorWhite,
+              fontFamily: "InstrumentSans-Regular",
+              fontSize: 20,
+              textAlign: "center",
+            }}>
+            Home
+          </Text>
+        )}
+      </TouchableOpacity>
 
-      {/* Inactive Home Icon */}
-      {/* <HomeIcon size={50} color={Color.colorBlack} /> */}
+      {/* Dreams Icon */}
+      <TouchableOpacity
+        onPress={() => onNavigate?.("AllDreams")}
+        style={{
+          backgroundColor: activeTab === "dreams" ? Color.colorOrangered : "transparent",
+          height: 43,
+          width: activeTab === "dreams" ? 117 : 43,
+          alignItems: "center",
+          justifyContent: "center",
+          borderTopRightRadius: 40,
+          borderTopLeftRadius: 40,
+          borderBottomRightRadius: activeTab === "dreams" ? 35 : 21,
+          borderBottomLeftRadius: activeTab === "dreams" ? 35 : 21,
+          borderWidth: 1,
+          borderColor: activeTab === "dreams" ? Color.colorWhite : "transparent",
+          borderStyle: "solid",
+          flexDirection: "row",
+          gap: 8,
+        }}>
+        <DreamsIcon size={31} color={activeTab === "dreams" ? Color.colorWhite : themeColors.text_secondary} />
+        {activeTab === "dreams" && (
+          <Text
+            style={{
+              color: Color.colorWhite,
+              fontFamily: "InstrumentSans-Regular",
+              fontSize: 20,
+              textAlign: "center",
+            }}>
+            Dreams
+          </Text>
+        )}
+      </TouchableOpacity>
     </View>
   );
 };

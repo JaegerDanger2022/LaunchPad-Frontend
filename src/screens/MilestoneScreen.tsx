@@ -7,6 +7,7 @@ import {
   Animated,
   PanResponder,
   Dimensions,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -202,7 +203,7 @@ const MilestoneScreen = ({
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={{
-            flex: 1.6,
+            flex: 1,
             borderBottomLeftRadius: 40,
             borderBottomRightRadius: 40,
           }}>
@@ -263,78 +264,83 @@ const MilestoneScreen = ({
               <View style={{ width: 40 }} />
             </View>
 
-            {/* Icon & Description */}
-
-            {/* Title */}
-            <View
-              style={{
-                alignItems: "center",
-                paddingHorizontal: 40,
-                marginTop: 40,
-              }}>
-              {/* Challenge Type Animation - Above Title */}
-              {milestone?.challenge_type &&
-              challengeTypeAnimations[milestone.challenge_type] ? (
-                <View
-                  style={{
-                    alignItems: "center",
-                    marginBottom: 16,
-                  }}>
-                  <LottieView
-                    source={challengeTypeAnimations[milestone.challenge_type]}
-                    autoPlay
-                    loop={false}
-                    style={{
-                      width: 80,
-                      height: 80,
-                    }}
-                  />
-                </View>
-              ) : null}
-
-              <Text
-                style={{
-                  color: Color.colorBlack,
-                  fontSize: 30,
-                  fontWeight: "700",
-                  marginBottom: 12,
-                  textAlign: "center",
-                }}>
-                {milestone?.title || milestone?.name || "Untitled Milestone"}
-              </Text>
-
-              <Text
-                style={{
-                  color: Color.colorBlack,
-                  textAlign: "center",
-                  fontSize: 16,
-                  lineHeight: 24,
-                  opacity: 0.95,
-                  marginBottom: 25,
-                }}>
-                {milestone?.description || "No description available"}
-              </Text>
-
+            {/* Scrollable Content */}
+            <ScrollView
+              style={{ flex: 1 }}
+              contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-start" }}
+              showsVerticalScrollIndicator={false}>
+              {/* Title */}
               <View
                 style={{
-                  width: 80,
-                  height: 2,
-                  backgroundColor: "rgba(255, 255, 255, 0.3)",
-                  marginBottom: 25,
-                }}
-              />
-
-              <Text
-                style={{
-                  color: Color.colorBlack,
-                  textAlign: "center",
-                  fontSize: 14,
-                  lineHeight: 20,
+                  alignItems: "center",
+                  paddingHorizontal: 40,
+                  marginTop: 40,
+                  paddingBottom: 40,
                 }}>
-                {milestone?.motivation_hook ||
-                  "Mark it as complete to progress!"}
-              </Text>
-            </View>
+                {/* Challenge Type Animation - Above Title */}
+                {milestone?.challenge_type &&
+                challengeTypeAnimations[milestone.challenge_type] ? (
+                  <View
+                    style={{
+                      alignItems: "center",
+                      marginBottom: 8,
+                    }}>
+                    <LottieView
+                      source={challengeTypeAnimations[milestone.challenge_type]}
+                      autoPlay
+                      loop={false}
+                      style={{
+                        width: 50,
+                        height: 50,
+                      }}
+                    />
+                  </View>
+                ) : null}
+
+                <Text
+                  style={{
+                    color: Color.colorBlack,
+                    fontSize: 30,
+                    fontWeight: "700",
+                    marginBottom: 12,
+                    textAlign: "center",
+                  }}>
+                  {milestone?.title || milestone?.name || "Untitled Milestone"}
+                </Text>
+
+                <Text
+                  style={{
+                    color: Color.colorBlack,
+                    textAlign: "center",
+                    fontSize: 14,
+                    lineHeight: 24,
+                    opacity: 0.95,
+                    marginBottom: 25,
+                  }}>
+                  {milestone?.description || "No description available"}
+                </Text>
+
+                <View
+                  style={{
+                    width: 80,
+                    height: 2,
+                    backgroundColor: "rgba(255, 255, 255, 0.3)",
+                    marginBottom: 25,
+                  }}
+                />
+
+                <Text
+                  style={{
+                    color: Color.colorBlack,
+                    textAlign: "center",
+                    fontSize: 14,
+                    lineHeight: 20,
+                  }}>
+                  {milestone?.motivation_hook ||
+                    "Mark it as complete to progress!"}
+                </Text>
+              </View>
+            </ScrollView>
           </SafeAreaView>
         </LinearGradient>
 

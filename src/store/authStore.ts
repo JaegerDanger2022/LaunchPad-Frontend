@@ -31,6 +31,7 @@ interface AuthState {
   initializeAuth: () => void;
   loadUserData: (userId: string) => Promise<void>;
   updateMilestoneStatusLocal: (threadId: string, milestoneId: string, status: string) => void;
+  addToRecents: (threadId: string) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -227,6 +228,42 @@ export const useAuthStore = create<AuthState>((set) => ({
           }
         }
       }
+
+      return { userData: updatedUserData };
+    });
+  },
+
+  addToRecents: (threadId: string) => {
+    set((state) => {
+      if (!state.userData?.dreams) return state;
+
+      // Find the dream with the matching threadId
+      const dreamToAdd = state.userData.dreams.find(
+        (dream: any) => dream.thread_id === threadId
+      );
+
+      if (!dreamToAdd || dreamToAdd.status !== 'active') {
+        return state;
+      }
+
+      // Create a deep copy of userData
+      const updatedUserData = JSON.parse(JSON.stringify(state.userData));
+
+      // Initialize recents array if it doesn't exist
+      if (!updatedUserData.recents) {
+        updatedUserData.recents = [];
+      }
+
+      // Remove threadId if it already exists (to avoid duplicates)
+      updatedUserData.recents = updatedUserData.recents.filter(
+        (id: string) => id !== threadId
+      );
+
+      // Add threadId to the beginning of recents
+      updatedUserData.recents.unshift(threadId);
+
+      // Keep only the last 3 items
+      updatedUserData.recents = updatedUserData.recents.slice(0, 3);
 
       return { userData: updatedUserData };
     });

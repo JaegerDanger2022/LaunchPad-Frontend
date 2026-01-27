@@ -18,6 +18,8 @@ export interface GoalCardData {
   bgImage: any;
   bgColor: string;
   progressColor: string;
+  threadId?: string;
+  status?: string;
 }
 
 interface GoalCardProps {

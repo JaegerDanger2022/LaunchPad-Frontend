@@ -40,7 +40,7 @@ const HomeScreen = ({
   const { width } = useWindowDimensions();
 
   // Get user data from auth store
-  const { userData } = useAuthStore();
+  const { userData, addToRecents } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const hasDreams =
@@ -148,15 +148,27 @@ const HomeScreen = ({
     if (!userData?.dreams || !Array.isArray(userData.dreams)) {
       return [];
     }
-    return userData.dreams.map((dream: any) => ({
+
+    const recentsArray = userData.recents || [];
+
+    // Filter and map only recent dreams
+    const recentDreams = recentsArray
+      .map((threadId: string) =>
+        userData.dreams.find((dream: any) => dream.thread_id === threadId)
+      )
+      .filter((dream: any) => dream !== undefined);
+
+    return recentDreams.map((dream: any) => ({
       title: dream.dream || "",
       bgImage: dream.dream_image_bytes
         ? { uri: convertBinaryToImage(dream.dream_image_bytes) }
         : require("../assets/images/goal-podcast.png"),
       bgColor: dream.dream_card_bg || Color.colorBurlywood,
       progressColor: "#6B9BD1",
+      threadId: dream.thread_id,
+      status: dream.status,
     }));
-  }, [userData?.dreams]);
+  }, [userData?.dreams, userData?.recents]);
 
   // If user has no dreams, show skeleton loaders while fetching
   if (!hasDreams) {
@@ -179,7 +191,7 @@ const HomeScreen = ({
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
       <TopNavbar name="Ready to win, Kyla-Marie?" />
-      <BottomNavbar />
+      <BottomNavbar onNavigate={onNavigate} activeTab="home" />
       <Animated.ScrollView
         onScroll={handleScroll}
         scrollEventThrottle={16}
@@ -239,7 +251,12 @@ const HomeScreen = ({
                     <View style={{ width: columnWidth }}>
                       <GoalCard
                         data={item}
-                        onPress={() => onNavigate("Dream")}
+                        onPress={() => {
+                          if (item.status === "active" && item.threadId) {
+                            addToRecents(item.threadId);
+                          }
+                          onNavigate("Dream");
+                        }}
                       />
                     </View>
                   )}

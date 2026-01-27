@@ -121,3 +121,14 @@ export const GoalBgPlaceholder: React.FC<IconProps> = ({ size = 166, color = '#e
     </Svg>
   </View>
 );
+
+export const DreamsIcon: React.FC<IconProps> = ({ size = 24, color = '#000' }) => (
+  <View style={{ width: size, height: size }}>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M20 11H4V5h16m0-2H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-10 7l-3-4-3 4h10l-4-5z"
+        fill={color}
+      />
+    </Svg>
+  </View>
+);

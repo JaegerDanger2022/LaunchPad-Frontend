@@ -6,6 +6,7 @@ import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-na
 import HomeScreen from './src/screens/HomeScreen';
 import MilestoneScreen from './src/screens/MilestoneScreen';
 import DreamPage from './src/screens/DreamPage';
+import AllDreamsScreen from './src/screens/AllDreamsScreen';
 import LoginScreen from './src/screens/auth/LoginScreen';
 import SignupScreen from './src/screens/auth/SignupScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
@@ -20,6 +21,7 @@ export type RootStackParamList = {
 
   // App screens
   Home: undefined;
+  AllDreams: undefined;
   Milestone: { milestoneId: string };
   Dream: undefined;
 };
@@ -42,6 +44,10 @@ const MilestoneScreenWrapper = ({ navigation, route }: any) => (
     }}
     milestoneId={route.params?.milestoneId}
   />
+);
+
+const AllDreamsScreenWrapper = ({ navigation }: any) => (
+  <AllDreamsScreen onNavigate={(screen) => navigation.navigate(screen as keyof RootStackParamList)} />
 );
 
 const DreamPageWrapper = ({ navigation }: any) => (
@@ -75,6 +81,13 @@ function AppNavigator() {
       <Stack.Screen
         name="Home"
         component={HomeScreenWrapper}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="AllDreams"
+        component={AllDreamsScreenWrapper}
         options={{
           headerShown: false,
         }}
