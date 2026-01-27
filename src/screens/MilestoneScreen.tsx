@@ -6,26 +6,73 @@ import {
   StatusBar,
   Animated,
   PanResponder,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path } from "react-native-svg";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { useAppStore } from "../store/appStore";
+import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
+import { RepeatableGoal } from "../components/milestonescreen/RepeatableGoal";
+import { OneTimeGoal } from "../components/milestonescreen/OneTimeGoal";
+
+const { height: screenHeight } = Dimensions.get("window");
 
 const MilestoneScreen = ({
   onNavigate,
+  milestoneId,
 }: {
   onNavigate: (screen: string) => void;
+  milestoneId?: string;
 }) => {
   const completedSteps = useAppStore((state) => state.completedSteps);
   const setCompletedSteps = useAppStore((state) => state.setCompletedSteps);
+  const { userData } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const slideAnim = useRef(new Animated.Value(1000)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const dragY = useRef(new Animated.Value(0)).current;
   const dragAmount = useRef(0).current;
+  const handleScaleAnim = useRef(new Animated.Value(1)).current;
+  const [milestone, setMilestone] = React.useState<any>(null);
+  const [isCompleted, setIsCompleted] = React.useState(false);
+
+  // Drag handle hover animation
+  const startHandleHover = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(handleScaleAnim, {
+          toValue: 1.15,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(handleScaleAnim, {
+          toValue: 1,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  };
+
+  React.useEffect(() => {
+    startHandleHover();
+  }, []);
+
+  // Extract milestone data from userId
+  React.useEffect(() => {
+    if (milestoneId && userData?.dreams) {
+      const [dreamIndex, milestoneIndex] = milestoneId.split("-").map(Number);
+      const dream = userData.dreams[dreamIndex];
+      const milestoneData = dream?.roadmap?.milestones?.[milestoneIndex];
+      if (milestoneData) {
+        setMilestone(milestoneData);
+      }
+    }
+  }, [milestoneId, userData]);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -56,21 +103,35 @@ const MilestoneScreen = ({
   ).current;
 
   useEffect(() => {
-    // Slide up animation on mount
-    Animated.timing(slideAnim, {
-      toValue: 0,
-      duration: 400,
-      useNativeDriver: true,
-    }).start();
-  }, [slideAnim]);
+    // Slide up animation + fade in on mount
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [slideAnim, fadeAnim]);
 
   const handleClose = () => {
-    // Slide down animation before closing
-    Animated.timing(slideAnim, {
-      toValue: 1000,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
+    // Slide down animation + fade out before closing
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: screenHeight,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
       onNavigate("Home");
     });
   };
@@ -82,15 +143,8 @@ const MilestoneScreen = ({
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+    <View style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" />
-
-      {/* Pressable overlay to close modal */}
-      <TouchableOpacity
-        activeOpacity={1}
-        onPress={handleClose}
-        style={{ flex: 1 }}
-      />
 
       {/* Modal sliding from bottom */}
       <Animated.View
@@ -114,6 +168,30 @@ const MilestoneScreen = ({
             borderBottomRightRadius: 40,
           }}>
           <SafeAreaView style={{ flex: 1 }}>
+            {/* Drag Handle */}
+            <Animated.View
+              style={{
+                alignItems: "center",
+                paddingTop: 40,
+                paddingBottom: 0,
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                zIndex: 10,
+                transform: [{ scale: handleScaleAnim }],
+              }}>
+              <Svg width="40" height="4" viewBox="0 0 40 4">
+                <Path
+                  d="M 0 2 L 40 2"
+                  stroke={Color.colorWhite}
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  opacity="0.4"
+                />
+              </Svg>
+            </Animated.View>
+
             {/* Header */}
             <View
               style={{
@@ -121,7 +199,7 @@ const MilestoneScreen = ({
                 alignItems: "center",
                 justifyContent: "space-between",
                 paddingHorizontal: 24,
-                paddingTop: 10,
+                paddingTop: 50,
               }}>
               <TouchableOpacity
                 onPress={handleClose}
@@ -147,29 +225,23 @@ const MilestoneScreen = ({
             </View>
 
             {/* Icon & Description */}
+
+            {/* Title */}
             <View
               style={{
                 alignItems: "center",
                 paddingHorizontal: 40,
                 marginTop: 40,
               }}>
-              <View style={{ marginBottom: 25 }}>
-                <Svg width="64" height="80" viewBox="0 0 64 80">
-                  <Path
-                    d="M32 0C32 0 12 25 12 45C12 58.807 21.193 70 32 70C42.807 70 52 58.807 52 45C52 25 32 0 32 0Z"
-                    fill={Color.colorWhite}
-                  />
-                </Svg>
-              </View>
-
               <Text
                 style={{
                   color: Color.colorWhite,
                   fontSize: 30,
                   fontWeight: "700",
                   marginBottom: 12,
+                  textAlign: "center",
                 }}>
-                Drink Water
+                {milestone?.title || milestone?.name || "Untitled Milestone"}
               </Text>
 
               <Text
@@ -181,9 +253,7 @@ const MilestoneScreen = ({
                   opacity: 0.95,
                   marginBottom: 25,
                 }}>
-                This week, drink water as soon as you wake up. You're hydrating
-                your body and, just as importantly, you're demonstrating
-                follow-through.
+                {milestone?.description || "No description available"}
               </Text>
 
               <View
@@ -202,117 +272,19 @@ const MilestoneScreen = ({
                   fontSize: 14,
                   lineHeight: 20,
                 }}>
-                <Text style={{ fontWeight: "bold" }}>Drink Water</Text> has been
-                added to your{" "}
-                <Text style={{ fontWeight: "bold" }}>Morning Routine</Text>.
-                Mark it as complete to progress!
+                {milestone?.motivation_hook ||
+                  "Mark it as complete to progress!"}
               </Text>
             </View>
           </SafeAreaView>
         </LinearGradient>
 
         {/* Bottom Action Section */}
-        <View
-          style={{
-            flex: 1,
-            paddingHorizontal: 24,
-            paddingTop: 30,
-            alignItems: "center",
-          }}>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: "700",
-              color: themeColors.text_primary,
-              marginBottom: 25,
-            }}>
-            Do it 3 times this week to succeed
-          </Text>
-
-          {/* Progress Dots */}
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 15,
-              marginBottom: 40,
-            }}>
-            {[1, 2, 3].map((num) => (
-              <View
-                key={num}
-                style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: 26,
-                  backgroundColor:
-                    num <= completedSteps ? "#00D4AA" : themeColors.bg_secondary,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  shadowColor: Color.colorBlack,
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.05,
-                  shadowRadius: 5,
-                  elevation: 2,
-                }}>
-                <Text
-                  style={{
-                    color: num <= completedSteps ? Color.colorWhite : themeColors.text_secondary,
-                    fontSize: 18,
-                    fontWeight: "600",
-                  }}>
-                  {num}
-                </Text>
-              </View>
-            ))}
-          </View>
-
-          <TouchableOpacity
-            onPress={handlePress}
-            activeOpacity={0.8}
-            style={{
-              width: "100%",
-              height: 60,
-              backgroundColor: "#00D4AA",
-              borderRadius: 20,
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: 12,
-            }}>
-            <Text
-              style={{
-                color: Color.colorWhite,
-                fontSize: 18,
-                fontWeight: "700",
-              }}>
-              {completedSteps === 3
-                ? "Goal Completed!"
-                : "I have done this today!"}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={{ width: "100%", paddingVertical: 10 }}>
-            <Text
-              style={{
-                color: themeColors.text_secondary,
-                textAlign: "center",
-                fontSize: 16,
-                fontWeight: "500",
-              }}>
-              Skip this goal
-            </Text>
-          </TouchableOpacity>
-
-          {/* Home Indicator Spacer */}
-          <View
-            style={{
-              width: 130,
-              height: 5,
-              backgroundColor: Color.colorBlack,
-              borderRadius: 10,
-              marginTop: "auto",
-              marginBottom: 8,
-            }}
-          />
-        </View>
+        {milestone?.streak_eligible ? (
+          <RepeatableGoal completedSteps={completedSteps} onPress={handlePress} />
+        ) : (
+          <OneTimeGoal isCompleted={isCompleted} onPress={() => setIsCompleted(true)} />
+        )}
       </Animated.View>
     </View>
   );

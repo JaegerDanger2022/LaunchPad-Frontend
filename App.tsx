@@ -20,7 +20,7 @@ export type RootStackParamList = {
 
   // App screens
   Home: undefined;
-  Milestone: undefined;
+  Milestone: { milestoneId: string };
   Dream: undefined;
 };
 
@@ -31,22 +31,25 @@ const HomeScreenWrapper = ({ navigation }: any) => (
   <HomeScreen onNavigate={(screen) => navigation.navigate(screen as keyof RootStackParamList)} />
 );
 
-const MilestoneScreenWrapper = ({ navigation }: any) => (
-  <MilestoneScreen onNavigate={(screen) => {
-    if (screen === 'Home') {
-      navigation.goBack();
-    } else {
-      navigation.navigate(screen as keyof RootStackParamList);
-    }
-  }} />
+const MilestoneScreenWrapper = ({ navigation, route }: any) => (
+  <MilestoneScreen
+    onNavigate={(screen) => {
+      if (screen === 'Home') {
+        navigation.goBack();
+      } else {
+        navigation.navigate(screen as keyof RootStackParamList);
+      }
+    }}
+    milestoneId={route.params?.milestoneId}
+  />
 );
 
 const DreamPageWrapper = ({ navigation }: any) => (
-  <DreamPage onNavigate={(screen) => {
+  <DreamPage onNavigate={(screen, params) => {
     if (screen === 'Home') {
       navigation.goBack();
     } else {
-      navigation.navigate(screen as keyof RootStackParamList);
+      navigation.navigate(screen as keyof RootStackParamList, params);
     }
   }} />
 );
