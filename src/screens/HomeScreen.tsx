@@ -32,6 +32,7 @@ const HomeScreen = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>("recents");
   const [isAtBottom, setIsAtBottom] = useState(false);
+  const [isAtTop, setIsAtTop] = useState(true);
   const [isCreatingDream, setIsCreatingDream] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
@@ -96,9 +97,22 @@ const HomeScreen = ({
         const contentHeight = event.nativeEvent.contentSize.height;
         const layoutHeight = event.nativeEvent.layoutMeasurement.height;
 
+        // Check if we're at top (within 50px of the beginning)
+        const isTop = contentOffsetY <= 50;
+
         // Check if we're at bottom (within 50px of the end)
         const isBottom = contentOffsetY + layoutHeight >= contentHeight - 50;
 
+        // Handle top edge detection
+        if (isTop && !isAtTop) {
+          setIsAtTop(true);
+          // Trigger haptic feedback
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        } else if (!isTop && isAtTop) {
+          setIsAtTop(false);
+        }
+
+        // Handle bottom edge detection
         if (isBottom && !isAtBottom) {
           setIsAtBottom(true);
           // Trigger haptic feedback
