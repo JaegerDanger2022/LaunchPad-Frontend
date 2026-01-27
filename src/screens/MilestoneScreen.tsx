@@ -11,7 +11,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path } from "react-native-svg";
-import { Color, getThemeColors } from "../constants/GlobalStyles";
+import {
+  Color,
+  getThemeColors,
+  ChallengeTypeColors,
+} from "../constants/GlobalStyles";
 import { useAppStore } from "../store/appStore";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
@@ -19,6 +23,21 @@ import { RepeatableGoal } from "../components/milestonescreen/RepeatableGoal";
 import { OneTimeGoal } from "../components/milestonescreen/OneTimeGoal";
 
 const { height: screenHeight } = Dimensions.get("window");
+
+// Helper function to generate gradient colors from a hex color
+const generateGradientColors = (hexColor: string): [string, string] => {
+  // Lighten the color for the second gradient stop
+  const lighten = (color: string, percent: number): string => {
+    const num = parseInt(color.replace("#", ""), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = Math.min(255, (num >> 16) + amt);
+    const G = Math.min(255, ((num >> 8) & 0x00ff) + amt);
+    const B = Math.min(255, (num & 0x0000ff) + amt);
+    return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
+  };
+
+  return [hexColor, lighten(hexColor, 15)];
+};
 
 const MilestoneScreen = ({
   onNavigate,
@@ -70,7 +89,7 @@ const MilestoneScreen = ({
       for (const dream of userData.dreams) {
         if (dream.roadmap?.milestones) {
           const foundMilestone = dream.roadmap.milestones.find(
-            (m: any) => m.id === milestoneId
+            (m: any) => m.id === milestoneId,
           );
           if (foundMilestone) {
             setMilestone(foundMilestone);
@@ -167,7 +186,11 @@ const MilestoneScreen = ({
         {...panResponder.panHandlers}>
         {/* Top Section with Gradient */}
         <LinearGradient
-          colors={["#4FA9DB", "#5CB8E8"]}
+          colors={generateGradientColors(
+            ChallengeTypeColors[
+              milestone?.challenge_type as keyof typeof ChallengeTypeColors
+            ] || "#4FA9DB",
+          )}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={{
@@ -192,7 +215,7 @@ const MilestoneScreen = ({
               <Svg width="40" height="4" viewBox="0 0 40 4">
                 <Path
                   d="M 0 2 L 40 2"
-                  stroke={Color.colorWhite}
+                  stroke={Color.colorBlack}
                   strokeWidth="4"
                   strokeLinecap="round"
                   opacity="0.4"
@@ -219,11 +242,11 @@ const MilestoneScreen = ({
                   alignItems: "center",
                   justifyContent: "center",
                 }}>
-                <Text style={{ color: Color.colorWhite, fontSize: 20 }}>←</Text>
+                <Text style={{ color: Color.colorBlack, fontSize: 20 }}>←</Text>
               </TouchableOpacity>
               <Text
                 style={{
-                  color: Color.colorWhite,
+                  color: Color.colorBlack,
                   fontSize: 18,
                   fontWeight: "600",
                 }}>
@@ -243,7 +266,7 @@ const MilestoneScreen = ({
               }}>
               <Text
                 style={{
-                  color: Color.colorWhite,
+                  color: Color.colorBlack,
                   fontSize: 30,
                   fontWeight: "700",
                   marginBottom: 12,
@@ -254,7 +277,7 @@ const MilestoneScreen = ({
 
               <Text
                 style={{
-                  color: Color.colorWhite,
+                  color: Color.colorBlack,
                   textAlign: "center",
                   fontSize: 16,
                   lineHeight: 24,
@@ -275,7 +298,7 @@ const MilestoneScreen = ({
 
               <Text
                 style={{
-                  color: Color.colorWhite,
+                  color: Color.colorBlack,
                   textAlign: "center",
                   fontSize: 14,
                   lineHeight: 20,

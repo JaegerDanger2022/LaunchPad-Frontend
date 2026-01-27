@@ -30,6 +30,17 @@ export const Color = {
   colorWhite: "#fff",
 };
 
+/* Challenge Type Colors */
+export const ChallengeTypeColors = {
+  power_move: "#FF6B6B",
+  knowledge_quest: "#4ECDC4",
+  prep_ritual: "#FFD93D",
+  courage_check: "#FF6B9D",
+  skill_flex: "#6BCB77",
+  decision_point: "#A78BFA",
+  celebration_moment: "#FFA502",
+};
+
 /* Light Theme */
 export const LightTheme = {
   bg_primary: "#fff8f5",

@@ -6,10 +6,15 @@ import {
   Dimensions,
   ScrollView,
 } from "react-native";
-import { Color, getThemeColors } from "../constants/GlobalStyles";
+import {
+  Color,
+  getThemeColors,
+  ChallengeTypeColors,
+} from "../constants/GlobalStyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { ChevronLeft } from "lucide-react-native";
+import LottieView from "lottie-react-native";
 import { MilestoneCard } from "../components/cards/MilestoneCard";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { useThemeStore } from "../store/themeStore";
@@ -43,6 +48,13 @@ const DreamPage = ({
   const themeColors = getThemeColors(theme);
   const { userData } = useAuthStore();
 
+  // Get the first dream's field string and card background color
+  const firstDream = userData?.dreams?.[0];
+  const dreamField = firstDream?.dream || "Dream";
+  const dreamCardBg = firstDream?.dream_card_bg || "#4FA9DB";
+  const dreamScore = firstDream?.metadata?.score || 0;
+  const dreamTotalXp = firstDream?.metadata?.total_xp || 0;
+
   // Static curve depth
   const curveDepth = 200;
 
@@ -68,7 +80,13 @@ const DreamPage = ({
             allMilestones.push({
               id: `${dreamIndex}-${milestoneIndex}`,
               title: milestone.title || milestone.name || "Untitled Milestone",
-              bgColor: milestone.bgColor || dream.dream_card_bg || "#537787",
+              bgColor:
+                ChallengeTypeColors[
+                  milestone.challenge_type as keyof typeof ChallengeTypeColors
+                ] ||
+                milestone.bgColor ||
+                dream.dream_card_bg ||
+                "#537787",
               tags: milestone.tags || ["Task"],
               duration: milestone.time_estimate || "60 mins",
               // Cycle through placeholder images
@@ -100,7 +118,7 @@ const DreamPage = ({
           width={screenWidth}
           height={320}
           style={{ position: "absolute", top: 0, zIndex: 5 }}>
-          <Path d={elasticPath} fill="#4FA9DB" stroke="none" />
+          <Path d={elasticPath} fill={dreamCardBg} stroke="none" />
         </Svg>
 
         {/* Back Button - Fixed Position with Semi-transparent Background */}
@@ -125,56 +143,68 @@ const DreamPage = ({
               alignItems: "center",
               justifyContent: "center",
             }}>
-            <ChevronLeft size={24} color={Color.colorWhite} strokeWidth={2.5} />
+            <ChevronLeft size={24} color={Color.colorBlack} strokeWidth={2.5} />
           </TouchableOpacity>
         </View>
-
+        {/* Dream Achievements Animation - Absolutely Positioned */}
+        <View
+          style={{
+            position: "absolute",
+            top: 180,
+            left: 0,
+            right: 0,
+            alignItems: "center",
+            zIndex: 7,
+            height: 100,
+          }}>
+          <LottieView
+            source={require("../assets/animations/dream_achievements.json")}
+            autoPlay
+            loop={false}
+            style={{ width: 120, height: 80 }}
+          />
+        </View>
         {/* Header Content */}
         <View style={{ paddingHorizontal: 22, paddingTop: 100, zIndex: 6 }}>
-          {/* Collection Badge */}
-          {/* <View
-            style={{
-              alignSelf: "flex-start",
-              backgroundColor: "rgba(255, 255, 255, 0.3)",
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-              borderRadius: 12,
-              marginBottom: 20,
-            }}>
-            <Text
-              style={{
-                color: Color.colorWhite,
-                fontSize: 12,
-                fontWeight: "600",
-                fontFamily: "InstrumentSans-Medium",
-              }}>
-              Collection
-            </Text>
-          </View> */}
-
           {/* Title */}
           <Text
             style={{
-              fontSize: 32,
+              fontSize: 20,
               fontWeight: "700",
-              color: Color.colorWhite,
+              color: Color.colorBlack,
               fontFamily: "InstrumentSans-Bold",
               marginBottom: 8,
+              textAlign: "center",
             }}>
-            Take 5
+            {dreamField}
           </Text>
 
-          {/* Subtitle */}
+          {/* Score Display */}
           <Text
             style={{
-              fontSize: 16,
-              color: Color.colorWhite,
+              fontSize: 14,
+              color: Color.colorBlack,
               fontFamily: "InstrumentSans-Regular",
-              fontWeight: "400",
-              opacity: 0.9,
+              fontWeight: "500",
+              opacity: 0.8,
+              marginTop: 8,
+              width: 100,
+              height: 48,
+              borderRadius: 12,
+              backgroundColor: "rgba(255, 255, 255, 0.2)",
             }}>
-            5 minutes a day is all it takes to feel your best.
+            {dreamScore}/{dreamTotalXp} Points
           </Text>
+
+          {/* Dream Achievements Animation - Centered */}
+          {/* <View style={{ alignItems: "center", marginBottom: 20 }}>
+            <LottieView
+              source={require("../assets/animations/dream_achievements.json")}
+              autoPlay
+              loop
+              style={{ width: 120, height: 80 }}
+            />
+          </View> */}
         </View>
 
         <View style={{ flex: 1, overflow: "hidden" }}>
