@@ -196,16 +196,17 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   loadUserData: async (userId: string) => {
     try {
-      console.log('Loading user data for:', userId);
+      console.log('[loadUserData] Loading user data for:', userId);
       const userData = await fetchUserData(userId);
       if (userData) {
+        console.log('[loadUserData] Fetched userData, up_next:', userData.up_next);
         set({ userData });
-        console.log('User data loaded successfully');
+        console.log('[loadUserData] User data loaded successfully, state updated');
       } else {
-        console.warn('No user data found for:', userId);
+        console.warn('[loadUserData] No user data found for:', userId);
       }
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error('[loadUserData] Error loading user data:', error);
       // Don't set error state - this is not critical for app functionality
     }
   },
@@ -294,16 +295,18 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       // Calculate next incomplete milestone
       const upNext = findNextIncompleteMilestone(state.userData);
+      console.log('[updateUpNext] Calculated upNext:', upNext);
 
       // Create a deep copy of userData
       const updatedUserData = JSON.parse(JSON.stringify(state.userData));
 
       // Update up_next field
       updatedUserData.up_next = upNext;
+      console.log('[updateUpNext] Updated userData.up_next to:', updatedUserData.up_next);
 
       // Call API to persist to database (fire and forget - don't block UI)
       updateUpNextAPI(state.user.uid, upNext).catch((error) => {
-        console.error('Failed to sync up_next to database:', error);
+        console.error('[updateUpNext] Failed to sync up_next to database:', error);
       });
 
       return { userData: updatedUserData };
