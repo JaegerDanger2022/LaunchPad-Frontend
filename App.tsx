@@ -1,9 +1,10 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
-import { NavigationContainer, NavigationProp } from '@react-navigation/native';
+import { useEffect, useRef } from 'react';
+import { View, ActivityIndicator, Animated } from 'react-native';
+import { NavigationContainer, NavigationProp, useFocusEffect } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import React from 'react';
 import HomeScreen from './src/screens/HomeScreen';
 import MilestoneScreen from './src/screens/MilestoneScreen';
 import DreamPage from './src/screens/DreamPage';
@@ -38,8 +39,30 @@ export type TabParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
+// HOC to add fade-in animation to tab screens
+const withFadeAnimation = (Component: any) => {
+  return (props: any) => {
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+
+    useFocusEffect(() => {
+      fadeAnim.setValue(0);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    });
+
+    return (
+      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+        <Component {...props} />
+      </Animated.View>
+    );
+  };
+};
+
 // Wrapper components that accept navigation as a prop
-const HomeScreenWrapper = ({ navigation }: any) => (
+const HomeScreenBase = ({ navigation }: any) => (
   <HomeScreen onNavigate={(screen) => {
     if (screen === 'AllDreams' || screen === 'EvidenceBoard') {
       navigation.navigate(screen as keyof TabParamList);
@@ -48,6 +71,8 @@ const HomeScreenWrapper = ({ navigation }: any) => (
     }
   }} />
 );
+
+const HomeScreenWrapper = withFadeAnimation(HomeScreenBase);
 
 const MilestoneScreenWrapper = ({ navigation, route }: any) => (
   <MilestoneScreen
@@ -62,7 +87,7 @@ const MilestoneScreenWrapper = ({ navigation, route }: any) => (
   />
 );
 
-const AllDreamsScreenWrapper = ({ navigation }: any) => (
+const AllDreamsScreenBase = ({ navigation }: any) => (
   <AllDreamsScreen onNavigate={(screen) => {
     if (screen === 'Home' || screen === 'EvidenceBoard') {
       navigation.navigate(screen as keyof TabParamList);
@@ -71,6 +96,8 @@ const AllDreamsScreenWrapper = ({ navigation }: any) => (
     }
   }} />
 );
+
+const AllDreamsScreenWrapper = withFadeAnimation(AllDreamsScreenBase);
 
 const DreamPageWrapper = ({ navigation }: any) => (
   <DreamPage onNavigate={(screen, params) => {
@@ -82,7 +109,7 @@ const DreamPageWrapper = ({ navigation }: any) => (
   }} />
 );
 
-const EvidenceBoardScreenWrapper = ({ navigation }: any) => (
+const EvidenceBoardScreenBase = ({ navigation }: any) => (
   <EvidenceBoardScreen onNavigate={(screen) => {
     if (screen === 'Home' || screen === 'AllDreams') {
       navigation.navigate(screen as keyof TabParamList);
@@ -91,6 +118,8 @@ const EvidenceBoardScreenWrapper = ({ navigation }: any) => (
     }
   }} />
 );
+
+const EvidenceBoardScreenWrapper = withFadeAnimation(EvidenceBoardScreenBase);
 
 // Auth Navigator
 function AuthNavigator() {
