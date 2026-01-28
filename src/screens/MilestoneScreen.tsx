@@ -8,6 +8,7 @@ import {
   PanResponder,
   Dimensions,
   ScrollView,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -23,6 +24,7 @@ import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { RepeatableGoal } from "../components/milestonescreen/RepeatableGoal";
 import { OneTimeGoal } from "../components/milestonescreen/OneTimeGoal";
+import { SuccessAnimationOverlay } from "../components/animations/SuccessAnimationOverlay";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -68,6 +70,7 @@ const MilestoneScreen = ({
   const [milestone, setMilestone] = React.useState<any>(null);
   const [threadId, setThreadId] = React.useState<string>("");
   const [isCompleted, setIsCompleted] = React.useState(false);
+  const [showDreamCompleteAnimation, setShowDreamCompleteAnimation] = React.useState(false);
 
   // Drag handle hover animation
   const startHandleHover = () => {
@@ -355,6 +358,7 @@ const MilestoneScreen = ({
             milestoneId={milestoneId}
             threadId={threadId}
             milestoneStatus={milestone?.status}
+            onDreamComplete={() => setShowDreamCompleteAnimation(true)}
           />
         ) : (
           <OneTimeGoal
@@ -362,7 +366,22 @@ const MilestoneScreen = ({
             onPress={() => setIsCompleted(true)}
             milestoneId={milestoneId}
             threadId={threadId}
+            onDreamComplete={() => setShowDreamCompleteAnimation(true)}
           />
+        )}
+
+        {/* Dream Complete Animation Modal - 4 seconds */}
+        {showDreamCompleteAnimation && (
+          <Modal
+            visible={showDreamCompleteAnimation}
+            transparent
+            animationType="fade">
+            <SuccessAnimationOverlay
+              visible={showDreamCompleteAnimation}
+              onComplete={() => setShowDreamCompleteAnimation(false)}
+              duration={4000}
+            />
+          </Modal>
         )}
       </Animated.View>
     </View>

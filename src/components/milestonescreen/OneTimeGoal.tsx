@@ -17,6 +17,7 @@ interface OneTimeGoalProps {
   onPress: () => void;
   milestoneId?: string;
   threadId?: string;
+  onDreamComplete?: () => void;
 }
 
 export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
@@ -24,6 +25,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
   onPress,
   milestoneId,
   threadId,
+  onDreamComplete,
 }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
@@ -39,7 +41,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
 
     onPress();
 
-    // Show animation immediately on click
+    // Show immediate success animation when button is clicked
     setShowSuccessAnimation(true);
 
     // Call API if we have the necessary data
@@ -65,6 +67,12 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
         if (response.success) {
           const { updateMilestoneStatusLocal, loadUserData } = useAuthStore.getState();
           updateMilestoneStatusLocal(threadId, milestoneId, "completed");
+
+          // Show dream complete animation for 4 seconds if dream is complete
+          if (response.isComplete) {
+            console.log("Dream complete! isComplete:", response.isComplete);
+            onDreamComplete?.();
+          }
 
           // Refetch user data to get fresh values from backend
           await loadUserData(user.uid).catch((error: any) => {

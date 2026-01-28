@@ -12,6 +12,7 @@ interface RepeatableGoalProps {
   milestoneId?: string;
   threadId?: string;
   milestoneStatus?: string;
+  onDreamComplete?: () => void;
 }
 
 export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
@@ -20,6 +21,7 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
   milestoneId,
   threadId,
   milestoneStatus,
+  onDreamComplete,
 }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
@@ -35,16 +37,14 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
 
     onPress();
 
+    // Show immediate success animation when button is clicked
+    setShowSuccessAnimation(true);
+
     // Call API if we have the necessary data
     if (user?.uid && milestoneId && threadId) {
       setIsLoading(true);
       const newCompletedSteps = completedSteps + 1;
       const status = newCompletedSteps === 3 ? "completed" : "in_progress";
-
-      // Show animation immediately if this is the final completion
-      if (status === "completed") {
-        setShowSuccessAnimation(true);
-      }
 
       console.log("Making API call with:", {
         userId: user.uid,
@@ -68,6 +68,12 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
         if (response.success) {
           const { updateMilestoneStatusLocal, loadUserData } = useAuthStore.getState();
           updateMilestoneStatusLocal(threadId, milestoneId, status);
+
+          // Show dream complete animation for 4 seconds if dream is complete
+          if (response.isComplete) {
+            console.log("Dream complete! isComplete:", response.isComplete);
+            onDreamComplete?.();
+          }
 
           // Refetch user data to get fresh values from backend
           await loadUserData(user.uid).catch((error: any) => {

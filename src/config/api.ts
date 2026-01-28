@@ -202,6 +202,7 @@ export interface UpdateMilestoneResponse {
   success: boolean;
   message: string;
   milestone: any;
+  isComplete?: boolean;
 }
 
 export async function updateRecents(
