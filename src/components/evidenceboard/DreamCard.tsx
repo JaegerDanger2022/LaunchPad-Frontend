@@ -47,10 +47,10 @@ export const DreamCard: React.FC<DreamCardProps> = ({
     style={{
       borderRadius: 24,
       padding: 24,
-      backgroundColor: EvidenceBoardColors.white,
+      backgroundColor: isSelected ? EvidenceBoardColors.white : EvidenceBoardColors.dream_card_bg,
       borderWidth: isSelected ? 2 : 0,
       borderColor: isSelected ? EvidenceBoardColors.teal : "transparent",
-      opacity: isSelected ? 1 : 0.8,
+      opacity: 1,
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.1,

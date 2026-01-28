@@ -68,6 +68,7 @@ export const EvidenceBoardColors = {
   teal400: "#14B8A6",
   success: "#22C55E",
   successLight: "rgba(34, 197, 94, 0.2)",
+  dream_card_bg: "#FAF6F1",
   text: {
     primary: "#1F2937",
     secondary: "#6B7280",
