@@ -105,6 +105,7 @@ const EvidenceBoardScreen = ({
         progress,
         startDate: dreamData.created_at || new Date().toISOString(),
         targetDate: "",
+        completedDate: dreamData.completedDate,
         couragePoints: currentScore,
         proofPoints,
         dream_card_bg: dreamData.dream_card_bg,

@@ -3,6 +3,35 @@ import { Modal, View, Text, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { EvidenceBoardColors } from "../../constants/GlobalStyles";
 
+// Helper function to calculate duration between two dates
+const calculateDuration = (startDate: string, endDate: string): string => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const diffMs = end.getTime() - start.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    return "Today";
+  } else if (diffDays === 1) {
+    return "1 day";
+  } else if (diffDays < 7) {
+    return `${diffDays} days`;
+  } else if (diffDays < 14) {
+    return "1 week";
+  } else if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7);
+    return `${weeks} week${weeks > 1 ? "s" : ""}`;
+  } else if (diffDays < 60) {
+    return "1 month";
+  } else if (diffDays < 365) {
+    const months = Math.floor(diffDays / 30);
+    return `${months} month${months > 1 ? "s" : ""}`;
+  } else {
+    const years = Math.floor(diffDays / 365);
+    return `${years} year${years > 1 ? "s" : ""}`;
+  }
+};
+
 export interface Dream {
   id: number;
   title: string;
@@ -14,6 +43,7 @@ export interface Dream {
   completedDate?: string;
   couragePoints: number;
   proofPoints: any[];
+  isComplete?: boolean;
 }
 
 interface JourneyRecapModalProps {
@@ -159,7 +189,9 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                     fontWeight: "bold",
                     color: EvidenceBoardColors.text.primary,
                   }}>
-                  70 days
+                  {dream.completedDate
+                    ? calculateDuration(dream.startDate, dream.completedDate)
+                    : "—"}
                 </Text>
               </View>
               <View
