@@ -130,7 +130,7 @@ const DreamPage = ({
     <SafeAreaView
       style={{ flex: 1, backgroundColor: themeColors.bg_primary }}
       edges={["bottom", "left", "right"]}>
-      <BottomNavbar />
+      <BottomNavbar onNavigate={onNavigate} />
       <View style={{ flex: 1 }}>
         {/* SVG Curve at bottom */}
         <Svg
