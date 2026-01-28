@@ -41,6 +41,51 @@ export const ChallengeTypeColors = {
   celebration_moment: "#FFA502",
 };
 
+/* Evidence Board Colors */
+export const EvidenceBoardColors = {
+  teal: "#14B8A6",
+  cyan: "#06B6D4",
+  rose: "#F43F5E",
+  pink: "#EC4899",
+  amber: "#F59E0B",
+  orange: "#F97316",
+  purple: "#A855F7",
+  indigo: "#6366F1",
+  white: "#FFFFFF",
+  gray900: "#1F2937",
+  gray800: "#374151",
+  gray700: "#4B5563",
+  gray600: "#6B7280",
+  gray500: "#9CA3AF",
+  gray400: "#D1D5DB",
+  gray300: "#E5E7EB",
+  gray200: "#F3F4F6",
+  gray100: "#F9FAFB",
+  gray50: "#F3E8FF",
+  amber400: "#FBBF24",
+  rose400: "#FB7185",
+  purple400: "#A855F7",
+  teal400: "#14B8A6",
+  success: "#22C55E",
+  successLight: "rgba(34, 197, 94, 0.2)",
+  text: {
+    primary: "#1F2937",
+    secondary: "#6B7280",
+    tertiary: "#9CA3AF",
+    light: "#4B5563",
+  },
+  gradient: {
+    travelStart: "#14B8A6",
+    travelEnd: "#06B6D4",
+    careerStart: "#F43F5E",
+    careerEnd: "#EC4899",
+    financialStart: "#F59E0B",
+    financialEnd: "#F97316",
+    defaultStart: "#A855F7",
+    defaultEnd: "#6366F1",
+  },
+};
+
 /* Challenge Type Names */
 export const ChallengeTypeName = {
   power_move: "Power Move",

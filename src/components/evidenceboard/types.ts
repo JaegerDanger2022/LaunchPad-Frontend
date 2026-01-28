@@ -1,3 +1,5 @@
+import { EvidenceBoardColors } from "../../constants/GlobalStyles";
+
 export type DreamCategory = "travel" | "career" | "financial" | "other";
 export type DreamStatus = "in-progress" | "completed";
 export type ImpactLevel = "critical" | "high" | "medium" | "low";
@@ -45,25 +47,25 @@ export const getCategoryGradient = (
 ): [string, string, ...string[]] => {
   switch (category) {
     case "travel":
-      return ["#14B8A6", "#06B6D4"]; // teal to cyan
+      return [EvidenceBoardColors.gradient.travelStart, EvidenceBoardColors.gradient.travelEnd];
     case "career":
-      return ["#F43F5E", "#EC4899"]; // rose to pink
+      return [EvidenceBoardColors.gradient.careerStart, EvidenceBoardColors.gradient.careerEnd];
     case "financial":
-      return ["#F59E0B", "#F97316"]; // amber to orange
+      return [EvidenceBoardColors.gradient.financialStart, EvidenceBoardColors.gradient.financialEnd];
     default:
-      return ["#A855F7", "#6366F1"]; // purple to indigo
+      return [EvidenceBoardColors.gradient.defaultStart, EvidenceBoardColors.gradient.defaultEnd];
   }
 };
 
 export const getImpactColor = (impact: ImpactLevel) => {
   switch (impact) {
     case "critical":
-      return "#FBBF24"; // amber-400
+      return EvidenceBoardColors.amber400;
     case "high":
-      return "#FB7185"; // rose-400
+      return EvidenceBoardColors.rose400;
     case "medium":
-      return "#A855F7"; // purple-400
+      return EvidenceBoardColors.purple400;
     default:
-      return "#14B8A6"; // teal-400
+      return EvidenceBoardColors.teal400;
   }
 };
