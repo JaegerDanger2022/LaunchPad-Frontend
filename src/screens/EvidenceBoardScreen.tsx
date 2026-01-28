@@ -39,50 +39,30 @@ const EvidenceBoardScreen = ({
   const { width } = useWindowDimensions();
   const { userData } = useAuthStore();
 
-  const [expandedDreamId, setExpandedDreamId] = useState<number | null>(null);
+  const [selectedDreamId, setSelectedDreamId] = useState<number | null>(null);
   const [showRecap, setShowRecap] = useState(false);
 
-  // Animation values for expand/collapse
-  const expandAnim = useRef(new Animated.Value(0)).current;
-  const cardOpacityAnim = useRef(new Animated.Value(1)).current;
+  // Animation value for evidence board appearance
+  const boardAnim = useRef(new Animated.Value(0)).current;
 
-  // Trigger animations when dream expands/collapses
+  // Trigger animation when dream is selected
   useEffect(() => {
-    if (expandedDreamId !== null) {
-      // Expand animation
-      Animated.parallel([
-        Animated.timing(expandAnim, {
-          toValue: 1,
-          duration: 500,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(cardOpacityAnim, {
-          toValue: 0,
-          duration: 300,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]).start();
+    if (selectedDreamId !== null) {
+      Animated.timing(boardAnim, {
+        toValue: 1,
+        duration: 400,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
     } else {
-      // Collapse animation
-      Animated.parallel([
-        Animated.timing(expandAnim, {
-          toValue: 0,
-          duration: 400,
-          easing: Easing.in(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(cardOpacityAnim, {
-          toValue: 1,
-          duration: 200,
-          delay: 200,
-          easing: Easing.out(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]).start();
+      Animated.timing(boardAnim, {
+        toValue: 0,
+        duration: 300,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
     }
-  }, [expandedDreamId, expandAnim, cardOpacityAnim]);
+  }, [selectedDreamId, boardAnim]);
 
   // Map userData.dreams to Dream format
   const dreams: Dream[] = useMemo(() => {
@@ -138,7 +118,7 @@ const EvidenceBoardScreen = ({
         ([] as Dream[]);
 
   const activeDream =
-    displayDreams.find((d) => d.id === expandedDreamId) || null;
+    displayDreams.find((d) => d.id === selectedDreamId) || null;
   const completedMissions =
     activeDream?.proofPoints.filter((p: ProofPoint) => p.completed) || [];
   const totalMissions = activeDream?.proofPoints.length || 0;
@@ -209,21 +189,18 @@ const EvidenceBoardScreen = ({
                   marginBottom: 32,
                 }}>
                 {displayDreams.map((dream) => (
-                  <Animated.View
+                  <View
                     key={dream.id}
                     style={{
                       width: width > 800 ? "48%" : "100%",
                       marginBottom: 16,
-                      opacity: cardOpacityAnim,
                     }}>
-                    {expandedDreamId === dream.id ? null : (
-                      <DreamCard
-                        dream={dream}
-                        isSelected={false}
-                        onPress={() => setExpandedDreamId(dream.id)}
-                      />
-                    )}
-                  </Animated.View>
+                    <DreamCard
+                      dream={dream}
+                      isSelected={selectedDreamId === dream.id}
+                      onPress={() => setSelectedDreamId(dream.id)}
+                    />
+                  </View>
                 ))}
               </View>
 
@@ -231,15 +208,7 @@ const EvidenceBoardScreen = ({
               {activeDream && (
                 <Animated.View
                   style={{
-                    opacity: expandAnim,
-                    transform: [
-                      {
-                        scale: expandAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0.8, 1],
-                        }),
-                      },
-                    ],
+                    opacity: boardAnim,
                   }}>
                   <View
                     style={{
@@ -322,7 +291,7 @@ const EvidenceBoardScreen = ({
                               justifyContent: "center",
                               alignItems: "center",
                             }}
-                            onPress={() => setExpandedDreamId(null)}>
+                            onPress={() => setSelectedDreamId(null)}>
                             <Text
                               style={{
                                 fontSize: 20,
@@ -594,7 +563,7 @@ const EvidenceBoardScreen = ({
                       — Gabby Beckford
                     </Text>
                   </LinearGradient>
-              </Animated.View>
+                </Animated.View>
               )}
             </>
           )}
