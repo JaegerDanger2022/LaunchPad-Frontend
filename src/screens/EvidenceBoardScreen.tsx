@@ -14,6 +14,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { useThemeStore } from "../store/themeStore";
+import { BottomNavbar } from "../components/BottomNavbar";
 
 type DreamCategory = "travel" | "career" | "financial" | "other";
 type DreamStatus = "in-progress" | "completed";
@@ -605,6 +606,9 @@ const EvidenceBoardScreen = ({
         </ScrollView>
       </LinearGradient>
 
+      {/* Bottom Navigation */}
+      <BottomNavbar onNavigate={onNavigate} activeTab="evidence" />
+
       {/* Journey Recap Modal */}
       <JourneyRecap />
     </SafeAreaView>
@@ -620,7 +624,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 24,
-    paddingBottom: 40,
+    paddingBottom: 120,
   },
   header: {
     marginBottom: 32,
