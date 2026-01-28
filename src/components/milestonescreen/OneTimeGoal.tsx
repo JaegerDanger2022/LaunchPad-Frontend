@@ -47,12 +47,12 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
     // Call API if we have the necessary data
     if (user?.uid && milestoneId && threadId) {
       setIsLoading(true);
-      console.log("Making API call with:", {
-        userId: user.uid,
-        threadId,
-        milestoneId,
-        status: "completed",
-      });
+      // console.log("Making API call with:", {
+      //   userId: user.uid,
+      //   threadId,
+      //   milestoneId,
+      //   status: "completed",
+      // });
       try {
         const response = await updateMilestoneStatus(
           user.uid,
@@ -60,8 +60,8 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
           milestoneId,
           "completed",
         );
-        console.log("API Response:", response);
-        console.log("Milestone status updated successfully");
+        // console.log("API Response:", response);
+        // console.log("Milestone status updated successfully");
 
         // Update local state in Zustand
         if (response.success) {
@@ -87,10 +87,10 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
         setIsLoading(false);
       }
     } else {
-      console.warn("Missing required data for API call");
-      console.warn("userId exists:", !!user?.uid);
-      console.warn("milestoneId exists:", !!milestoneId);
-      console.warn("threadId exists:", !!threadId);
+      // console.warn("Missing required data for API call");
+      // console.warn("userId exists:", !!user?.uid);
+      // console.warn("milestoneId exists:", !!milestoneId);
+      // console.warn("threadId exists:", !!threadId);
     }
   };
 

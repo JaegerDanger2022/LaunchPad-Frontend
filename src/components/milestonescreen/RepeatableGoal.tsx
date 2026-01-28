@@ -30,10 +30,10 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
 
   const handlePress = async () => {
-    console.log("=== RepeatableGoal Button Pressed ===");
-    console.log("userId:", user?.uid);
-    console.log("milestoneId:", milestoneId);
-    console.log("completedSteps:", completedSteps);
+    // console.log("=== RepeatableGoal Button Pressed ===");
+    // console.log("userId:", user?.uid);
+    // console.log("milestoneId:", milestoneId);
+    // console.log("completedSteps:", completedSteps);
 
     onPress();
 
@@ -46,13 +46,13 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
       const newCompletedSteps = completedSteps + 1;
       const status = newCompletedSteps === 3 ? "completed" : "in_progress";
 
-      console.log("Making API call with:", {
-        userId: user.uid,
-        threadId,
-        milestoneId,
-        status,
-        newCompletedSteps,
-      });
+      // console.log("Making API call with:", {
+      //   userId: user.uid,
+      //   threadId,
+      //   milestoneId,
+      //   status,
+      //   newCompletedSteps,
+      // });
 
       try {
         const response = await updateMilestoneStatus(
@@ -61,8 +61,8 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
           milestoneId,
           status,
         );
-        console.log("API Response:", response);
-        console.log("Milestone status updated successfully");
+        // console.log("API Response:", response);
+        // console.log("Milestone status updated successfully");
 
         // Update local state in Zustand
         if (response.success) {
@@ -88,10 +88,10 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
         setIsLoading(false);
       }
     } else {
-      console.warn("Missing required data for API call");
-      console.warn("userId exists:", !!user?.uid);
-      console.warn("milestoneId exists:", !!milestoneId);
-      console.warn("threadId exists:", !!threadId);
+      // console.warn("Missing required data for API call");
+      // console.warn("userId exists:", !!user?.uid);
+      // console.warn("milestoneId exists:", !!milestoneId);
+      // console.warn("threadId exists:", !!threadId);
     }
   };
 
