@@ -28,7 +28,7 @@ import { useThemeStore } from "../store/themeStore";
 const HomeScreen = ({
   onNavigate,
 }: {
-  onNavigate: (screen: string) => void;
+  onNavigate: (screen: string, params?: any) => void;
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>("recents");
   const [isAtBottom, setIsAtBottom] = useState(false);
@@ -302,7 +302,9 @@ const HomeScreen = ({
                   )}
                   xpPoints={userData.up_next.xp_points}
                   challengeType={userData.up_next.challenge_type}
-                  onPress={() => onNavigate("Milestone")}
+                  onPress={() => onNavigate("Milestone", {
+                    milestoneId: userData.up_next!.milestone_id,
+                  })}
                 />
               );
             } else {
