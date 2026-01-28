@@ -78,7 +78,7 @@ export const DreamCard: React.FC<DreamCardProps> = ({
         alignItems: "flex-start",
         marginBottom: 12,
       }}>
-      {dream.status === "completed" && (
+      {dream.isComplete && (
         <View
           style={{
             backgroundColor: EvidenceBoardColors.successLight,

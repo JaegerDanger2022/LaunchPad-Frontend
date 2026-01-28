@@ -293,7 +293,7 @@ const EvidenceBoardScreen = ({
                                   </View>
                                 </View>
                                 <View style={{ flexDirection: "row", gap: 8 }}>
-                                  {dream.status === "completed" && (
+                                  {dream.isComplete && (
                                     <TouchableOpacity
                                       style={{
                                         backgroundColor: "transparent",
@@ -507,7 +507,7 @@ const EvidenceBoardScreen = ({
                             </View>
 
                             {/* Next Mission CTA */}
-                            {dream.status !== "completed" && (
+                            {!dream.isComplete && (
                               <LinearGradient
                                 colors={["#14B8A6", "#06B6D4"]}
                                 start={{ x: 0, y: 0 }}

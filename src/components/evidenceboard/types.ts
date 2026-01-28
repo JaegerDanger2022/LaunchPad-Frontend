@@ -17,6 +17,7 @@ export interface Dream {
   title: string;
   category: DreamCategory;
   status: DreamStatus;
+  isComplete: boolean;
   progress: number;
   startDate: string;
   targetDate?: string;
