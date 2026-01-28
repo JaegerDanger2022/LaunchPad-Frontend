@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, Animated } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import LottieView from "lottie-react-native";
+import { Lock } from "lucide-react-native";
 import { ClockIcon, LightningIcon, ArrowRightIcon } from "../icons/SVGIcons";
 import { Color, ChallengeTypeColors } from "../../constants/GlobalStyles";
 import { useThemeStore } from "../../store/themeStore";
@@ -33,6 +34,7 @@ interface HeroCardProps {
   timeMinutes: number;
   xpPoints: number;
   challengeType?: string;
+  isLocked?: boolean;
   onPress: () => void;
 }
 
@@ -44,6 +46,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
   timeMinutes,
   xpPoints,
   challengeType,
+  isLocked = false,
   onPress,
 }) => {
   const { theme } = useThemeStore();
@@ -88,11 +91,11 @@ export const HeroCard: React.FC<HeroCardProps> = ({
         overflow: "hidden",
         zIndex: 10,
         opacity: heroOpacity,
-        transform: [{ scale: Animated.multiply(heroScale, pulseScale) }],
+        transform: [{ scale: Animated.multiply(heroScale, isLocked ? 1 : pulseScale) }],
         shadowColor: cardColor,
         shadowOffset: { width: 0, height: 8 },
         shadowRadius: 16,
-        shadowOpacity: 0.6,
+        shadowOpacity: isLocked ? 0.3 : 0.6,
         elevation: 10,
       }}>
       {/* Hero Background - Challenge Type Animation or fallback */}
@@ -276,7 +279,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
         </View>
 
         {/* Action Button */}
-        <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
+        <TouchableOpacity onPress={onPress} activeOpacity={isLocked ? 1 : 0.8} disabled={isLocked}>
           <View
             style={{
               flexDirection: "row",
@@ -326,6 +329,24 @@ export const HeroCard: React.FC<HeroCardProps> = ({
           </View>
         </TouchableOpacity>
       </LinearGradient>
+
+      {/* Locked Overlay */}
+      {isLocked && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+            borderRadius: 35,
+          }}>
+          <Lock size={56} color={Color.colorWhite} strokeWidth={1.5} />
+        </View>
+      )}
     </Animated.View>
   );
 };

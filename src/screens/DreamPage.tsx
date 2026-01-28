@@ -19,6 +19,7 @@ import { MilestoneCard } from "../components/cards/MilestoneCard";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { useThemeStore } from "../store/themeStore";
 import { useAuthStore } from "../store/authStore";
+import { areDependenciesCompleted } from "../utils/dependencyChecker";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -32,6 +33,7 @@ interface Milestone {
   challengeType?: string;
   roadmapId?: string;
   milestoneId?: string;
+  rawMilestone?: any; // Store raw milestone object for dependency checking
 }
 
 // Animation mapping for challenge types
@@ -117,6 +119,8 @@ const DreamPage = ({
               roadmapId: dream.thread_id,
               // Store actual milestone database ID for API calls
               milestoneId: milestone.id,
+              // Store raw milestone object for dependency checking
+              rawMilestone: milestone,
             });
           },
         );
@@ -246,17 +250,27 @@ const DreamPage = ({
                       <View
                         key={rowIndex}
                         style={{ flexDirection: "row", gap: 16 }}>
-                        {rowItems.map((milestone) => (
-                          <MilestoneCard
-                            key={milestone.id}
-                            {...milestone}
-                            onPress={() =>
-                              onNavigate("Milestone", {
-                                milestoneId: milestone.milestoneId,
-                              })
-                            }
-                          />
-                        ))}
+                        {rowItems.map((milestone) => {
+                          const dependenciesMet = areDependenciesCompleted(
+                            milestone.rawMilestone,
+                            userData?.dreams,
+                          );
+
+                          return (
+                            <MilestoneCard
+                              key={milestone.id}
+                              {...milestone}
+                              isLocked={!dependenciesMet}
+                              onPress={() => {
+                                if (dependenciesMet) {
+                                  onNavigate("Milestone", {
+                                    milestoneId: milestone.milestoneId,
+                                  });
+                                }
+                              }}
+                            />
+                          );
+                        })}
 
                         {/* Spacer for odd-numbered rows */}
                         {rowItems.length === 1 && <View style={{ flex: 1 }} />}

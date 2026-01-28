@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import LottieView from "lottie-react-native";
+import { Lock } from "lucide-react-native";
 import { Color, ChallengeTypeName } from "../../constants/GlobalStyles";
 
 interface MilestoneCardProps {
@@ -12,6 +13,7 @@ interface MilestoneCardProps {
   image?: any;
   animation?: any;
   challengeType?: string;
+  isLocked?: boolean;
   onPress: () => void;
 }
 
@@ -30,19 +32,22 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
   image,
   animation,
   challengeType,
+  isLocked = false,
   onPress,
 }) => {
   return (
     <TouchableOpacity
       key={id}
       onPress={onPress}
-      activeOpacity={0.8}
+      activeOpacity={isLocked ? 1 : 0.8}
+      disabled={isLocked}
       style={{
         flex: 1,
         height: 280,
         borderRadius: 10,
         overflow: "hidden",
         backgroundColor: bgColor,
+        opacity: isLocked ? 0.5 : 1,
       }}>
       {/* Animation or Image */}
       {animation ? (
@@ -142,6 +147,24 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
           </Text>
         </View>
       </LinearGradient>
+
+      {/* Locked Overlay */}
+      {isLocked && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            justifyContent: "center",
+            alignItems: "center",
+            borderRadius: 10,
+          }}>
+          <Lock size={48} color={Color.colorWhite} strokeWidth={1.5} />
+        </View>
+      )}
     </TouchableOpacity>
   );
 };

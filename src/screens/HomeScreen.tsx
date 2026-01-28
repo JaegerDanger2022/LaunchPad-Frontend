@@ -25,6 +25,7 @@ import { NoRecentsState } from "../components/NoRecentsState";
 import { StreakBadge } from "../components/streak/StreakBadge";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
+import { areDependenciesCompleted } from "../utils/dependencyChecker";
 
 const HomeScreen = ({
   onNavigate,
@@ -293,6 +294,28 @@ const HomeScreen = ({
                 "[HomeScreen] Showing HeroCard for milestone:",
                 userData.up_next.milestone_title,
               );
+
+              // Find the actual milestone object to check dependencies
+              let rawMilestone: any = null;
+              if (userData?.dreams) {
+                for (const dream of userData.dreams) {
+                  if (dream.roadmap?.milestones) {
+                    const found = dream.roadmap.milestones.find(
+                      (m: any) => m.id === userData.up_next!.milestone_id,
+                    );
+                    if (found) {
+                      rawMilestone = found;
+                      break;
+                    }
+                  }
+                }
+              }
+
+              const dependenciesMet = areDependenciesCompleted(
+                rawMilestone,
+                userData?.dreams,
+              );
+
               return (
                 <HeroCard
                   heroOpacity={heroOpacity}
@@ -304,9 +327,14 @@ const HomeScreen = ({
                   )}
                   xpPoints={userData.up_next.xp_points}
                   challengeType={userData.up_next.challenge_type}
-                  onPress={() => onNavigate("Milestone", {
-                    milestoneId: userData.up_next!.milestone_id,
-                  })}
+                  isLocked={!dependenciesMet}
+                  onPress={() => {
+                    if (dependenciesMet) {
+                      onNavigate("Milestone", {
+                        milestoneId: userData.up_next!.milestone_id,
+                      });
+                    }
+                  }}
                 />
               );
             } else {
