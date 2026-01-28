@@ -11,8 +11,9 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { ensureGoogleSignInInitialized, isGoogleSignInAvailable } from '../config/googleSignIn';
-import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI } from '../config/api';
+import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI, updateStreak as updateStreakAPI } from '../config/api';
 import { findNextIncompleteMilestone } from '../utils/upNextHelper';
+import { StreakData } from '../types/index';
 import * as SecureStore from 'expo-secure-store';
 
 interface AuthState {
@@ -34,6 +35,7 @@ interface AuthState {
   updateMilestoneStatusLocal: (threadId: string, milestoneId: string, status: string) => void;
   addToRecents: (threadId: string) => void;
   updateUpNext: () => void;
+  updateStreakData: (streakData: StreakData) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -308,6 +310,18 @@ export const useAuthStore = create<AuthState>((set) => ({
       updateUpNextAPI(state.user.uid, upNext).catch((error) => {
         // console.error('[updateUpNext] Failed to sync up_next to database:', error);
       });
+
+      return { userData: updatedUserData };
+    });
+  },
+
+  updateStreakData: (streakData: StreakData) => {
+    set((state) => {
+      if (!state.userData) return state;
+
+      // Deep copy to avoid mutations
+      const updatedUserData = JSON.parse(JSON.stringify(state.userData));
+      updatedUserData.streak = streakData;
 
       return { userData: updatedUserData };
     });

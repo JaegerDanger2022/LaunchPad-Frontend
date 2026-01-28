@@ -9,7 +9,7 @@ import Svg, { Line } from "react-native-svg";
 import { Color, getThemeColors } from "../../constants/GlobalStyles";
 import { useThemeStore } from "../../store/themeStore";
 import { useAuthStore } from "../../store/authStore";
-import { updateMilestoneStatus } from "../../config/api";
+import { updateMilestoneStatus, updateStreak } from "../../config/api";
 import { SuccessAnimationOverlay } from "../animations/SuccessAnimationOverlay";
 
 interface OneTimeGoalProps {
@@ -17,6 +17,7 @@ interface OneTimeGoalProps {
   onPress: () => void;
   milestoneId?: string;
   threadId?: string;
+  milestone?: any;
   onDreamComplete?: () => void;
 }
 
@@ -25,6 +26,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
   onPress,
   milestoneId,
   threadId,
+  milestone,
   onDreamComplete,
 }) => {
   const { theme } = useThemeStore();
@@ -83,6 +85,20 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
 
           // 4. Trigger up_next recalculation after fresh data is in store
           updateUpNext();
+
+          // 5. Update streak if milestone is streak-eligible
+          if (milestone?.streak_eligible) {
+            const streakResponse = await updateStreak(user.uid, {
+              milestone_id: milestoneId,
+              completion_date: new Date().toISOString(),
+              is_streak_eligible: true,
+            });
+
+            if (streakResponse.success) {
+              const { updateStreakData } = useAuthStore.getState();
+              updateStreakData(streakResponse.streak_data);
+            }
+          }
         }
       } catch (error: any) {
         console.error("Failed to update milestone status:", error.message);

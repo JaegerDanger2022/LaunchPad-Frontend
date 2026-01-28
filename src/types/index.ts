@@ -24,5 +24,18 @@ export interface UpNextMilestone {
   updated_at: string;
 }
 
+export interface StreakData {
+  current_streak: number;
+  longest_streak: number;
+  last_completion_date: string;
+  total_completions: number;
+  streak_freeze_available: boolean;
+  milestone_achievements: {
+    three_day_count: number;
+    seven_day_count: number;
+    thirty_day_count: number;
+  };
+}
+
 export type NavTab = 'dreams' | 'home';
 export type ContentTab = 'recents' | 'inspiration';

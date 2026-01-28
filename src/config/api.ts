@@ -3,6 +3,8 @@
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000";
 
+import { StreakData } from '../types/index';
+
 export interface UpNextMilestone {
   milestone_id: string;
   milestone_title: string;
@@ -30,6 +32,7 @@ export interface UserData {
   _id?: string;
   created_at?: string;
   up_next?: UpNextMilestone | null;
+  streak?: StreakData;
   [key: string]: any; // Allow additional dynamic fields
 }
 
@@ -381,5 +384,65 @@ export async function updateUpNext(
     console.error("Full error:", error);
     // Don't throw - allow app to continue
     return { success: false, message: error.message, up_next: null };
+  }
+}
+
+export interface UpdateStreakRequest {
+  milestone_id: string;
+  completion_date: string;
+  is_streak_eligible: boolean;
+}
+
+export interface UpdateStreakResponse {
+  success: boolean;
+  message: string;
+  streak_data: StreakData;
+  streak_increased: boolean;
+  streak_broken: boolean;
+  milestone_achieved?: '3_day' | '7_day' | '30_day' | null;
+}
+
+export async function updateStreak(
+  userId: string,
+  data: UpdateStreakRequest,
+): Promise<UpdateStreakResponse> {
+  try {
+    const url = `${API_BASE_URL}/users/${userId}/streak/update`;
+
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      // Don't throw - allow app to continue even if streak update fails
+      return {
+        success: false,
+        message: errorMessage,
+        streak_data: null,
+        streak_increased: false,
+        streak_broken: false,
+      };
+    }
+
+    const result = await response.json();
+    return result as UpdateStreakResponse;
+  } catch (error: any) {
+    // Don't throw - allow app to continue
+    return {
+      success: false,
+      message: error.message,
+      streak_data: null,
+      streak_increased: false,
+      streak_broken: false,
+    };
   }
 }
