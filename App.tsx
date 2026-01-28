@@ -7,6 +7,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import MilestoneScreen from './src/screens/MilestoneScreen';
 import DreamPage from './src/screens/DreamPage';
 import AllDreamsScreen from './src/screens/AllDreamsScreen';
+import EvidenceBoardScreen from './src/screens/EvidenceBoardScreen';
 import LoginScreen from './src/screens/auth/LoginScreen';
 import SignupScreen from './src/screens/auth/SignupScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
@@ -22,6 +23,7 @@ export type RootStackParamList = {
   // App screens
   Home: undefined;
   AllDreams: undefined;
+  EvidenceBoard: undefined;
   Milestone: { milestoneId: string };
   Dream: undefined;
 };
@@ -58,6 +60,10 @@ const DreamPageWrapper = ({ navigation }: any) => (
       navigation.navigate(screen as keyof RootStackParamList, params);
     }
   }} />
+);
+
+const EvidenceBoardScreenWrapper = ({ navigation }: any) => (
+  <EvidenceBoardScreen onNavigate={(screen) => navigation.navigate(screen as keyof RootStackParamList)} />
 );
 
 // Auth Navigator
@@ -104,6 +110,13 @@ function AppNavigator() {
       <Stack.Screen
         name="Dream"
         component={DreamPageWrapper}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="EvidenceBoard"
+        component={EvidenceBoardScreenWrapper}
         options={{
           headerShown: false,
         }}

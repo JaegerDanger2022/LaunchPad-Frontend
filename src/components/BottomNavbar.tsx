@@ -1,12 +1,12 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { HomeIcon, DreamsIcon } from "./icons/SVGIcons";
+import { HomeIcon, DreamsIcon, EvidenceIcon } from "./icons/SVGIcons";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { useThemeStore } from "../store/themeStore";
 
 interface BottomNavbarProps {
   onNavigate?: (screen: string) => void;
-  activeTab?: "home" | "dreams";
+  activeTab?: "home" | "dreams" | "evidence";
 }
 
 export const BottomNavbar: React.FC<BottomNavbarProps> = ({ onNavigate, activeTab = "home" }) => {
@@ -96,6 +96,39 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({ onNavigate, activeTa
               textAlign: "center",
             }}>
             Dreams
+          </Text>
+        )}
+      </TouchableOpacity>
+
+      {/* Evidence Board Icon */}
+      <TouchableOpacity
+        onPress={() => onNavigate?.("EvidenceBoard")}
+        style={{
+          backgroundColor: activeTab === "evidence" ? Color.colorOrangered : "transparent",
+          height: 43,
+          width: activeTab === "evidence" ? 117 : 43,
+          alignItems: "center",
+          justifyContent: "center",
+          borderTopRightRadius: 40,
+          borderTopLeftRadius: 40,
+          borderBottomRightRadius: activeTab === "evidence" ? 35 : 21,
+          borderBottomLeftRadius: activeTab === "evidence" ? 35 : 21,
+          borderWidth: 1,
+          borderColor: activeTab === "evidence" ? Color.colorWhite : "transparent",
+          borderStyle: "solid",
+          flexDirection: "row",
+          gap: 8,
+        }}>
+        <EvidenceIcon size={31} color={activeTab === "evidence" ? Color.colorWhite : themeColors.text_secondary} />
+        {activeTab === "evidence" && (
+          <Text
+            style={{
+              color: Color.colorWhite,
+              fontFamily: "InstrumentSans-Regular",
+              fontSize: 20,
+              textAlign: "center",
+            }}>
+            Evidence
           </Text>
         )}
       </TouchableOpacity>
