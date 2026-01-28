@@ -71,7 +71,7 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
         : "10% Confidence";
 
   return (
-    <View style={{ marginBottom: -60 }}>
+    <View style={{ marginBottom: -40 }}>
       <Svg
         width="100%"
         height="120"
@@ -82,10 +82,19 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
           x1="50"
           y1="0"
           x2="50"
+          y2="42"
+          stroke={lineColor}
+          strokeWidth="2"
+          strokeDasharray="4,4"
+        />
+        <Line
+          x1="50"
+          y1="78"
+          x2="50"
           y2="120"
           stroke={lineColor}
-          strokeWidth="4"
-          strokeDasharray="4,6"
+          strokeWidth="2"
+          strokeDasharray="4,4"
         />
 
         {/* Timeline circle */}
