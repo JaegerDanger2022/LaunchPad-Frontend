@@ -11,7 +11,8 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { ensureGoogleSignInInitialized, isGoogleSignInAvailable } from '../config/googleSignIn';
-import { registerUserToDatabase, fetchUserData, UserData, updateRecents } from '../config/api';
+import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI } from '../config/api';
+import { findNextIncompleteMilestone } from '../utils/upNextHelper';
 import * as SecureStore from 'expo-secure-store';
 
 interface AuthState {
@@ -32,6 +33,7 @@ interface AuthState {
   loadUserData: (userId: string) => Promise<void>;
   updateMilestoneStatusLocal: (threadId: string, milestoneId: string, status: string) => void;
   addToRecents: (threadId: string) => void;
+  updateUpNext: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -231,6 +233,13 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       return { userData: updatedUserData };
     });
+
+    // If milestone was completed, recalculate up_next
+    if (status === 'completed') {
+      setTimeout(() => {
+        useAuthStore.getState().updateUpNext();
+      }, 0);
+    }
   },
 
   addToRecents: (threadId: string) => {
@@ -268,6 +277,33 @@ export const useAuthStore = create<AuthState>((set) => ({
       // Call API to persist to database (fire and forget - don't block UI)
       updateRecents(state.user.uid, threadId).catch((error) => {
         console.error('Failed to sync recents to database:', error);
+      });
+
+      return { userData: updatedUserData };
+    });
+
+    // Recalculate up_next since recents priority changed
+    setTimeout(() => {
+      useAuthStore.getState().updateUpNext();
+    }, 0);
+  },
+
+  updateUpNext: () => {
+    set((state) => {
+      if (!state.userData || !state.user?.uid) return state;
+
+      // Calculate next incomplete milestone
+      const upNext = findNextIncompleteMilestone(state.userData);
+
+      // Create a deep copy of userData
+      const updatedUserData = JSON.parse(JSON.stringify(state.userData));
+
+      // Update up_next field
+      updatedUserData.up_next = upNext;
+
+      // Call API to persist to database (fire and forget - don't block UI)
+      updateUpNextAPI(state.user.uid, upNext).catch((error) => {
+        console.error('Failed to sync up_next to database:', error);
       });
 
       return { userData: updatedUserData };

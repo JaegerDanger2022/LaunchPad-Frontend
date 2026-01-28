@@ -4,7 +4,7 @@ import { Color, getThemeColors } from "../../constants/GlobalStyles";
 import { useThemeStore } from "../../store/themeStore";
 import { useAuthStore } from "../../store/authStore";
 import { updateMilestoneStatus } from "../../config/api";
-import { SuccessAnimationOverlay } from "../animations/SuccessAnimationOverlay";
+import { FireworksAnimationOverlay } from "../animations/FireworksAnimationOverlay";
 
 interface RepeatableGoalProps {
   completedSteps: number;

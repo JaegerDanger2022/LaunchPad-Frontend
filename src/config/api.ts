@@ -3,6 +3,18 @@
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000";
 
+export interface UpNextMilestone {
+  milestone_id: string;
+  milestone_title: string;
+  dream_thread_id: string;
+  dream_title: string;
+  time_estimate: string;
+  xp_points: number;
+  challenge_type: string;
+  streak_eligible: boolean;
+  updated_at: string;
+}
+
 export interface UserRegistrationData {
   user_id: string;
   firstname: string;
@@ -17,6 +29,7 @@ export interface UserData {
   email: string;
   _id?: string;
   created_at?: string;
+  up_next?: UpNextMilestone | null;
   [key: string]: any; // Allow additional dynamic fields
 }
 
@@ -307,5 +320,66 @@ export async function updateMilestoneStatus(
     console.error("Error message:", error.message);
     console.error("Full error:", error);
     throw error;
+  }
+}
+
+export interface UpdateUpNextRequest {
+  up_next: UpNextMilestone | null;
+}
+
+export interface UpdateUpNextResponse {
+  success: boolean;
+  message: string;
+  up_next: UpNextMilestone | null;
+}
+
+export async function updateUpNext(
+  userId: string,
+  upNext: UpNextMilestone | null,
+): Promise<UpdateUpNextResponse> {
+  try {
+    console.log(`Attempting to update up_next for userId: ${userId}`);
+
+    const payload: UpdateUpNextRequest = {
+      up_next: upNext,
+    };
+
+    const url = `${API_BASE_URL}/users/${userId}/up_next`;
+    console.log("Full URL being called:", url);
+
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    console.log(`Response status: ${response.status} ${response.statusText}`);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        console.error("Error response data:", errorData);
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        console.error("Could not parse error response as JSON");
+      }
+      console.error("Error updating up_next:", errorMessage);
+      // Don't throw - allow app to continue even if up_next update fails
+      return { success: false, message: errorMessage, up_next: null };
+    }
+
+    const result = await response.json();
+    console.log("Up next updated successfully:", result);
+    return result as UpdateUpNextResponse;
+  } catch (error: any) {
+    console.error("Error updating up_next:");
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Full error:", error);
+    // Don't throw - allow app to continue
+    return { success: false, message: error.message, up_next: null };
   }
 }

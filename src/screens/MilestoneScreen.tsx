@@ -25,6 +25,7 @@ import { useThemeStore } from "../store/themeStore";
 import { RepeatableGoal } from "../components/milestonescreen/RepeatableGoal";
 import { OneTimeGoal } from "../components/milestonescreen/OneTimeGoal";
 import { SuccessAnimationOverlay } from "../components/animations/SuccessAnimationOverlay";
+import { FireworksAnimationOverlay } from "../components/animations/FireworksAnimationOverlay";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -370,13 +371,13 @@ const MilestoneScreen = ({
           />
         )}
 
-        {/* Dream Complete Animation Modal - 4 seconds */}
+        {/* Dream Complete Animation Modal - Fireworks for 4 seconds */}
         {showDreamCompleteAnimation && (
           <Modal
             visible={showDreamCompleteAnimation}
             transparent
             animationType="fade">
-            <SuccessAnimationOverlay
+            <FireworksAnimationOverlay
               visible={showDreamCompleteAnimation}
               onComplete={() => setShowDreamCompleteAnimation(false)}
               duration={4000}

@@ -192,6 +192,11 @@ const HomeScreen = ({
     }
   };
 
+  const parseTimeToMinutes = (timeEstimate: string): number => {
+    const match = timeEstimate.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 30;
+  };
+
   const dreamCardsData: GoalCardData[] = useMemo(() => {
     if (!userData?.dreams || !Array.isArray(userData.dreams)) {
       return [];
@@ -264,16 +269,18 @@ const HomeScreen = ({
             }}
           />
 
-          {/* Hero Card Section */}
-          <HeroCard
-            heroOpacity={heroOpacity}
-            heroScale={heroScale}
-            badge="Up next"
-            title="Seek feedback on pilot"
-            timeMinutes={20}
-            xpPoints={65}
-            onPress={() => onNavigate("Milestone")}
-          />
+          {/* Hero Card Section - Only show if up_next exists */}
+          {userData?.up_next && (
+            <HeroCard
+              heroOpacity={heroOpacity}
+              heroScale={heroScale}
+              badge="Up next"
+              title={userData.up_next.milestone_title}
+              timeMinutes={parseTimeToMinutes(userData.up_next.time_estimate)}
+              xpPoints={userData.up_next.xp_points}
+              onPress={() => onNavigate("Milestone")}
+            />
+          )}
 
           {/* Recents and Favorites Section */}
           <View
