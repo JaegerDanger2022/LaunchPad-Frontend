@@ -9,7 +9,7 @@ interface MilestoneCardProps {
   title: string;
   bgColor: string;
   duration: string;
-  image: any;
+  image?: any;
   animation?: any;
   challengeType?: string;
   onPress: () => void;

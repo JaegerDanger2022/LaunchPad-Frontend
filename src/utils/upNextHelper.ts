@@ -67,7 +67,11 @@ export function findNextIncompleteMilestone(userData: UserData): UpNextMilestone
       };
 
       console.log('Found next milestone:', upNext);
+      console.log('From dream:', dream.dream, 'Status:', dream.status, 'isComplete:', dream.isComplete);
       return upNext;
+    } else {
+      // All milestones in this dream are completed
+      console.log('All milestones completed in dream:', dream.dream);
     }
   }
 

@@ -270,17 +270,26 @@ const HomeScreen = ({
           />
 
           {/* Hero Card Section - Only show if up_next exists */}
-          {userData?.up_next && (
-            <HeroCard
-              heroOpacity={heroOpacity}
-              heroScale={heroScale}
-              badge="Up next"
-              title={userData.up_next.milestone_title}
-              timeMinutes={parseTimeToMinutes(userData.up_next.time_estimate)}
-              xpPoints={userData.up_next.xp_points}
-              onPress={() => onNavigate("Milestone")}
-            />
-          )}
+          {(() => {
+            console.log('[HomeScreen] up_next:', userData?.up_next);
+            if (userData?.up_next) {
+              console.log('[HomeScreen] Showing HeroCard for milestone:', userData.up_next.milestone_title);
+              return (
+                <HeroCard
+                  heroOpacity={heroOpacity}
+                  heroScale={heroScale}
+                  badge="Up next"
+                  title={userData.up_next.milestone_title}
+                  timeMinutes={parseTimeToMinutes(userData.up_next.time_estimate)}
+                  xpPoints={userData.up_next.xp_points}
+                  onPress={() => onNavigate("Milestone")}
+                />
+              );
+            } else {
+              console.log('[HomeScreen] up_next is null - no HeroCard shown');
+              return null;
+            }
+          })()}
 
           {/* Recents and Favorites Section */}
           <View
