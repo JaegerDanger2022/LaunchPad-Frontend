@@ -453,3 +453,58 @@ export async function updateStreak(
     };
   }
 }
+
+export interface GetStreakResponse {
+  success: boolean;
+  message: string;
+  streak_data: StreakData | null;
+  streak_broken: boolean;
+  recalculated: boolean;
+}
+
+export async function getStreak(userId: string): Promise<GetStreakResponse> {
+  try {
+    const url = `${API_BASE_URL}/users/${userId}/streak`;
+    console.log("[getStreak] Fetching streak for user:", userId);
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    console.log("[getStreak] Response status:", response.status);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      console.error("[getStreak] Error response:", errorMessage);
+      // Don't throw - allow app to continue even if streak fetch fails
+      return {
+        success: false,
+        message: errorMessage,
+        streak_data: null,
+        streak_broken: false,
+        recalculated: false,
+      };
+    }
+
+    const result = await response.json();
+    console.log("[getStreak] Success response:", result);
+    return result as GetStreakResponse;
+  } catch (error: any) {
+    console.error("[getStreak] Exception:", error.message);
+    // Don't throw - allow app to continue
+    return {
+      success: false,
+      message: error.message,
+      streak_data: null,
+      streak_broken: false,
+      recalculated: false,
+    };
+  }
+}

@@ -11,7 +11,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { ensureGoogleSignInInitialized, isGoogleSignInAvailable } from '../config/googleSignIn';
-import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI, updateStreak as updateStreakAPI } from '../config/api';
+import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI, updateStreak as updateStreakAPI, getStreak } from '../config/api';
 import { findNextIncompleteMilestone } from '../utils/upNextHelper';
 import { StreakData } from '../types/index';
 import * as SecureStore from 'expo-secure-store';
@@ -204,6 +204,26 @@ export const useAuthStore = create<AuthState>((set) => ({
         // console.log('[loadUserData] Fetched userData, up_next:', userData.up_next);
         set({ userData });
         // console.log('[loadUserData] User data loaded successfully, state updated');
+
+        // Auto-recalculate streak to catch any missed days
+        console.log('[loadUserData] Auto-recalculating streak for:', userId);
+        const streakResponse = await getStreak(userId);
+        if (streakResponse.success && streakResponse.streak_data) {
+          console.log('[loadUserData] Streak recalculated:', streakResponse);
+          if (streakResponse.recalculated) {
+            console.log('[loadUserData] Streak was recalculated due to time passage');
+          }
+          if (streakResponse.streak_broken) {
+            console.log('[loadUserData] Streak was broken due to missed days');
+          }
+          // Update the streak data in state
+          set((state) => {
+            if (!state.userData) return state;
+            const updatedUserData = JSON.parse(JSON.stringify(state.userData));
+            updatedUserData.streak = streakResponse.streak_data;
+            return { userData: updatedUserData };
+          });
+        }
       } else {
         // console.warn('[loadUserData] No user data found for:', userId);
       }
