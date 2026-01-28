@@ -66,8 +66,13 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
 
         // Update local state in Zustand
         if (response.success) {
-          const { updateMilestoneStatusLocal } = useAuthStore.getState();
+          const { updateMilestoneStatusLocal, loadUserData } = useAuthStore.getState();
           updateMilestoneStatusLocal(threadId, milestoneId, status);
+
+          // Refetch user data in the background (don't await)
+          loadUserData(user.uid).catch((error: any) => {
+            console.error("Failed to refetch user data:", error.message);
+          });
         }
       } catch (error: any) {
         console.error("Failed to update milestone status:", error.message);
