@@ -271,10 +271,9 @@ const HomeScreen = ({
           {userData?.streak && userData.streak.current_streak > 0 && (
             <View
               style={{
-                position: "absolute",
-                top: 20,
-                right: 20,
-                zIndex: 10,
+                alignItems: "flex-end",
+                paddingRight: 20,
+                marginBottom: 16,
               }}>
               <StreakBadge
                 streakCount={userData.streak.current_streak}
