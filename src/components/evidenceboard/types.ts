@@ -23,6 +23,7 @@ export interface Dream {
   completedDate?: string;
   couragePoints: number;
   proofPoints: ProofPoint[];
+  dream_card_bg?: string;
 }
 
 export const formatDate = (dateString: string) => {

@@ -106,6 +106,7 @@ const EvidenceBoardScreen = ({
         targetDate: "",
         couragePoints: currentScore,
         proofPoints,
+        dream_card_bg: dreamData.dream_card_bg,
       };
     });
   }, [userData]);
@@ -192,404 +193,414 @@ const EvidenceBoardScreen = ({
                 {displayDreams.map((dream) => {
                   const isExpanded = expandedDreamId === dream.id;
                   const completedMissions = dream.proofPoints.filter(
-                    (p: ProofPoint) => p.completed
+                    (p: ProofPoint) => p.completed,
                   );
 
                   return (
-                  <Animated.View
-                    key={dream.id}
-                    style={{
-                      marginBottom: 16,
-                      opacity: expandAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [1, 1],
-                      }),
-                    }}>
-                    {/* Dream Card Container - Expands to show evidence board */}
-                    <View
+                    <Animated.View
+                      key={dream.id}
                       style={{
-                        backgroundColor: isExpanded ? EvidenceBoardColors.white : "transparent",
-                        borderRadius: isExpanded ? 32 : 24,
-                        padding: isExpanded ? 32 : 0,
-                        shadowColor: isExpanded ? "#000" : "transparent",
-                        shadowOffset: isExpanded ? { width: 0, height: 10 } : { width: 0, height: 0 },
-                        shadowOpacity: isExpanded ? 0.1 : 0,
-                        shadowRadius: isExpanded ? 20 : 0,
-                        elevation: isExpanded ? 8 : 0,
+                        marginBottom: 16,
+                        opacity: expandAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [1, 1],
+                        }),
                       }}>
-                      {/* Dream Card Header */}
-                      <TouchableOpacity
-                        onPress={() =>
-                          setExpandedDreamId(
-                            expandedDreamId === dream.id ? null : dream.id
-                          )
-                        }
-                        activeOpacity={0.7}>
-                        <DreamCard
-                          dream={dream}
-                          isSelected={isExpanded}
+                      {/* Dream Card Container - Expands to show evidence board */}
+                      <View
+                        style={{
+                          backgroundColor: isExpanded
+                            ? EvidenceBoardColors.white
+                            : dream.dream_card_bg ||
+                              EvidenceBoardColors.dream_card_bg,
+                          borderRadius: 24,
+                          padding: isExpanded ? 32 : 0,
+                          shadowColor: isExpanded ? "#000" : "transparent",
+                          shadowOffset: isExpanded
+                            ? { width: 0, height: 10 }
+                            : { width: 0, height: 0 },
+                          shadowOpacity: isExpanded ? 0.1 : 0,
+                          shadowRadius: isExpanded ? 20 : 0,
+                          elevation: isExpanded ? 8 : 0,
+                        }}>
+                        {/* Dream Card Header */}
+                        <TouchableOpacity
                           onPress={() =>
                             setExpandedDreamId(
-                              expandedDreamId === dream.id ? null : dream.id
+                              expandedDreamId === dream.id ? null : dream.id,
                             )
                           }
-                        />
-                      </TouchableOpacity>
+                          activeOpacity={0.7}>
+                          <DreamCard
+                            dream={dream}
+                            isSelected={isExpanded}
+                            onPress={() =>
+                              setExpandedDreamId(
+                                expandedDreamId === dream.id ? null : dream.id,
+                              )
+                            }
+                          />
+                        </TouchableOpacity>
 
-                      {/* Expanded Evidence Board Content - Inside the card */}
-                      {isExpanded && (
-                        <View
-                          style={{
-                            marginTop: 24,
-                            paddingTop: 24,
-                            borderTopWidth: 1,
-                            borderTopColor: EvidenceBoardColors.gray300,
-                          }}>
-                          {/* Progress Overview */}
+                        {/* Expanded Evidence Board Content - Inside the card */}
+                        {isExpanded && (
                           <View
                             style={{
-                              marginBottom: 32,
-                              paddingBottom: 32,
-                              borderBottomWidth: 1,
-                              borderBottomColor: EvidenceBoardColors.gray300,
+                              marginTop: 24,
+                              paddingTop: 24,
+                              borderTopWidth: 1,
+                              borderTopColor: EvidenceBoardColors.gray300,
                             }}>
+                            {/* Progress Overview */}
                             <View
                               style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                alignItems: "flex-start",
-                                marginBottom: 24,
-                              }}>
-                              <View style={{ flex: 1 }}>
-                                <Text
-                                  style={{
-                                    fontSize: 20,
-                                    fontWeight: "bold",
-                                    color: EvidenceBoardColors.text.primary,
-                                    marginBottom: 8,
-                                  }}>
-                                  Journey Details
-                                </Text>
-                                <View
-                                  style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    gap: 8,
-                                  }}>
-                                  <Text
-                                    style={{
-                                      fontSize: 14,
-                                      color: EvidenceBoardColors.text.secondary,
-                                    }}>
-                                    📅 Started {formatDate(dream.startDate)}
-                                  </Text>
-                                </View>
-                              </View>
-                              <View style={{ flexDirection: "row", gap: 8 }}>
-                                {dream.status === "completed" && (
-                                  <TouchableOpacity
-                                    style={{
-                                      backgroundColor: "transparent",
-                                      paddingHorizontal: 16,
-                                      paddingVertical: 12,
-                                      borderRadius: 12,
-                                    }}
-                                    onPress={() => setShowRecap(true)}>
-                                    <Text
-                                      style={{
-                                        fontSize: 14,
-                                        fontWeight: "600",
-                                        color: EvidenceBoardColors.text.primary,
-                                      }}>
-                                      🏆 View Journey Recap
-                                    </Text>
-                                  </TouchableOpacity>
-                                )}
-                                <TouchableOpacity
-                                  style={{
-                                    backgroundColor: "transparent",
-                                    paddingHorizontal: 12,
-                                    paddingVertical: 12,
-                                    borderRadius: 12,
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                  }}
-                                  onPress={() => setExpandedDreamId(null)}>
-                                  <Text
-                                    style={{
-                                      fontSize: 20,
-                                      color: EvidenceBoardColors.text.secondary,
-                                    }}>
-                                    ↓
-                                  </Text>
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-
-                            {/* Progress Bar */}
-                            <View style={{ marginBottom: 24 }}>
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                marginBottom: 8,
-                              }}>
-                              <Text
-                                style={{
-                                  fontSize: 12,
-                                  fontWeight: "600",
-                                  color: EvidenceBoardColors.text.secondary,
-                                }}>
-                                Progress
-                              </Text>
-                              <Text
-                                style={{
-                                  fontSize: 12,
-                                  fontWeight: "bold",
-                                  color: EvidenceBoardColors.text.primary,
-                                }}>
-                                {completedMissions.length} of {dream.proofPoints.length}{" "}
-                                missions
-                              </Text>
-                            </View>
-                            <View
-                              style={{
-                                height: 12,
-                                backgroundColor: EvidenceBoardColors.gray300,
-                                borderRadius: 9999,
-                                overflow: "hidden",
-                              }}>
-                              <LinearGradient
-                                colors={getCategoryGradient(dream.category)}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                                style={{
-                                  height: "100%",
-                                  width: `${dream.progress}%`,
-                                  borderRadius: 9999,
-                                }}
-                              />
-                            </View>
-                            </View>
-
-                            {/* Stats */}
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                gap: 12,
-                              }}>
-                        <LinearGradient
-                          colors={["#F3E8FF", "#DDD6FE"]}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                          style={{
-                            flex: 1,
-                            borderRadius: 12,
-                            padding: 16,
-                            justifyContent: "center",
-                            alignItems: "center",
-                          }}>
-                          <Text
-                            style={{
-                              fontSize: 28,
-                              fontWeight: "bold",
-                              color: EvidenceBoardColors.text.primary,
-                              marginBottom: 4,
-                            }}>
-                            {completedMissions.length}
-                          </Text>
-                          <Text
-                            style={{
-                              fontSize: 12,
-                              color: EvidenceBoardColors.text.secondary,
-                            }}>
-                            Actions Taken
-                          </Text>
-                        </LinearGradient>
-                        <LinearGradient
-                          colors={["#FEF3C7", "#FED7AA"]}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                          style={{
-                            flex: 1,
-                            borderRadius: 12,
-                            padding: 16,
-                            justifyContent: "center",
-                            alignItems: "center",
-                          }}>
-                          <Text
-                            style={{
-                              fontSize: 28,
-                              fontWeight: "bold",
-                              color: EvidenceBoardColors.text.primary,
-                              marginBottom: 4,
-                            }}>
-                            {dream.couragePoints}
-                          </Text>
-                          <Text
-                            style={{
-                              fontSize: 12,
-                              color: EvidenceBoardColors.text.secondary,
-                            }}>
-                            Courage Points
-                          </Text>
-                        </LinearGradient>
-                        <LinearGradient
-                          colors={["#CCFBF1", "#99F6E4"]}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                          style={{
-                            flex: 1,
-                            borderRadius: 12,
-                            padding: 16,
-                            justifyContent: "center",
-                            alignItems: "center",
-                          }}>
-                          <Text
-                            style={{
-                              fontSize: 28,
-                              fontWeight: "bold",
-                              color: EvidenceBoardColors.text.primary,
-                              marginBottom: 4,
-                            }}>
-                            {dream.progress}%
-                          </Text>
-                          <Text
-                            style={{
-                              fontSize: 12,
-                              color: EvidenceBoardColors.text.secondary,
-                            }}>
-                            Complete
-                          </Text>
-                              </LinearGradient>
-                            </View>
-                          </View>
-
-                          {/* Proof Points Timeline */}
-                          <View style={{ marginBottom: 24, marginTop: 24 }}>
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                marginBottom: 24,
-                                gap: 8,
-                              }}>
-                              <Text style={{ fontSize: 24 }}>✨</Text>
-                              <Text
-                                style={{
-                                  fontSize: 18,
-                                  fontWeight: "bold",
-                                  color: EvidenceBoardColors.text.primary,
-                                }}>
-                                Your Proof Points
-                              </Text>
-                            </View>
-
-                            <FlatList
-                              scrollEnabled={false}
-                              data={dream.proofPoints}
-                              keyExtractor={(item) => item.id.toString()}
-                              renderItem={({ item, index }) => (
-                                <ProofPointItem point={item} index={index} />
-                              )}
-                            />
-                          </View>
-
-                          {/* Next Mission CTA */}
-                          {dream.status !== "completed" && (
-                            <LinearGradient
-                              colors={["#14B8A6", "#06B6D4"]}
-                              start={{ x: 0, y: 0 }}
-                              end={{ x: 1, y: 0 }}
-                              style={{
-                                borderRadius: 24,
-                                padding: 24,
-                                marginTop: 24,
+                                marginBottom: 32,
+                                paddingBottom: 32,
+                                borderBottomWidth: 1,
+                                borderBottomColor: EvidenceBoardColors.gray300,
                               }}>
                               <View
                                 style={{
                                   flexDirection: "row",
-                                  alignItems: "center",
                                   justifyContent: "space-between",
-                                  gap: 16,
+                                  alignItems: "flex-start",
+                                  marginBottom: 24,
                                 }}>
                                 <View style={{ flex: 1 }}>
                                   <Text
                                     style={{
-                                      fontSize: 16,
+                                      fontSize: 20,
                                       fontWeight: "bold",
-                                      color: EvidenceBoardColors.white,
-                                      marginBottom: 4,
+                                      color: EvidenceBoardColors.text.primary,
+                                      marginBottom: 8,
                                     }}>
-                                    Ready for your next proof point?
+                                    Journey Details
                                   </Text>
-                                  <Text
+                                  <View
                                     style={{
-                                      fontSize: 13,
-                                      color: "rgba(255, 255, 255, 0.9)",
+                                      flexDirection: "row",
+                                      alignItems: "center",
+                                      gap: 8,
                                     }}>
-                                    Keep building your evidence. You're closer than
-                                    you think.
-                                  </Text>
+                                    <Text
+                                      style={{
+                                        fontSize: 14,
+                                        color:
+                                          EvidenceBoardColors.text.secondary,
+                                      }}>
+                                      📅 Started {formatDate(dream.startDate)}
+                                    </Text>
+                                  </View>
                                 </View>
-                                <TouchableOpacity
+                                <View style={{ flexDirection: "row", gap: 8 }}>
+                                  {dream.status === "completed" && (
+                                    <TouchableOpacity
+                                      style={{
+                                        backgroundColor: "transparent",
+                                        paddingHorizontal: 16,
+                                        paddingVertical: 12,
+                                        borderRadius: 12,
+                                      }}
+                                      onPress={() => setShowRecap(true)}>
+                                      <Text
+                                        style={{
+                                          fontSize: 14,
+                                          fontWeight: "600",
+                                          color:
+                                            EvidenceBoardColors.text.primary,
+                                        }}>
+                                        🏆 View Journey Recap
+                                      </Text>
+                                    </TouchableOpacity>
+                                  )}
+                                  <TouchableOpacity
+                                    style={{
+                                      backgroundColor: "transparent",
+                                      paddingHorizontal: 12,
+                                      paddingVertical: 12,
+                                      borderRadius: 12,
+                                      justifyContent: "center",
+                                      alignItems: "center",
+                                    }}
+                                    onPress={() => setExpandedDreamId(null)}>
+                                    <Text
+                                      style={{
+                                        fontSize: 20,
+                                        color:
+                                          EvidenceBoardColors.text.secondary,
+                                      }}>
+                                      ↓
+                                    </Text>
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
+
+                              {/* Progress Bar */}
+                              <View style={{ marginBottom: 24 }}>
+                                <View
                                   style={{
-                                    backgroundColor: EvidenceBoardColors.white,
-                                    paddingHorizontal: 16,
-                                    paddingVertical: 12,
-                                    borderRadius: 12,
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    marginBottom: 8,
                                   }}>
                                   <Text
                                     style={{
-                                      fontSize: 14,
+                                      fontSize: 12,
                                       fontWeight: "600",
-                                      color: EvidenceBoardColors.teal,
+                                      color: EvidenceBoardColors.text.secondary,
                                     }}>
-                                    Next Mission →
+                                    Progress
                                   </Text>
-                                </TouchableOpacity>
+                                  <Text
+                                    style={{
+                                      fontSize: 12,
+                                      fontWeight: "bold",
+                                      color: EvidenceBoardColors.text.primary,
+                                    }}>
+                                    {completedMissions.length} of{" "}
+                                    {dream.proofPoints.length} missions
+                                  </Text>
+                                </View>
+                                <View
+                                  style={{
+                                    height: 12,
+                                    backgroundColor:
+                                      EvidenceBoardColors.gray300,
+                                    borderRadius: 9999,
+                                    overflow: "hidden",
+                                  }}>
+                                  <LinearGradient
+                                    colors={getCategoryGradient(dream.category)}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={{
+                                      height: "100%",
+                                      width: `${dream.progress}%`,
+                                      borderRadius: 9999,
+                                    }}
+                                  />
+                                </View>
                               </View>
-                            </LinearGradient>
-                          )}
 
-                          {/* Motivational Footer */}
-                          <LinearGradient
-                            colors={["#F3E8FF", "#FCE7F3"]}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={{
-                              borderRadius: 24,
-                              padding: 24,
-                              marginTop: 24,
-                              justifyContent: "center",
-                              alignItems: "center",
-                            }}>
-                            <Text
+                              {/* Stats */}
+                              <View
+                                style={{
+                                  flexDirection: "row",
+                                  justifyContent: "space-between",
+                                  gap: 12,
+                                }}>
+                                <LinearGradient
+                                  colors={["#F3E8FF", "#DDD6FE"]}
+                                  start={{ x: 0, y: 0 }}
+                                  end={{ x: 1, y: 1 }}
+                                  style={{
+                                    flex: 1,
+                                    borderRadius: 12,
+                                    padding: 16,
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                  }}>
+                                  <Text
+                                    style={{
+                                      fontSize: 28,
+                                      fontWeight: "bold",
+                                      color: EvidenceBoardColors.text.primary,
+                                      marginBottom: 4,
+                                    }}>
+                                    {completedMissions.length}
+                                  </Text>
+                                  <Text
+                                    style={{
+                                      fontSize: 12,
+                                      color: EvidenceBoardColors.text.secondary,
+                                    }}>
+                                    Actions Taken
+                                  </Text>
+                                </LinearGradient>
+                                <LinearGradient
+                                  colors={["#FEF3C7", "#FED7AA"]}
+                                  start={{ x: 0, y: 0 }}
+                                  end={{ x: 1, y: 1 }}
+                                  style={{
+                                    flex: 1,
+                                    borderRadius: 12,
+                                    padding: 16,
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                  }}>
+                                  <Text
+                                    style={{
+                                      fontSize: 28,
+                                      fontWeight: "bold",
+                                      color: EvidenceBoardColors.text.primary,
+                                      marginBottom: 4,
+                                    }}>
+                                    {dream.couragePoints}
+                                  </Text>
+                                  <Text
+                                    style={{
+                                      fontSize: 12,
+                                      color: EvidenceBoardColors.text.secondary,
+                                    }}>
+                                    Courage Points
+                                  </Text>
+                                </LinearGradient>
+                                <LinearGradient
+                                  colors={["#CCFBF1", "#99F6E4"]}
+                                  start={{ x: 0, y: 0 }}
+                                  end={{ x: 1, y: 1 }}
+                                  style={{
+                                    flex: 1,
+                                    borderRadius: 12,
+                                    padding: 16,
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                  }}>
+                                  <Text
+                                    style={{
+                                      fontSize: 28,
+                                      fontWeight: "bold",
+                                      color: EvidenceBoardColors.text.primary,
+                                      marginBottom: 4,
+                                    }}>
+                                    {dream.progress}%
+                                  </Text>
+                                  <Text
+                                    style={{
+                                      fontSize: 12,
+                                      color: EvidenceBoardColors.text.secondary,
+                                    }}>
+                                    Complete
+                                  </Text>
+                                </LinearGradient>
+                              </View>
+                            </View>
+
+                            {/* Proof Points Timeline */}
+                            <View style={{ marginBottom: 24, marginTop: 24 }}>
+                              <View
+                                style={{
+                                  flexDirection: "row",
+                                  alignItems: "center",
+                                  marginBottom: 24,
+                                  gap: 8,
+                                }}>
+                                <Text style={{ fontSize: 24 }}>✨</Text>
+                                <Text
+                                  style={{
+                                    fontSize: 18,
+                                    fontWeight: "bold",
+                                    color: EvidenceBoardColors.text.primary,
+                                  }}>
+                                  Your Proof Points
+                                </Text>
+                              </View>
+
+                              <FlatList
+                                scrollEnabled={false}
+                                data={dream.proofPoints}
+                                keyExtractor={(item) => item.id.toString()}
+                                renderItem={({ item, index }) => (
+                                  <ProofPointItem point={item} index={index} />
+                                )}
+                              />
+                            </View>
+
+                            {/* Next Mission CTA */}
+                            {dream.status !== "completed" && (
+                              <LinearGradient
+                                colors={["#14B8A6", "#06B6D4"]}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                                style={{
+                                  borderRadius: 24,
+                                  padding: 24,
+                                  marginTop: 24,
+                                }}>
+                                <View
+                                  style={{
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: 16,
+                                  }}>
+                                  <View style={{ flex: 1 }}>
+                                    <Text
+                                      style={{
+                                        fontSize: 16,
+                                        fontWeight: "bold",
+                                        color: EvidenceBoardColors.white,
+                                        marginBottom: 4,
+                                      }}>
+                                      Ready for your next proof point?
+                                    </Text>
+                                    <Text
+                                      style={{
+                                        fontSize: 13,
+                                        color: "rgba(255, 255, 255, 0.9)",
+                                      }}>
+                                      Keep building your evidence. You're closer
+                                      than you think.
+                                    </Text>
+                                  </View>
+                                  <TouchableOpacity
+                                    style={{
+                                      backgroundColor:
+                                        EvidenceBoardColors.white,
+                                      paddingHorizontal: 16,
+                                      paddingVertical: 12,
+                                      borderRadius: 12,
+                                    }}>
+                                    <Text
+                                      style={{
+                                        fontSize: 14,
+                                        fontWeight: "600",
+                                        color: EvidenceBoardColors.teal,
+                                      }}>
+                                      Next Mission →
+                                    </Text>
+                                  </TouchableOpacity>
+                                </View>
+                              </LinearGradient>
+                            )}
+
+                            {/* Motivational Footer */}
+                            <LinearGradient
+                              colors={["#F3E8FF", "#FCE7F3"]}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 1 }}
                               style={{
-                                fontSize: 16,
-                                fontStyle: "italic",
-                                color: EvidenceBoardColors.text.light,
-                                textAlign: "center",
-                                marginBottom: 12,
-                                lineHeight: 24,
+                                borderRadius: 24,
+                                padding: 24,
+                                marginTop: 24,
+                                justifyContent: "center",
+                                alignItems: "center",
                               }}>
-                              "Every single action is proof. Proof that you're not just
-                              dreaming anymore—you're doing."
-                            </Text>
-                            <Text
-                              style={{
-                                fontSize: 14,
-                                fontWeight: "600",
-                                color: EvidenceBoardColors.text.secondary,
-                              }}>
-                              — Gabby Beckford
-                            </Text>
-                          </LinearGradient>
-                        </View>
-                      )}
-                    </View>
-                  </Animated.View>
+                              <Text
+                                style={{
+                                  fontSize: 16,
+                                  fontStyle: "italic",
+                                  color: EvidenceBoardColors.text.light,
+                                  textAlign: "center",
+                                  marginBottom: 12,
+                                  lineHeight: 24,
+                                }}>
+                                "Every single action is proof. Proof that you're
+                                not just dreaming anymore—you're doing."
+                              </Text>
+                              <Text
+                                style={{
+                                  fontSize: 14,
+                                  fontWeight: "600",
+                                  color: EvidenceBoardColors.text.secondary,
+                                }}>
+                                — Gabby Beckford
+                              </Text>
+                            </LinearGradient>
+                          </View>
+                        )}
+                      </View>
+                    </Animated.View>
                   );
                 })}
               </View>
