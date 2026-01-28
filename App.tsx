@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer, NavigationProp } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from './src/screens/HomeScreen';
 import MilestoneScreen from './src/screens/MilestoneScreen';
 import DreamPage from './src/screens/DreamPage';
@@ -20,19 +21,32 @@ export type RootStackParamList = {
   Signup: undefined;
   ForgotPassword: undefined;
 
-  // App screens
-  Home: undefined;
-  AllDreams: undefined;
-  EvidenceBoard: undefined;
+  // App tab screens
+  HomeTabs: undefined;
+
+  // Modal screens (shown on top of tabs)
   Milestone: { milestoneId: string };
   Dream: undefined;
 };
 
+export type TabParamList = {
+  Home: undefined;
+  AllDreams: undefined;
+  EvidenceBoard: undefined;
+};
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<TabParamList>();
 
 // Wrapper components that accept navigation as a prop
 const HomeScreenWrapper = ({ navigation }: any) => (
-  <HomeScreen onNavigate={(screen) => navigation.navigate(screen as keyof RootStackParamList)} />
+  <HomeScreen onNavigate={(screen) => {
+    if (screen === 'AllDreams' || screen === 'EvidenceBoard') {
+      navigation.navigate(screen as keyof TabParamList);
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList);
+    }
+  }} />
 );
 
 const MilestoneScreenWrapper = ({ navigation, route }: any) => (
@@ -49,7 +63,13 @@ const MilestoneScreenWrapper = ({ navigation, route }: any) => (
 );
 
 const AllDreamsScreenWrapper = ({ navigation }: any) => (
-  <AllDreamsScreen onNavigate={(screen) => navigation.navigate(screen as keyof RootStackParamList)} />
+  <AllDreamsScreen onNavigate={(screen) => {
+    if (screen === 'Home' || screen === 'EvidenceBoard') {
+      navigation.navigate(screen as keyof TabParamList);
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList);
+    }
+  }} />
 );
 
 const DreamPageWrapper = ({ navigation }: any) => (
@@ -63,7 +83,13 @@ const DreamPageWrapper = ({ navigation }: any) => (
 );
 
 const EvidenceBoardScreenWrapper = ({ navigation }: any) => (
-  <EvidenceBoardScreen onNavigate={(screen) => navigation.navigate(screen as keyof RootStackParamList)} />
+  <EvidenceBoardScreen onNavigate={(screen) => {
+    if (screen === 'Home' || screen === 'AllDreams') {
+      navigation.navigate(screen as keyof TabParamList);
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList);
+    }
+  }} />
 );
 
 // Auth Navigator
@@ -77,6 +103,39 @@ function AuthNavigator() {
   );
 }
 
+// Tab Navigator
+function TabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: { display: 'none' }, // Hide default tab bar - using custom BottomNavbar
+      }}>
+      <Tab.Screen
+        name="Home"
+        component={HomeScreenWrapper}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen
+        name="AllDreams"
+        component={AllDreamsScreenWrapper}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen
+        name="EvidenceBoard"
+        component={EvidenceBoardScreenWrapper}
+        options={{
+          headerShown: false,
+        }}
+      />
+    </Tab.Navigator>
+  );
+}
+
 // App Navigator
 function AppNavigator() {
   return (
@@ -84,43 +143,42 @@ function AppNavigator() {
       screenOptions={{
         headerShown: false,
       }}>
-      <Stack.Screen
-        name="Home"
-        component={HomeScreenWrapper}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="AllDreams"
-        component={AllDreamsScreenWrapper}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="Milestone"
-        component={MilestoneScreenWrapper}
-        options={{
+      <Stack.Group screenOptions={{ headerShown: false }}>
+        <Stack.Screen
+          name="HomeTabs"
+          component={TabNavigator}
+          options={{
+            headerShown: false,
+          }}
+        />
+      </Stack.Group>
+
+      {/* Modal screens */}
+      <Stack.Group
+        screenOptions={{
           presentation: 'transparentModal',
           headerShown: false,
           animation: 'slide_from_bottom',
-        }}
-      />
-      <Stack.Screen
-        name="Dream"
-        component={DreamPageWrapper}
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="EvidenceBoard"
-        component={EvidenceBoardScreenWrapper}
-        options={{
-          headerShown: false,
-        }}
-      />
+        }}>
+        <Stack.Screen
+          name="Milestone"
+          component={MilestoneScreenWrapper}
+          options={{
+            presentation: 'transparentModal',
+            headerShown: false,
+            animation: 'slide_from_bottom',
+          }}
+        />
+        <Stack.Screen
+          name="Dream"
+          component={DreamPageWrapper}
+          options={{
+            presentation: 'transparentModal',
+            headerShown: false,
+            animation: 'slide_from_bottom',
+          }}
+        />
+      </Stack.Group>
     </Stack.Navigator>
   );
 }
