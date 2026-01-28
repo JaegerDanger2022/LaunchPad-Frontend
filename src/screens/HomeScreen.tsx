@@ -7,6 +7,7 @@ import {
   FlatList,
   useWindowDimensions,
   StatusBar,
+  TouchableOpacity,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
