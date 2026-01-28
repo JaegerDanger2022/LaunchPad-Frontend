@@ -1,6 +1,15 @@
 import React from "react";
-import { View, Text } from "react-native";
-import { EvidenceBoardColors } from "../../constants/GlobalStyles";
+import { View } from "react-native";
+import Svg, {
+  Line,
+  Circle,
+  Rect,
+  Defs,
+  Filter,
+  FeDropShadow,
+  TSpan,
+  Text as SvgText,
+} from "react-native-svg";
 
 export interface ProofPoint {
   id: number;
@@ -18,13 +27,13 @@ interface ProofPointItemProps {
 const getImpactColor = (impact: ProofPoint["impact"]) => {
   switch (impact) {
     case "critical":
-      return EvidenceBoardColors.amber400;
+      return "#FBBF24";
     case "high":
-      return EvidenceBoardColors.rose400;
+      return "#FF5C00";
     case "medium":
-      return EvidenceBoardColors.purple400;
+      return "#A855F7";
     default:
-      return EvidenceBoardColors.teal400;
+      return "#14B8A6";
   }
 };
 
@@ -39,96 +48,110 @@ const formatDateShort = (dateString: string) => {
 export const ProofPointItem: React.FC<ProofPointItemProps> = ({
   point,
   index,
-}) => (
-  <View style={{ flexDirection: "row", marginBottom: 24, alignItems: "flex-start" }}>
-    <View
-      style={{
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: point.completed ? getImpactColor(point.impact) : EvidenceBoardColors.gray300,
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 16,
-        flexShrink: 0,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-      }}
-    >
-      {point.completed ? (
-        <Text style={{ fontSize: 24, fontWeight: "bold", color: EvidenceBoardColors.white }}>✓</Text>
-      ) : (
-        <View
-          style={{
-            width: 12,
-            height: 12,
-            borderRadius: 6,
-            backgroundColor: EvidenceBoardColors.white,
-          }}
+}) => {
+  const lineColor = getImpactColor(point.impact);
+  const confidenceText = point.impact === "critical" ? "20% Confidence" : point.impact === "high" ? "15% Confidence" : "10% Confidence";
+
+  return (
+    <View style={{ marginBottom: 24 }}>
+      <Svg width="100%" height="120" viewBox="0 0 400 120" style={{ overflow: "visible" }}>
+        {/* Dashed vertical line */}
+        <Line
+          x1="50"
+          y1="0"
+          x2="50"
+          y2="120"
+          stroke={lineColor}
+          strokeWidth="4"
+          strokeDasharray="8,8"
         />
-      )}
-    </View>
 
-    <View
-      style={{
-        flex: 1,
-        borderRadius: 12,
-        padding: 16,
-        backgroundColor: point.completed ? EvidenceBoardColors.white : EvidenceBoardColors.gray100,
-        opacity: point.completed ? 1 : 0.7,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
-      }}
-    >
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-        <View style={{ flex: 1 }}>
-          <Text
-            style={{
-              fontSize: 14,
-              fontWeight: "600",
-              marginBottom: 4,
-              color: point.completed ? EvidenceBoardColors.text.primary : EvidenceBoardColors.gray500,
-            }}
-          >
-            {point.mission}
-          </Text>
-          <Text style={{ fontSize: 12, color: EvidenceBoardColors.gray500 }}>
-            {formatDateShort(point.date)}
-          </Text>
-        </View>
-        {point.impact === "critical" && point.completed && (
-          <View
-            style={{
-              backgroundColor: "#FEF3C7",
-              paddingHorizontal: 12,
-              paddingVertical: 4,
-              borderRadius: 12,
-            }}
-          >
-            <Text style={{ fontSize: 11, fontWeight: "bold", color: "#B45309" }}>✨ Big Win</Text>
-          </View>
+        {/* Timeline circle */}
+        <Circle
+          cx="50"
+          cy="60"
+          r="18"
+          fill="white"
+          stroke={lineColor}
+          strokeWidth="4"
+        />
+
+        {/* Inner circle (filled when completed) */}
+        {point.completed && (
+          <Circle cx="50" cy="60" r="8" fill={lineColor} />
         )}
-      </View>
 
-      {point.completed && (
-        <View style={{ marginTop: 8 }}>
-          <Text style={{ fontSize: 11, color: EvidenceBoardColors.text.secondary }}>
-            +
-            {point.impact === "critical"
-              ? 100
-              : point.impact === "high"
-                ? 50
-                : 25}{" "}
-            courage points
-          </Text>
-        </View>
-      )}
+        {/* Content card */}
+        <Rect
+          x="85"
+          y="25"
+          width="290"
+          height="70"
+          rx="12"
+          fill="white"
+          filter="url(#shadow)"
+        />
+
+        {/* Defs for shadow */}
+        <Defs>
+          <Filter
+            id="shadow"
+            x="80"
+            y="20"
+            width="300"
+            height="85"
+            filterUnits="userSpaceOnUse"
+          >
+            <FeDropShadow
+              dx="0"
+              dy="4"
+              stdDeviation="4"
+              floodOpacity="0.1"
+            />
+          </Filter>
+        </Defs>
+
+        {/* Title text */}
+        <SvgText
+          x="100"
+          y="50"
+          fill="#1A1A1A"
+          fontSize="14"
+          fontWeight="700"
+          fontFamily="sans-serif"
+        >
+          <TSpan>ACTION: {point.mission.toUpperCase()}</TSpan>
+        </SvgText>
+
+        {/* Subtitle text */}
+        <SvgText
+          x="100"
+          y="70"
+          fill="#666666"
+          fontSize="12"
+          fontFamily="sans-serif"
+        >
+          <TSpan>
+            {point.completed ? "Completed " : ""}
+            {formatDateShort(point.date)}
+            {point.completed ? ` • +${confidenceText}` : ""}
+          </TSpan>
+        </SvgText>
+
+        {/* VIEW EVIDENCE link */}
+        {point.completed && (
+          <SvgText
+            x="100"
+            y="85"
+            fill="#2D5BFF"
+            fontSize="11"
+            fontWeight="600"
+            fontFamily="sans-serif"
+          >
+            <TSpan>VIEW EVIDENCE →</TSpan>
+          </SvgText>
+        )}
+      </Svg>
     </View>
-  </View>
-);
+  );
+};
