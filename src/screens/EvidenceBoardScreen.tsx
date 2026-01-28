@@ -297,7 +297,7 @@ const EvidenceBoardScreen = ({
                                   {dream.isComplete && (
                                     <TouchableOpacity
                                       style={{
-                                        backgroundColor: "transparent",
+                                        backgroundColor: "#FEF3C7",
                                         paddingHorizontal: 16,
                                         paddingVertical: 12,
                                         borderRadius: 12,
@@ -307,8 +307,7 @@ const EvidenceBoardScreen = ({
                                         style={{
                                           fontSize: 14,
                                           fontWeight: "600",
-                                          color:
-                                            EvidenceBoardColors.text.primary,
+                                          color: EvidenceBoardColors.text.primary,
                                         }}>
                                         🏆 View Journey Recap
                                       </Text>
