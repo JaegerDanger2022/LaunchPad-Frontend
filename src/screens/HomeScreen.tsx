@@ -22,6 +22,7 @@ import { EmptyDreamsState } from "../components/EmptyDreamsState";
 import { DreamLoadingScreen } from "../components/DreamLoadingScreen";
 import { SkeletonDreamCards } from "../components/SkeletonDreamCards";
 import { NoRecentsState } from "../components/NoRecentsState";
+import { StreakBadge } from "../components/streak/StreakBadge";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 
@@ -279,24 +280,45 @@ const HomeScreen = ({
             }}
           />
 
+          {/* Streak Badge - Show if user has active streak */}
+          {userData?.streak && userData.streak.current_streak > 0 && (
+            <View
+              style={{
+                position: "absolute",
+                top: 20,
+                right: 20,
+                zIndex: 10,
+              }}>
+              <StreakBadge
+                streakCount={userData.streak.current_streak}
+                size="medium"
+              />
+            </View>
+          )}
+
           {/* Hero Card Section - Only show if up_next exists */}
           {(() => {
-            console.log('[HomeScreen] up_next:', userData?.up_next);
+            // console.log('[HomeScreen] up_next:', userData?.up_next);
             if (userData?.up_next) {
-              console.log('[HomeScreen] Showing HeroCard for milestone:', userData.up_next.milestone_title);
+              console.log(
+                "[HomeScreen] Showing HeroCard for milestone:",
+                userData.up_next.milestone_title,
+              );
               return (
                 <HeroCard
                   heroOpacity={heroOpacity}
                   heroScale={heroScale}
                   badge="Up next"
                   title={userData.up_next.milestone_title}
-                  timeMinutes={parseTimeToMinutes(userData.up_next.time_estimate)}
+                  timeMinutes={parseTimeToMinutes(
+                    userData.up_next.time_estimate,
+                  )}
                   xpPoints={userData.up_next.xp_points}
                   onPress={() => onNavigate("Milestone")}
                 />
               );
             } else {
-              console.log('[HomeScreen] up_next is null - no HeroCard shown');
+              // console.log("[HomeScreen] up_next is null - no HeroCard shown");
               return null;
             }
           })()}
@@ -397,8 +419,8 @@ const HomeScreen = ({
                       lineHeight: 20,
                       marginBottom: 24,
                     }}>
-                    Discover goals and ideas from our community to get started on
-                    your journey
+                    Discover goals and ideas from our community to get started
+                    on your journey
                   </Text>
 
                   {/* Decorative Dots */}

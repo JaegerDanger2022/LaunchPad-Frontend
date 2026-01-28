@@ -6,6 +6,8 @@ import { useAuthStore } from "../../store/authStore";
 import { updateMilestoneStatus, updateStreak } from "../../config/api";
 import { FireworksAnimationOverlay } from "../animations/FireworksAnimationOverlay";
 import { SuccessAnimationOverlay } from "../animations/SuccessAnimationOverlay";
+import { StreakToastNotification } from "../streak/StreakToastNotification";
+import { StreakAchievementModal } from "../streak/StreakAchievementModal";
 
 interface RepeatableGoalProps {
   completedSteps: number;
@@ -31,6 +33,10 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
   const { user } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [showStreakToast, setShowStreakToast] = useState(false);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [showAchievementModal, setShowAchievementModal] = useState(false);
+  const [achievementType, setAchievementType] = useState<'3_day' | '7_day' | '30_day' | null>(null);
 
   const handlePress = async () => {
     // console.log("=== RepeatableGoal Button Pressed ===");
@@ -96,9 +102,21 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
               is_streak_eligible: true,
             });
 
-            if (streakResponse.success) {
+            if (streakResponse.success && streakResponse.streak_data) {
               const { updateStreakData } = useAuthStore.getState();
               updateStreakData(streakResponse.streak_data);
+
+              // Show streak notifications
+              if (streakResponse.streak_increased) {
+                setCurrentStreak(streakResponse.streak_data.current_streak);
+                setShowStreakToast(true);
+              }
+
+              // Show achievement modal if milestone reached
+              if (streakResponse.milestone_achieved) {
+                setAchievementType(streakResponse.milestone_achieved);
+                setShowAchievementModal(true);
+              }
             }
           }
         }
@@ -228,6 +246,26 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
           visible={showSuccessAnimation}
           onComplete={() => setShowSuccessAnimation(false)}
           duration={2000}
+        />
+      )}
+
+      {/* Streak Toast Notification */}
+      {showStreakToast && (
+        <StreakToastNotification
+          visible={showStreakToast}
+          streakCount={currentStreak}
+          onComplete={() => setShowStreakToast(false)}
+          duration={3000}
+        />
+      )}
+
+      {/* Streak Achievement Modal */}
+      {showAchievementModal && (
+        <StreakAchievementModal
+          visible={showAchievementModal}
+          achievementType={achievementType}
+          streakCount={currentStreak}
+          onClose={() => setShowAchievementModal(false)}
         />
       )}
     </View>
