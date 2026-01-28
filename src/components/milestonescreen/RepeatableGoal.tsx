@@ -66,19 +66,27 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
 
         // Update local state in Zustand
         if (response.success) {
-          const { updateMilestoneStatusLocal, loadUserData } = useAuthStore.getState();
+          const { updateMilestoneStatusLocal, loadUserData, updateUpNext } = useAuthStore.getState();
+
+          // 1. Update milestone status immediately (no flash, instant UI update)
           updateMilestoneStatusLocal(threadId, milestoneId, status);
 
-          // Show dream complete animation for 4 seconds if dream is complete
+          // 2. Show dream complete animation if dream is complete
           if (response.isComplete) {
             console.log("Dream complete! isComplete:", response.isComplete);
             onDreamComplete?.();
           }
 
-          // Refetch user data to get fresh values from backend
-          await loadUserData(user.uid).catch((error: any) => {
+          // 3. Refetch user data from backend in background (doesn't block UI)
+          loadUserData(user.uid).catch((error: any) => {
             console.error("Failed to refetch user data:", error.message);
           });
+
+          // 4. Trigger up_next recalculation after data refresh
+          // Use 300ms delay to ensure loadUserData completes
+          setTimeout(() => {
+            updateUpNext();
+          }, 300);
         }
       } catch (error: any) {
         console.error("Failed to update milestone status:", error.message);
