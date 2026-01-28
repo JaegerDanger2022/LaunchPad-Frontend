@@ -10,7 +10,7 @@ import { UserData, UpNextMilestone } from '../config/api';
  */
 export function findNextIncompleteMilestone(userData: UserData): UpNextMilestone | null {
   if (!userData?.dreams || userData.dreams.length === 0) {
-    console.log('No dreams found');
+    // console.log('No dreams found');
     return null;
   }
 
@@ -66,16 +66,16 @@ export function findNextIncompleteMilestone(userData: UserData): UpNextMilestone
         updated_at: new Date().toISOString(),
       };
 
-      console.log('Found next milestone:', upNext);
-      console.log('From dream:', dream.dream, 'Status:', dream.status, 'isComplete:', dream.isComplete);
+      // console.log('Found next milestone:', upNext);
+      // console.log('From dream:', dream.dream, 'Status:', dream.status, 'isComplete:', dream.isComplete);
       return upNext;
     } else {
       // All milestones in this dream are completed
-      console.log('All milestones completed in dream:', dream.dream);
+      // console.log('All milestones completed in dream:', dream.dream);
     }
   }
 
   // No incomplete milestones found
-  console.log('No incomplete milestones found in any active dreams');
+  // console.log('No incomplete milestones found in any active dreams');
   return null;
 }

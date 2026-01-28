@@ -65,6 +65,16 @@ const HomeScreen = ({
   }, [theme]);
 
   useEffect(() => {
+    // Refresh user data when HomeScreen mounts to ensure fresh state
+    if (user?.uid) {
+      // console.log('[HomeScreen] Mounting - refreshing user data');
+      loadUserData(user.uid).catch((error: any) => {
+        // console.error('[HomeScreen] Failed to refresh user data on mount:', error);
+      });
+    }
+  }, []);
+
+  useEffect(() => {
     // Fade out and slide down
     fadeAnim.setValue(0);
 

@@ -76,16 +76,13 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
             onDreamComplete?.();
           }
 
-          // 3. Refetch user data from backend in background (doesn't block UI)
-          loadUserData(user.uid).catch((error: any) => {
+          // 3. Refetch user data from backend and wait for completion
+          await loadUserData(user.uid).catch((error: any) => {
             console.error("Failed to refetch user data:", error.message);
           });
 
-          // 4. Trigger up_next recalculation after data refresh
-          // Use 300ms delay to ensure loadUserData completes
-          setTimeout(() => {
-            updateUpNext();
-          }, 300);
+          // 4. Trigger up_next recalculation after fresh data is in store
+          updateUpNext();
         }
       } catch (error: any) {
         console.error("Failed to update milestone status:", error.message);
