@@ -5,41 +5,22 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
-  Modal,
   SafeAreaView,
   StyleSheet,
-  Dimensions,
   useWindowDimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { useThemeStore } from "../store/themeStore";
 import { BottomNavbar } from "../components/BottomNavbar";
-
-type DreamCategory = "travel" | "career" | "financial" | "other";
-type DreamStatus = "in-progress" | "completed";
-type ImpactLevel = "critical" | "high" | "medium" | "low";
-
-interface ProofPoint {
-  id: number;
-  date: string;
-  mission: string;
-  completed: boolean;
-  impact: ImpactLevel;
-}
-
-interface Dream {
-  id: number;
-  title: string;
-  category: DreamCategory;
-  status: DreamStatus;
-  progress: number;
-  startDate: string;
-  targetDate?: string;
-  completedDate?: string;
-  couragePoints: number;
-  proofPoints: ProofPoint[];
-}
+import {
+  DreamCard,
+  ProofPointItem,
+  JourneyRecapModal,
+  Dream,
+  formatDate,
+  getCategoryGradient,
+} from "../components/evidenceboard";
 
 const EvidenceBoardScreen = ({
   onNavigate,
@@ -197,246 +178,6 @@ const EvidenceBoardScreen = ({
   const completedMissions = activeDream.proofPoints.filter((p) => p.completed);
   const totalMissions = activeDream.proofPoints.length;
 
-  const getImpactColor = (impact: ImpactLevel) => {
-    switch (impact) {
-      case "critical":
-        return "#FBBF24"; // amber-400
-      case "high":
-        return "#FB7185"; // rose-400
-      case "medium":
-        return "#A855F7"; // purple-400
-      default:
-        return "#14B8A6"; // teal-400
-    }
-  };
-
-  const getCategoryGradient = (
-    category: DreamCategory
-  ): [string, string, ...string[]] => {
-    switch (category) {
-      case "travel":
-        return ["#14B8A6", "#06B6D4"]; // teal to cyan
-      case "career":
-        return ["#F43F5E", "#EC4899"]; // rose to pink
-      case "financial":
-        return ["#F59E0B", "#F97316"]; // amber to orange
-      default:
-        return ["#A855F7", "#6366F1"]; // purple to indigo
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  const formatDateShort = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  const DreamCard = ({
-    dream,
-    isSelected,
-  }: {
-    dream: Dream;
-    isSelected: boolean;
-  }) => (
-    <TouchableOpacity
-      onPress={() => setSelectedDream(dream)}
-      style={[
-        styles.dreamCard,
-        {
-          backgroundColor: isSelected ? "#FFFFFF" : "#FFFFFF",
-          borderWidth: isSelected ? 2 : 0,
-          borderColor: isSelected ? "#14B8A6" : "transparent",
-          opacity: isSelected ? 1 : 0.8,
-        },
-      ]}
-    >
-      <View style={styles.dreamCardHeader}>
-        <LinearGradient
-          colors={getCategoryGradient(dream.category)}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.categoryIcon}
-        >
-          <Text style={{ fontSize: 20 }}>
-            {dream.category === "travel"
-              ? "✈️"
-              : dream.category === "career"
-                ? "💼"
-                : "💰"}
-          </Text>
-        </LinearGradient>
-        {dream.status === "completed" && (
-          <View
-            style={[
-              styles.completedBadge,
-              { backgroundColor: "rgba(34, 197, 94, 0.2)" },
-            ]}
-          >
-            <Text style={styles.completedBadgeText}>Completed!</Text>
-          </View>
-        )}
-      </View>
-      <Text style={styles.dreamTitle}>{dream.title}</Text>
-      <View style={styles.couragePoints}>
-        <Text style={styles.couragePointsText}>
-          🏆 {dream.couragePoints} courage points
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const ProofPointItem = ({ point, index }: { point: ProofPoint; index: number }) => (
-    <View style={styles.proofPointContainer}>
-      <View
-        style={[
-          styles.timelineDot,
-          {
-            backgroundColor: point.completed ? getImpactColor(point.impact) : "#E5E7EB",
-          },
-        ]}
-      >
-        {point.completed ? (
-          <Text style={styles.checkmark}>✓</Text>
-        ) : (
-          <View style={styles.pendingDot} />
-        )}
-      </View>
-
-      <View
-        style={[
-          styles.missionCard,
-          {
-            backgroundColor: point.completed ? "#FFFFFF" : "#F9FAFB",
-            opacity: point.completed ? 1 : 0.7,
-          },
-        ]}
-      >
-        <View style={styles.missionHeader}>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={[
-                styles.missionTitle,
-                { color: point.completed ? "#1F2937" : "#9CA3AF" },
-              ]}
-            >
-              {point.mission}
-            </Text>
-            <Text style={styles.missionDate}>{formatDateShort(point.date)}</Text>
-          </View>
-          {point.impact === "critical" && point.completed && (
-            <View style={styles.bigWinBadge}>
-              <Text style={styles.bigWinText}>✨ Big Win</Text>
-            </View>
-          )}
-        </View>
-
-        {point.completed && (
-          <View style={styles.couragePointsBadge}>
-            <Text style={styles.couragePointsSmallText}>
-              +
-              {point.impact === "critical"
-                ? 100
-                : point.impact === "high"
-                  ? 50
-                  : 25}{" "}
-              courage points
-            </Text>
-          </View>
-        )}
-      </View>
-    </View>
-  );
-
-  const JourneyRecap = () => (
-    <Modal
-      visible={showRecap}
-      transparent
-      animationType="fade"
-      onRequestClose={() => setShowRecap(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.recapContainer}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setShowRecap(false)}
-          >
-            <Text style={styles.closeButtonText}>×</Text>
-          </TouchableOpacity>
-
-          <LinearGradient
-            colors={["#FEE2E2", "#FEF3C7"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.recapContent}
-          >
-            <View style={styles.recapHeader}>
-              <LinearGradient
-                colors={["#FBBF24", "#FB7185"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.recapIcon}
-              >
-                <Text style={styles.trophyIcon}>🏆</Text>
-              </LinearGradient>
-              <Text style={styles.recapTitle}>You Did It!</Text>
-              <Text style={styles.recapSubtitle}>Journey Complete</Text>
-            </View>
-
-            <View style={styles.recapStats}>
-              <View style={styles.recapStatRow}>
-                <Text style={styles.recapStatLabel}>Time taken</Text>
-                <Text style={styles.recapStatValue}>70 days</Text>
-              </View>
-              <View style={styles.recapStatRow}>
-                <Text style={styles.recapStatLabel}>Missions completed</Text>
-                <Text style={styles.recapStatValue}>{totalMissions} actions</Text>
-              </View>
-              <View style={styles.recapStatRow}>
-                <Text style={styles.recapStatLabel}>Courage earned</Text>
-                <Text
-                  style={[
-                    styles.recapStatValue,
-                    { color: "#B45309" },
-                  ]}
-                >
-                  {activeDream.couragePoints} points
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.recapQuote}>
-              <Text style={styles.quoteText}>
-                "A month ago, this was just a dream. Today, it's your reality. You
-                showed up, took action, and proved to yourself what you're capable of."
-              </Text>
-              <Text style={styles.quoteAuthor}>— Gabby</Text>
-            </View>
-
-            <View style={styles.recapButtonRow}>
-              <TouchableOpacity style={styles.shareButton}>
-                <Text style={styles.shareButtonText}>Share Victory</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.saveButton}>
-                <Text style={styles.saveButtonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </LinearGradient>
-        </View>
-      </View>
-    </Modal>
-  );
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <LinearGradient
@@ -467,6 +208,7 @@ const EvidenceBoardScreen = ({
                 <DreamCard
                   dream={dream}
                   isSelected={activeDream.id === dream.id}
+                  onPress={() => setSelectedDream(dream)}
                 />
               </View>
             ))}
@@ -610,7 +352,12 @@ const EvidenceBoardScreen = ({
       <BottomNavbar onNavigate={onNavigate} activeTab="evidence" />
 
       {/* Journey Recap Modal */}
-      <JourneyRecap />
+      <JourneyRecapModal
+        visible={showRecap}
+        dream={activeDream}
+        totalMissions={totalMissions}
+        onClose={() => setShowRecap(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -653,53 +400,6 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-between",
     marginBottom: 32,
-  },
-  dreamCard: {
-    borderRadius: 24,
-    padding: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  dreamCardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-  categoryIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  completedBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  completedBadgeText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#15803D",
-  },
-  dreamTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1F2937",
-    marginBottom: 12,
-  },
-  couragePoints: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  couragePointsText: {
-    fontSize: 14,
-    color: "#6B7280",
   },
   mainBoard: {
     backgroundColor: "#FFFFFF",
@@ -817,79 +517,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#1F2937",
   },
-  proofPointContainer: {
-    flexDirection: "row",
-    marginBottom: 24,
-    alignItems: "flex-start",
-  },
-  timelineDot: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-    flexShrink: 0,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  checkmark: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-  },
-  pendingDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "#FFFFFF",
-  },
-  missionCard: {
-    flex: 1,
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  missionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 8,
-  },
-  missionTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  missionDate: {
-    fontSize: 12,
-    color: "#9CA3AF",
-  },
-  bigWinBadge: {
-    backgroundColor: "#FEF3C7",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  bigWinText: {
-    fontSize: 11,
-    fontWeight: "bold",
-    color: "#B45309",
-  },
-  couragePointsBadge: {
-    marginTop: 8,
-  },
-  couragePointsSmallText: {
-    fontSize: 11,
-    color: "#6B7280",
-  },
   ctaContainer: {
     borderRadius: 24,
     padding: 24,
@@ -940,147 +567,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#6B7280",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 16,
-  },
-  recapContainer: {
-    width: "100%",
-    maxWidth: 400,
-    borderRadius: 32,
-    overflow: "hidden",
-    position: "relative",
-  },
-  recapContent: {
-    padding: 32,
-  },
-  closeButton: {
-    position: "absolute",
-    top: 16,
-    right: 16,
-    zIndex: 10,
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  closeButtonText: {
-    fontSize: 32,
-    color: "#6B7280",
-    fontWeight: "300",
-  },
-  recapHeader: {
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  recapIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  trophyIcon: {
-    fontSize: 32,
-  },
-  recapTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1F2937",
-    marginBottom: 4,
-  },
-  recapSubtitle: {
-    fontSize: 16,
-    color: "#6B7280",
-  },
-  recapStats: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  recapStatRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  recapStatLabel: {
-    fontSize: 14,
-    color: "#6B7280",
-  },
-  recapStatValue: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1F2937",
-  },
-  recapQuote: {
-    borderRadius: 24,
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    marginBottom: 24,
-  },
-  quoteText: {
-    fontSize: 14,
-    fontStyle: "italic",
-    color: "#374151",
-    lineHeight: 22,
-    marginBottom: 12,
-  },
-  quoteAuthor: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#6B7280",
-    textAlign: "right",
-  },
-  recapButtonRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  shareButton: {
-    flex: 1,
-    backgroundColor: "transparent",
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  shareButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1F2937",
-  },
-  saveButton: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#D1D5DB",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  saveButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
   },
 });
 
