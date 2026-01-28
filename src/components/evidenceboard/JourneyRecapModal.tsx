@@ -49,14 +49,13 @@ export interface Dream {
 interface JourneyRecapModalProps {
   visible: boolean;
   dream: Dream | null;
-  totalMissions: number;
+  totalMissions?: number;
   onClose: () => void;
 }
 
 export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
   visible,
   dream,
-  totalMissions,
   onClose,
 }) => {
   if (!dream) return null;
@@ -214,7 +213,7 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                     fontWeight: "bold",
                     color: EvidenceBoardColors.text.primary,
                   }}>
-                  {totalMissions} actions
+                  {dream.proofPoints.length} actions
                 </Text>
               </View>
               <View
