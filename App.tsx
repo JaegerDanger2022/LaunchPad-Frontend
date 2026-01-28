@@ -10,6 +10,7 @@ import MilestoneScreen from './src/screens/MilestoneScreen';
 import DreamPage from './src/screens/DreamPage';
 import AllDreamsScreen from './src/screens/AllDreamsScreen';
 import EvidenceBoardScreen from './src/screens/EvidenceBoardScreen';
+import { StreakStatsScreen } from './src/screens/StreakStatsScreen';
 import LoginScreen from './src/screens/auth/LoginScreen';
 import SignupScreen from './src/screens/auth/SignupScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
@@ -28,6 +29,7 @@ export type RootStackParamList = {
   // Modal screens (shown on top of tabs)
   Milestone: { milestoneId: string };
   Dream: undefined;
+  StreakStats: undefined;
 };
 
 export type TabParamList = {
@@ -127,6 +129,16 @@ const EvidenceBoardScreenBase = ({ navigation }: any) => (
 
 const EvidenceBoardScreenWrapper = withFadeAnimation(EvidenceBoardScreenBase);
 
+const StreakStatsScreenWrapper = ({ navigation }: any) => (
+  <StreakStatsScreen onNavigate={(screen) => {
+    if (screen === 'Home') {
+      navigation.goBack();
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList);
+    }
+  }} />
+);
+
 // Auth Navigator
 function AuthNavigator() {
   return (
@@ -207,6 +219,15 @@ function AppNavigator() {
         <Stack.Screen
           name="Dream"
           component={DreamPageWrapper}
+          options={{
+            presentation: 'transparentModal',
+            headerShown: false,
+            animation: 'slide_from_bottom',
+          }}
+        />
+        <Stack.Screen
+          name="StreakStats"
+          component={StreakStatsScreenWrapper}
           options={{
             presentation: 'transparentModal',
             headerShown: false,
