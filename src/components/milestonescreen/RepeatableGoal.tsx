@@ -95,27 +95,34 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
           updateUpNext();
 
           // 5. Update streak if milestone is streak-eligible (only when completed)
+          console.log("[RepeatableGoal] status:", status, "milestone?.streak_eligible:", milestone?.streak_eligible);
           if (status === "completed" && milestone?.streak_eligible) {
+            console.log("[RepeatableGoal] Updating streak for milestone:", milestoneId);
             const streakResponse = await updateStreak(user.uid, {
               milestone_id: milestoneId,
               completion_date: new Date().toISOString(),
               is_streak_eligible: true,
             });
 
+            console.log("[RepeatableGoal] Streak response:", streakResponse);
+
             if (streakResponse.success && streakResponse.streak_data) {
               const { updateStreakData } = useAuthStore.getState();
               updateStreakData(streakResponse.streak_data);
+              console.log("[RepeatableGoal] Updated streak in store");
 
               // Show streak notifications
               if (streakResponse.streak_increased) {
                 setCurrentStreak(streakResponse.streak_data.current_streak);
                 setShowStreakToast(true);
+                console.log("[RepeatableGoal] Showing streak toast:", streakResponse.streak_data.current_streak);
               }
 
               // Show achievement modal if milestone reached
               if (streakResponse.milestone_achieved) {
                 setAchievementType(streakResponse.milestone_achieved);
                 setShowAchievementModal(true);
+                console.log("[RepeatableGoal] Showing achievement modal:", streakResponse.milestone_achieved);
               }
             }
           }

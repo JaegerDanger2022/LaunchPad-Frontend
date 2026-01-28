@@ -408,12 +408,16 @@ export async function updateStreak(
 ): Promise<UpdateStreakResponse> {
   try {
     const url = `${API_BASE_URL}/users/${userId}/streak/update`;
+    console.log("[updateStreak] Calling streak endpoint:", url);
+    console.log("[updateStreak] Request data:", data);
 
     const response = await fetch(url, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
+
+    console.log("[updateStreak] Response status:", response.status);
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -423,6 +427,7 @@ export async function updateStreak(
       } catch (parseError) {
         // Silent fail
       }
+      console.error("[updateStreak] Error response:", errorMessage);
       // Don't throw - allow app to continue even if streak update fails
       return {
         success: false,
@@ -434,8 +439,10 @@ export async function updateStreak(
     }
 
     const result = await response.json();
+    console.log("[updateStreak] Success response:", result);
     return result as UpdateStreakResponse;
   } catch (error: any) {
+    console.error("[updateStreak] Exception:", error.message);
     // Don't throw - allow app to continue
     return {
       success: false,
