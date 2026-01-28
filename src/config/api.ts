@@ -3,7 +3,7 @@
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000";
 
-import { StreakData } from '../types/index';
+import { StreakData } from "../types/index";
 
 export interface UpNextMilestone {
   milestone_id: string;
@@ -235,7 +235,7 @@ export async function updateRecents(
     };
 
     const url = `${API_BASE_URL}/users/${userId}/recents`;
-    console.log("Full URL being called:", url);
+    // console.log("Full URL being called:", url);
 
     const response = await fetch(url, {
       method: "PUT",
@@ -290,7 +290,7 @@ export async function updateMilestoneStatus(
     };
 
     const url = `${API_BASE_URL}/milestone/update-status/${userId}/${threadId}/${milestoneId}`;
-    console.log("Full URL being called:", url);
+    // console.log("Full URL being called:", url);
 
     const response = await fetch(url, {
       method: "PUT",
@@ -348,7 +348,7 @@ export async function updateUpNext(
     };
 
     const url = `${API_BASE_URL}/users/${userId}/up_next`;
-    console.log("Full URL being called:", url);
+    // console.log("Full URL being called:", url);
 
     const response = await fetch(url, {
       method: "PUT",
@@ -396,10 +396,10 @@ export interface UpdateStreakRequest {
 export interface UpdateStreakResponse {
   success: boolean;
   message: string;
-  streak_data: StreakData;
+  streak_data: StreakData | null;
   streak_increased: boolean;
   streak_broken: boolean;
-  milestone_achieved?: '3_day' | '7_day' | '30_day' | null;
+  milestone_achieved?: "3_day" | "7_day" | "30_day" | null;
 }
 
 export async function updateStreak(

@@ -5,6 +5,7 @@ import { useThemeStore } from "../../store/themeStore";
 import { useAuthStore } from "../../store/authStore";
 import { updateMilestoneStatus, updateStreak } from "../../config/api";
 import { FireworksAnimationOverlay } from "../animations/FireworksAnimationOverlay";
+import { SuccessAnimationOverlay } from "../animations/SuccessAnimationOverlay";
 
 interface RepeatableGoalProps {
   completedSteps: number;

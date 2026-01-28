@@ -359,6 +359,7 @@ const MilestoneScreen = ({
             milestoneId={milestoneId}
             threadId={threadId}
             milestoneStatus={milestone?.status}
+            milestone={milestone}
             onDreamComplete={() => setShowDreamCompleteAnimation(true)}
           />
         ) : (
@@ -367,6 +368,7 @@ const MilestoneScreen = ({
             onPress={() => setIsCompleted(true)}
             milestoneId={milestoneId}
             threadId={threadId}
+            milestone={milestone}
             onDreamComplete={() => setShowDreamCompleteAnimation(true)}
           />
         )}
