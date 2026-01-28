@@ -136,7 +136,8 @@ const EvidenceBoardScreen = ({
         style={{ flex: 1 }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 24, paddingBottom: 120 }}>
+          contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 24, paddingBottom: 120 }}
+          scrollEnabled={expandedDreamId === null}>
           {/* Header */}
           <View style={{ marginBottom: 32 }}>
             <View
@@ -610,7 +611,9 @@ const EvidenceBoardScreen = ({
       </LinearGradient>
 
       {/* Bottom Navigation */}
-      <BottomNavbar onNavigate={onNavigate} activeTab="evidence" />
+      <View pointerEvents="box-none">
+        <BottomNavbar onNavigate={onNavigate} activeTab="evidence" />
+      </View>
 
       {/* Journey Recap Modal */}
       <JourneyRecapModal

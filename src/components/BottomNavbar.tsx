@@ -15,6 +15,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({ onNavigate, activeTa
 
   return (
     <View
+      pointerEvents="box-none"
       style={{
         position: "absolute",
         bottom: 0,
