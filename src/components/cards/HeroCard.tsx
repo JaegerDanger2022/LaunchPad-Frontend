@@ -1,19 +1,29 @@
 import React from "react";
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  Animated,
-} from "react-native";
+import { View, Text, TouchableOpacity, Animated } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import {
-  ClockIcon,
-  LightningIcon,
-  ArrowRightIcon,
-} from "../icons/SVGIcons";
-import { Color, getThemeColors } from "../../constants/GlobalStyles";
+import LottieView from "lottie-react-native";
+import { ClockIcon, LightningIcon, ArrowRightIcon } from "../icons/SVGIcons";
+import { Color, ChallengeTypeColors } from "../../constants/GlobalStyles";
 import { useThemeStore } from "../../store/themeStore";
+
+// Challenge type animation mapping
+const challengeTypeAnimations: Record<string, any> = {
+  power_move: require("../../assets/animations/power_move.json"),
+  knowledge_quest: require("../../assets/animations/knowledge_quest.json"),
+};
+
+// Helper function to generate gradient colors from a hex color
+const generateGradientColors = (hexColor: string): [string, string] => {
+  const lighten = (color: string, percent: number): string => {
+    const num = parseInt(color.replace("#", ""), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = Math.min(255, (num >> 16) + amt);
+    const G = Math.min(255, ((num >> 8) & 0x00ff) + amt);
+    const B = Math.min(255, (num & 0x0000ff) + amt);
+    return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
+  };
+  return [hexColor, lighten(hexColor, 15)];
+};
 
 interface HeroCardProps {
   heroOpacity: Animated.AnimatedInterpolation<number>;
@@ -22,6 +32,7 @@ interface HeroCardProps {
   title: string;
   timeMinutes: number;
   xpPoints: number;
+  challengeType?: string;
   onPress: () => void;
 }
 
@@ -32,10 +43,39 @@ export const HeroCard: React.FC<HeroCardProps> = ({
   title,
   timeMinutes,
   xpPoints,
+  challengeType,
   onPress,
 }) => {
   const { theme } = useThemeStore();
-  const themeColors = getThemeColors(theme);
+  const pulseAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, [pulseAnim]);
+
+  const cardColor =
+    challengeType &&
+    ChallengeTypeColors[challengeType as keyof typeof ChallengeTypeColors]
+      ? ChallengeTypeColors[challengeType as keyof typeof ChallengeTypeColors]
+      : Color.colorOrangered;
+
+  const pulseScale = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.02],
+  });
 
   return (
     <Animated.View
@@ -48,18 +88,36 @@ export const HeroCard: React.FC<HeroCardProps> = ({
         overflow: "hidden",
         zIndex: 10,
         opacity: heroOpacity,
-        transform: [{ scale: heroScale }],
+        transform: [{ scale: Animated.multiply(heroScale, pulseScale) }],
+        shadowColor: cardColor,
+        shadowOffset: { width: 0, height: 8 },
+        shadowRadius: 16,
+        shadowOpacity: 0.6,
+        elevation: 10,
       }}>
-      {/* Hero Background Image */}
-      <Image
-        source={require("../../assets/images/hero-bg.png")}
+      {/* Hero Background - Challenge Type Animation or fallback */}
+      <View
         style={{
           width: "100%",
           height: 184,
           borderTopLeftRadius: 35,
           borderTopRightRadius: 35,
-        }}
-      />
+          backgroundColor: cardColor,
+          justifyContent: "center",
+          alignItems: "center",
+        }}>
+        {challengeType && challengeTypeAnimations[challengeType] && (
+          <LottieView
+            source={challengeTypeAnimations[challengeType]}
+            autoPlay
+            loop={false}
+            style={{
+              width: "100%",
+              height: "100%",
+            }}
+          />
+        )}
+      </View>
 
       {/* Up Next Badge - Positioned absolutely over image */}
       <View
@@ -81,7 +139,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
             alignItems: "center",
           }}
           locations={[0, 1]}
-          colors={[Color.colorOrangered, "#f79971"]}
+          colors={generateGradientColors(cardColor)}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}>
           <Text
@@ -107,7 +165,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
           borderBottomRightRadius: 35,
         }}
         locations={[0, 1]}
-        colors={[themeColors.bg_secondary, themeColors.bg_secondary]}
+        colors={generateGradientColors(cardColor)}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}>
         {/* Task Title */}
@@ -115,7 +173,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
           style={{
             fontSize: 20,
             textAlign: "left",
-            color: themeColors.text_primary,
+            color: Color.colorWhite,
             fontFamily: "InstrumentSans-Bold",
             fontWeight: "700",
             marginBottom: 12,
@@ -133,7 +191,8 @@ export const HeroCard: React.FC<HeroCardProps> = ({
           {/* ETA / Time Chip */}
           <View
             style={{
-              backgroundColor: theme === "light" ? "#f0f0f0" : Color.colorDarkgray,
+              backgroundColor:
+                theme === "light" ? "#f0f0f0" : Color.colorDarkgray,
               flexDirection: "row",
               alignItems: "center",
               borderRadius: 20,
@@ -147,7 +206,10 @@ export const HeroCard: React.FC<HeroCardProps> = ({
                 alignItems: "center",
                 justifyContent: "center",
               }}>
-              <ClockIcon size={20} color={theme === "light" ? "#666666" : "#a29f9b"} />
+              <ClockIcon
+                size={20}
+                color={theme === "light" ? "#666666" : "#a29f9b"}
+              />
             </View>
             <View
               style={{
@@ -157,7 +219,8 @@ export const HeroCard: React.FC<HeroCardProps> = ({
               }}>
               <Text
                 style={{
-                  color: theme === "light" ? Color.colorBlack : Color.colorWhite,
+                  color:
+                    theme === "light" ? Color.colorBlack : Color.colorWhite,
                   fontSize: 15,
                   fontFamily: "InstrumentSans-Bold",
                   fontWeight: "700",
@@ -197,7 +260,10 @@ export const HeroCard: React.FC<HeroCardProps> = ({
               }}>
               <Text
                 style={{
-                  color: theme === "light" ? Color.colorDarkorange : Color.colorWhite,
+                  color:
+                    theme === "light"
+                      ? Color.colorDarkorange
+                      : Color.colorWhite,
                   fontSize: 15,
                   fontFamily: "InstrumentSans-Bold",
                   fontWeight: "700",
@@ -210,9 +276,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
         </View>
 
         {/* Action Button */}
-        <TouchableOpacity
-          onPress={onPress}
-          activeOpacity={0.8}>
+        <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
           <View
             style={{
               flexDirection: "row",

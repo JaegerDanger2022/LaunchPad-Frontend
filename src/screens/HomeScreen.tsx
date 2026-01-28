@@ -19,7 +19,6 @@ import { TopNavbar } from "../components/TopNavbar";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { TabBar, type TabType } from "../components/TabBar";
 import { EmptyDreamsState } from "../components/EmptyDreamsState";
-import { DreamLoadingScreen } from "../components/DreamLoadingScreen";
 import { SkeletonDreamCards } from "../components/SkeletonDreamCards";
 import { NoRecentsState } from "../components/NoRecentsState";
 import { StreakBadge } from "../components/streak/StreakBadge";
@@ -34,7 +33,6 @@ const HomeScreen = ({
   const [activeTab, setActiveTab] = useState<TabType>("recents");
   const [isAtBottom, setIsAtBottom] = useState(false);
   const [isAtTop, setIsAtTop] = useState(true);
-  const [isCreatingDream, setIsCreatingDream] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -46,13 +44,9 @@ const HomeScreen = ({
   const { width } = useWindowDimensions();
 
   // Get user data from auth store
-  const { userData, addToRecents, user, loadUserData } = useAuthStore();
+  const { userData, addToRecents, user, loadUserData, loading } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
-  const hasDreams =
-    userData?.dreams &&
-    Array.isArray(userData.dreams) &&
-    userData.dreams.length > 0;
 
   // Calculate column width (2 columns with 17px margins on each side and 14px gap)
   const columnWidth = (width - 34 - 14) / 2;
@@ -234,20 +228,13 @@ const HomeScreen = ({
     }));
   }, [userData?.dreams, userData?.recents]);
 
-  // If user has no dreams, show skeleton loaders while fetching
-  if (!hasDreams) {
+  // If still loading user data, show skeleton
+  if (loading) {
     return (
       <SafeAreaView
         style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
-        {isCreatingDream ? (
-          <DreamLoadingScreen visible={isCreatingDream} />
-        ) : (
-          <>
-            {/* <TopNavbar name="Ready to win?" /> */}
-            <SkeletonDreamCards />
-            <BottomNavbar />
-          </>
-        )}
+        <SkeletonDreamCards />
+        <BottomNavbar />
       </SafeAreaView>
     );
   }
@@ -314,6 +301,7 @@ const HomeScreen = ({
                     userData.up_next.time_estimate,
                   )}
                   xpPoints={userData.up_next.xp_points}
+                  challengeType={userData.up_next.challenge_type}
                   onPress={() => onNavigate("Milestone")}
                 />
               );
