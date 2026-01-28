@@ -80,7 +80,7 @@ const EvidenceBoardScreen = ({
         proofPoints.push(
           ...dreamData.roadmap.milestones.map((milestone: any) => ({
             id: milestone.id,
-            date: "",
+            date: milestone.completedDate || "",
             mission: milestone.title,
             completed: milestone.status === "completed",
             impact: "high" as const,

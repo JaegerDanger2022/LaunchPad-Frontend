@@ -20,7 +20,6 @@ export interface Dream {
   progress: number;
   startDate: string;
   targetDate?: string;
-  completedDate?: string;
   couragePoints: number;
   proofPoints: ProofPoint[];
   dream_card_bg?: string;
