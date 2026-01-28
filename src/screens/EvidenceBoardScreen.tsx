@@ -96,16 +96,6 @@ const EvidenceBoardScreen = ({
         Math.round((currentScore / totalXp) * 100),
       );
 
-      // Get completed date - use dream's completedDate or get from latest milestone
-      let completedDate = dreamData.completedDate;
-      if (!completedDate && dreamData.isComplete && proofPoints.length > 0) {
-        // Find the latest completion date from milestones
-        const completedMilestones = proofPoints.filter(p => p.date);
-        if (completedMilestones.length > 0) {
-          completedDate = completedMilestones[completedMilestones.length - 1].date;
-        }
-      }
-
       return {
         id: dreamData.thread_id,
         title: dreamData.dream,
@@ -115,7 +105,7 @@ const EvidenceBoardScreen = ({
         progress,
         startDate: dreamData.created_at || new Date().toISOString(),
         targetDate: "",
-        completedDate,
+        completedDate: dreamData.completed_at,
         couragePoints: currentScore,
         proofPoints,
         dream_card_bg: dreamData.dream_card_bg,
