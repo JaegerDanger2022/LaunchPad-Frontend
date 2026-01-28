@@ -136,7 +136,7 @@ const EvidenceBoardScreen = ({
         style={{ flex: 1 }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 24, paddingBottom: 120 }}>
+          contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 24, paddingBottom: 120 }}>
           {/* Header */}
           <View style={{ marginBottom: 32 }}>
             <View

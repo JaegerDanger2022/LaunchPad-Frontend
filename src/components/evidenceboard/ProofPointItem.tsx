@@ -45,17 +45,39 @@ const formatDateShort = (dateString: string) => {
   });
 };
 
+const truncateWithEllipsis = (text: string, maxWidth: number, fontSize: number) => {
+  // Estimate character width based on font size
+  const charWidth = fontSize * 0.55;
+  const maxChars = Math.floor(maxWidth / charWidth);
+  const ellipsis = "...";
+  const availableForText = maxChars - ellipsis.length;
+
+  if (text.length > availableForText) {
+    return text.substring(0, availableForText) + ellipsis;
+  }
+  return text;
+};
+
 export const ProofPointItem: React.FC<ProofPointItemProps> = ({
   point,
   index,
 }) => {
   const lineColor = getImpactColor(point.impact);
-  const confidenceText = point.impact === "critical" ? "20% Confidence" : point.impact === "high" ? "15% Confidence" : "10% Confidence";
+  const confidenceText =
+    point.impact === "critical"
+      ? "20% Confidence"
+      : point.impact === "high"
+        ? "15% Confidence"
+        : "10% Confidence";
 
   return (
-    <View style={{ marginBottom: 24 }}>
-      <Svg width="100%" height="120" viewBox="0 0 400 120" style={{ overflow: "visible" }}>
-        {/* Dashed vertical line */}
+    <View style={{ marginBottom: -60 }}>
+      <Svg
+        width="100%"
+        height="120"
+        viewBox="0 0 400 120"
+        style={{ overflow: "visible" }}>
+        {/* Dashed vertical line - extends full height */}
         <Line
           x1="50"
           y1="0"
@@ -63,7 +85,7 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
           y2="120"
           stroke={lineColor}
           strokeWidth="4"
-          strokeDasharray="8,8"
+          strokeDasharray="4,6"
         />
 
         {/* Timeline circle */}
@@ -72,14 +94,12 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
           cy="60"
           r="18"
           fill="white"
-          stroke={lineColor}
+          stroke={point.completed ? "#22C55E" : lineColor}
           strokeWidth="4"
         />
 
         {/* Inner circle (filled when completed) */}
-        {point.completed && (
-          <Circle cx="50" cy="60" r="8" fill={lineColor} />
-        )}
+        {point.completed && <Circle cx="50" cy="60" r="8" fill="#22C55E" />}
 
         {/* Content card */}
         <Rect
@@ -100,14 +120,8 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
             y="20"
             width="300"
             height="85"
-            filterUnits="userSpaceOnUse"
-          >
-            <FeDropShadow
-              dx="0"
-              dy="4"
-              stdDeviation="4"
-              floodOpacity="0.1"
-            />
+            filterUnits="userSpaceOnUse">
+            <FeDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity="0.1" />
           </Filter>
         </Defs>
 
@@ -118,9 +132,10 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
           fill="#1A1A1A"
           fontSize="14"
           fontWeight="700"
-          fontFamily="sans-serif"
-        >
-          <TSpan>ACTION: {point.mission.toUpperCase()}</TSpan>
+          fontFamily="sans-serif">
+          <TSpan>
+            {truncateWithEllipsis(point.mission.toUpperCase(), 260, 14)}
+          </TSpan>
         </SvgText>
 
         {/* Subtitle text */}
@@ -129,8 +144,7 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
           y="70"
           fill="#666666"
           fontSize="12"
-          fontFamily="sans-serif"
-        >
+          fontFamily="sans-serif">
           <TSpan>
             {point.completed ? "Completed " : ""}
             {formatDateShort(point.date)}
@@ -146,8 +160,7 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
             fill="#2D5BFF"
             fontSize="11"
             fontWeight="600"
-            fontFamily="sans-serif"
-          >
+            fontFamily="sans-serif">
             <TSpan>VIEW EVIDENCE →</TSpan>
           </SvgText>
         )}
