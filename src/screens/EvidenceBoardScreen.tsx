@@ -39,30 +39,30 @@ const EvidenceBoardScreen = ({
   const { width } = useWindowDimensions();
   const { userData } = useAuthStore();
 
-  const [selectedDreamId, setSelectedDreamId] = useState<number | null>(null);
+  const [expandedDreamId, setExpandedDreamId] = useState<number | null>(null);
   const [showRecap, setShowRecap] = useState(false);
 
-  // Animation value for evidence board appearance
-  const boardAnim = useRef(new Animated.Value(0)).current;
+  // Animation values for expand/collapse
+  const expandAnim = useRef(new Animated.Value(0)).current;
 
-  // Trigger animation when dream is selected
+  // Trigger animation when dream is expanded
   useEffect(() => {
-    if (selectedDreamId !== null) {
-      Animated.timing(boardAnim, {
+    if (expandedDreamId !== null) {
+      Animated.timing(expandAnim, {
         toValue: 1,
         duration: 400,
         easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
+        useNativeDriver: false, // Layout changes require this to be false
       }).start();
     } else {
-      Animated.timing(boardAnim, {
+      Animated.timing(expandAnim, {
         toValue: 0,
         duration: 300,
         easing: Easing.in(Easing.cubic),
-        useNativeDriver: true,
+        useNativeDriver: false,
       }).start();
     }
-  }, [selectedDreamId, boardAnim]);
+  }, [expandedDreamId, expandAnim]);
 
   // Map userData.dreams to Dream format
   const dreams: Dream[] = useMemo(() => {
@@ -118,10 +118,13 @@ const EvidenceBoardScreen = ({
         ([] as Dream[]);
 
   const activeDream =
-    displayDreams.find((d) => d.id === selectedDreamId) || null;
+    displayDreams.find((d) => d.id === expandedDreamId) || null;
   const completedMissions =
     activeDream?.proofPoints.filter((p: ProofPoint) => p.completed) || [];
   const totalMissions = activeDream?.proofPoints.length || 0;
+
+  // For Journey Recap Modal - use activeDream if available
+  const recapDream = activeDream;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
@@ -180,36 +183,49 @@ const EvidenceBoardScreen = ({
             </View>
           ) : (
             <>
-              {/* Dream Selector */}
+              {/* Dream Cards with Expandable Evidence Board */}
               <View
                 style={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  justifyContent: "space-between",
+                  width: "100%",
                   marginBottom: 32,
                 }}>
-                {displayDreams.map((dream) => (
+                {displayDreams.map((dream) => {
+                  const isExpanded = expandedDreamId === dream.id;
+                  const completedMissions = dream.proofPoints.filter(
+                    (p: ProofPoint) => p.completed
+                  );
+
+                  return (
                   <View
                     key={dream.id}
                     style={{
-                      width: width > 800 ? "48%" : "100%",
                       marginBottom: 16,
                     }}>
-                    <DreamCard
-                      dream={dream}
-                      isSelected={selectedDreamId === dream.id}
-                      onPress={() => setSelectedDreamId(dream.id)}
-                    />
-                  </View>
-                ))}
-              </View>
+                    <TouchableOpacity
+                      onPress={() =>
+                        setExpandedDreamId(
+                          expandedDreamId === dream.id ? null : dream.id
+                        )
+                      }
+                      activeOpacity={0.7}>
+                      <DreamCard
+                        dream={dream}
+                        isSelected={isExpanded}
+                        onPress={() =>
+                          setExpandedDreamId(
+                            expandedDreamId === dream.id ? null : dream.id
+                          )
+                        }
+                      />
+                    </TouchableOpacity>
 
-              {/* Main Evidence Board */}
-              {activeDream && (
-                <Animated.View
-                  style={{
-                    opacity: boardAnim,
-                  }}>
+                    {/* Expanded Evidence Board Content */}
+                    {isExpanded && (
+                    <Animated.View
+                      style={{
+                        opacity: expandAnim,
+                        marginTop: 12,
+                      }}>
                   <View
                     style={{
                       backgroundColor: EvidenceBoardColors.white,
@@ -245,7 +261,7 @@ const EvidenceBoardScreen = ({
                               color: EvidenceBoardColors.text.primary,
                               marginBottom: 8,
                             }}>
-                            {activeDream.title}
+                            {dream.title}
                           </Text>
                           <View
                             style={{
@@ -258,12 +274,12 @@ const EvidenceBoardScreen = ({
                                 fontSize: 14,
                                 color: EvidenceBoardColors.text.secondary,
                               }}>
-                              📅 Started {formatDate(activeDream.startDate)}
+                              📅 Started {formatDate(dream.startDate)}
                             </Text>
                           </View>
                         </View>
                         <View style={{ flexDirection: "row", gap: 8 }}>
-                          {activeDream.status === "completed" && (
+                          {dream.status === "completed" && (
                             <TouchableOpacity
                               style={{
                                 backgroundColor: "transparent",
@@ -291,7 +307,7 @@ const EvidenceBoardScreen = ({
                               justifyContent: "center",
                               alignItems: "center",
                             }}
-                            onPress={() => setSelectedDreamId(null)}>
+                            onPress={() => setExpandedDreamId(null)}>
                             <Text
                               style={{
                                 fontSize: 20,
@@ -325,7 +341,7 @@ const EvidenceBoardScreen = ({
                               fontWeight: "bold",
                               color: EvidenceBoardColors.text.primary,
                             }}>
-                            {completedMissions.length} of {totalMissions}{" "}
+                            {completedMissions.length} of {dream.proofPoints.length}{" "}
                             missions
                           </Text>
                         </View>
@@ -337,12 +353,12 @@ const EvidenceBoardScreen = ({
                             overflow: "hidden",
                           }}>
                           <LinearGradient
-                            colors={getCategoryGradient(activeDream.category)}
+                            colors={getCategoryGradient(dream.category)}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
                             style={{
                               height: "100%",
-                              width: `${activeDream.progress}%`,
+                              width: `${dream.progress}%`,
                               borderRadius: 9999,
                             }}
                           />
@@ -402,7 +418,7 @@ const EvidenceBoardScreen = ({
                               color: EvidenceBoardColors.text.primary,
                               marginBottom: 4,
                             }}>
-                            {activeDream.couragePoints}
+                            {dream.couragePoints}
                           </Text>
                           <Text
                             style={{
@@ -430,7 +446,7 @@ const EvidenceBoardScreen = ({
                               color: EvidenceBoardColors.text.primary,
                               marginBottom: 4,
                             }}>
-                            {activeDream.progress}%
+                            {dream.progress}%
                           </Text>
                           <Text
                             style={{
@@ -465,7 +481,7 @@ const EvidenceBoardScreen = ({
 
                       <FlatList
                         scrollEnabled={false}
-                        data={activeDream.proofPoints}
+                        data={dream.proofPoints}
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={({ item, index }) => (
                           <ProofPointItem point={item} index={index} />
@@ -474,7 +490,7 @@ const EvidenceBoardScreen = ({
                     </View>
 
                     {/* Next Mission CTA */}
-                    {activeDream.status !== "completed" && (
+                    {dream.status !== "completed" && (
                       <LinearGradient
                         colors={["#14B8A6", "#06B6D4"]}
                         start={{ x: 0, y: 0 }}
@@ -564,7 +580,11 @@ const EvidenceBoardScreen = ({
                     </Text>
                   </LinearGradient>
                 </Animated.View>
-              )}
+                    )}
+                    </View>
+                  );
+                })}
+              </View>
             </>
           )}
         </ScrollView>
