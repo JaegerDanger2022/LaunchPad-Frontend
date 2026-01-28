@@ -101,6 +101,7 @@ const EvidenceBoardScreen = ({
         title: dreamData.dream,
         category: "" as unknown as "travel" | "career" | "financial" | "other",
         status: dreamData.status as "in-progress" | "completed",
+        isComplete: dreamData.isComplete || false,
         progress,
         startDate: dreamData.created_at || new Date().toISOString(),
         targetDate: "",

@@ -66,8 +66,8 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
           const { updateMilestoneStatusLocal, loadUserData } = useAuthStore.getState();
           updateMilestoneStatusLocal(threadId, milestoneId, "completed");
 
-          // Refetch user data in the background (don't await)
-          loadUserData(user.uid).catch((error: any) => {
+          // Refetch user data to get fresh values from backend
+          await loadUserData(user.uid).catch((error: any) => {
             console.error("Failed to refetch user data:", error.message);
           });
         }
