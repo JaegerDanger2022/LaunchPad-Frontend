@@ -58,7 +58,10 @@ const HomeScreen = ({
 
   useEffect(() => {
     // Update status bar based on theme
-    StatusBar.setBarStyle(theme === "light" ? "dark-content" : "light-content", true);
+    StatusBar.setBarStyle(
+      theme === "light" ? "dark-content" : "light-content",
+      true,
+    );
   }, [theme]);
 
   useEffect(() => {
@@ -111,8 +114,35 @@ const HomeScreen = ({
           setIsAtTop(true);
           // Trigger haptic feedback
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+          // Set refreshing state and start loading animation
+          setIsRefreshing(true);
+          Animated.loop(
+            Animated.timing(loadingSpinAnim, {
+              toValue: 1,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+          ).start();
+
+          // Wait 1 second before refetching user data
+          if (refreshTimeoutRef.current) {
+            clearTimeout(refreshTimeoutRef.current);
+          }
+          refreshTimeoutRef.current = setTimeout(() => {
+            if (user?.uid) {
+              loadUserData(user.uid).then(() => {
+                setIsRefreshing(false);
+              });
+            }
+          }, 1000);
         } else if (!isTop && isAtTop) {
           setIsAtTop(false);
+          // Clear timeout if user scrolls away before refresh completes
+          if (refreshTimeoutRef.current) {
+            clearTimeout(refreshTimeoutRef.current);
+          }
+          setIsRefreshing(false);
         }
 
         // Handle bottom edge detection
@@ -134,35 +164,8 @@ const HomeScreen = ({
               useNativeDriver: true,
             }),
           ]).start();
-
-          // Set refreshing state and start loading animation
-          setIsRefreshing(true);
-          Animated.loop(
-            Animated.timing(loadingSpinAnim, {
-              toValue: 1,
-              duration: 1000,
-              useNativeDriver: true,
-            })
-          ).start();
-
-          // Wait 1 second before refetching user data
-          if (refreshTimeoutRef.current) {
-            clearTimeout(refreshTimeoutRef.current);
-          }
-          refreshTimeoutRef.current = setTimeout(() => {
-            if (user?.uid) {
-              loadUserData(user.uid).then(() => {
-                setIsRefreshing(false);
-              });
-            }
-          }, 1000);
         } else if (!isBottom && isAtBottom) {
           setIsAtBottom(false);
-          // Clear timeout if user scrolls away before refresh completes
-          if (refreshTimeoutRef.current) {
-            clearTimeout(refreshTimeoutRef.current);
-          }
-          setIsRefreshing(false);
         }
       },
     },
@@ -199,7 +202,7 @@ const HomeScreen = ({
     // Filter and map only recent dreams
     const recentDreams = recentsArray
       .map((threadId: string) =>
-        userData.dreams.find((dream: any) => dream.thread_id === threadId)
+        userData.dreams.find((dream: any) => dream.thread_id === threadId),
       )
       .filter((dream: any) => dream !== undefined);
 
@@ -224,7 +227,7 @@ const HomeScreen = ({
           <DreamLoadingScreen visible={isCreatingDream} />
         ) : (
           <>
-            <TopNavbar name="Ready to win?" />
+            {/* <TopNavbar name="Ready to win?" /> */}
             <SkeletonDreamCards />
             <BottomNavbar />
           </>
@@ -235,7 +238,7 @@ const HomeScreen = ({
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
-      <TopNavbar name="Ready to win, Kyla-Marie?" />
+      {/* <TopNavbar name="Ready to win, Kyla-Marie?" /> */}
       <BottomNavbar onNavigate={onNavigate} activeTab="home" />
       <Animated.ScrollView
         onScroll={handleScroll}
@@ -316,7 +319,7 @@ const HomeScreen = ({
                   <NoRecentsState />
                 )
               ) : (
-                /* No Inspiration Yet Placeholder */
+                /* No Timeline Yet Placeholder */
                 <View
                   style={{
                     alignItems: "center",
@@ -355,7 +358,7 @@ const HomeScreen = ({
                       marginBottom: 12,
                       textAlign: "center",
                     }}>
-                    No Inspiration Yet
+                    No Timeline Yet
                   </Text>
 
                   {/* Subtitle */}
@@ -368,8 +371,8 @@ const HomeScreen = ({
                       lineHeight: 20,
                       marginBottom: 24,
                     }}>
-                    Discover inspiring goals and ideas from our community to get
-                    started on your journey
+                    Discover goals and ideas from our community to get started on
+                    your journey
                   </Text>
 
                   {/* Decorative Dots */}
