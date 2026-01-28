@@ -94,9 +94,8 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
           // 4. Trigger up_next recalculation after fresh data is in store
           updateUpNext();
 
-          // 5. Update streak if milestone is streak-eligible (only when completed)
-          console.log("[RepeatableGoal] status:", status, "milestone?.streak_eligible:", milestone?.streak_eligible);
-          if (status === "completed" && milestone?.streak_eligible) {
+          // 5. Update streak for all milestone completions (only when completed)
+          if (status === "completed") {
             console.log("[RepeatableGoal] Updating streak for milestone:", milestoneId);
             const streakResponse = await updateStreak(user.uid, {
               milestone_id: milestoneId,
