@@ -275,10 +275,12 @@ const HomeScreen = ({
                 paddingRight: 20,
                 marginBottom: 16,
               }}>
-              <StreakBadge
-                streakCount={userData.streak.current_streak}
-                size="medium"
-              />
+              <TouchableOpacity onPress={() => onNavigate("StreakStats")}>
+                <StreakBadge
+                  streakCount={userData.streak.current_streak}
+                  size="medium"
+                />
+              </TouchableOpacity>
             </View>
           )}
 
