@@ -23,7 +23,7 @@ export interface Dream {
 
 interface JourneyRecapModalProps {
   visible: boolean;
-  dream: Dream;
+  dream: Dream | null;
   totalMissions: number;
   onClose: () => void;
 }
@@ -33,7 +33,10 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
   dream,
   totalMissions,
   onClose,
-}) => (
+}) => {
+  if (!dream) return null;
+
+  return (
   <Modal
     visible={visible}
     transparent
@@ -199,4 +202,5 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
       </View>
     </View>
   </Modal>
-);
+  );
+};

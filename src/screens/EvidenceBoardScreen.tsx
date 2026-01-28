@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   FlatList,
   useWindowDimensions,
+  Animated,
+  Easing,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -37,8 +39,50 @@ const EvidenceBoardScreen = ({
   const { width } = useWindowDimensions();
   const { userData } = useAuthStore();
 
-  const [selectedDream, setSelectedDream] = useState<Dream | null>(null);
+  const [expandedDreamId, setExpandedDreamId] = useState<number | null>(null);
   const [showRecap, setShowRecap] = useState(false);
+
+  // Animation values for expand/collapse
+  const expandAnim = useRef(new Animated.Value(0)).current;
+  const cardOpacityAnim = useRef(new Animated.Value(1)).current;
+
+  // Trigger animations when dream expands/collapses
+  useEffect(() => {
+    if (expandedDreamId !== null) {
+      // Expand animation
+      Animated.parallel([
+        Animated.timing(expandAnim, {
+          toValue: 1,
+          duration: 500,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardOpacityAnim, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      // Collapse animation
+      Animated.parallel([
+        Animated.timing(expandAnim, {
+          toValue: 0,
+          duration: 400,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardOpacityAnim, {
+          toValue: 1,
+          duration: 200,
+          delay: 200,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [expandedDreamId, expandAnim, cardOpacityAnim]);
 
   // Map userData.dreams to Dream format
   const dreams: Dream[] = useMemo(() => {
@@ -93,9 +137,10 @@ const EvidenceBoardScreen = ({
       : // Fallback sample data if no userData
         ([] as Dream[]);
 
-  const activeDream = selectedDream || displayDreams[0];
+  const activeDream =
+    displayDreams.find((d) => d.id === expandedDreamId) || null;
   const completedMissions =
-    activeDream?.proofPoints.filter((p) => p.completed) || [];
+    activeDream?.proofPoints.filter((p: ProofPoint) => p.completed) || [];
   const totalMissions = activeDream?.proofPoints.length || 0;
 
   return (
@@ -164,24 +209,38 @@ const EvidenceBoardScreen = ({
                   marginBottom: 32,
                 }}>
                 {displayDreams.map((dream) => (
-                  <View
+                  <Animated.View
                     key={dream.id}
                     style={{
                       width: width > 800 ? "48%" : "100%",
                       marginBottom: 16,
+                      opacity: cardOpacityAnim,
                     }}>
-                    <DreamCard
-                      dream={dream}
-                      isSelected={activeDream.id === dream.id}
-                      onPress={() => setSelectedDream(dream)}
-                    />
-                  </View>
+                    {expandedDreamId === dream.id ? null : (
+                      <DreamCard
+                        dream={dream}
+                        isSelected={false}
+                        onPress={() => setExpandedDreamId(dream.id)}
+                      />
+                    )}
+                  </Animated.View>
                 ))}
               </View>
 
               {/* Main Evidence Board */}
               {activeDream && (
-                <View>
+                <Animated.View
+                  style={{
+                    opacity: expandAnim,
+                    transform: [
+                      {
+                        scale: expandAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.8, 1],
+                        }),
+                      },
+                    ],
+                  }}>
                   <View
                     style={{
                       backgroundColor: EvidenceBoardColors.white,
@@ -209,7 +268,7 @@ const EvidenceBoardScreen = ({
                           alignItems: "flex-start",
                           marginBottom: 24,
                         }}>
-                        <View>
+                        <View style={{ flex: 1 }}>
                           <Text
                             style={{
                               fontSize: 28,
@@ -234,25 +293,45 @@ const EvidenceBoardScreen = ({
                             </Text>
                           </View>
                         </View>
-                        {activeDream.status === "completed" && (
+                        <View style={{ flexDirection: "row", gap: 8 }}>
+                          {activeDream.status === "completed" && (
+                            <TouchableOpacity
+                              style={{
+                                backgroundColor: "transparent",
+                                paddingHorizontal: 16,
+                                paddingVertical: 12,
+                                borderRadius: 12,
+                              }}
+                              onPress={() => setShowRecap(true)}>
+                              <Text
+                                style={{
+                                  fontSize: 14,
+                                  fontWeight: "600",
+                                  color: EvidenceBoardColors.text.primary,
+                                }}>
+                                🏆 View Journey Recap
+                              </Text>
+                            </TouchableOpacity>
+                          )}
                           <TouchableOpacity
                             style={{
                               backgroundColor: "transparent",
-                              paddingHorizontal: 16,
+                              paddingHorizontal: 12,
                               paddingVertical: 12,
                               borderRadius: 12,
+                              justifyContent: "center",
+                              alignItems: "center",
                             }}
-                            onPress={() => setShowRecap(true)}>
+                            onPress={() => setExpandedDreamId(null)}>
                             <Text
                               style={{
-                                fontSize: 14,
-                                fontWeight: "600",
-                                color: EvidenceBoardColors.text.primary,
+                                fontSize: 20,
+                                color: EvidenceBoardColors.text.secondary,
                               }}>
-                              🏆 View Journey Recap
+                              ↓
                             </Text>
                           </TouchableOpacity>
-                        )}
+                        </View>
                       </View>
 
                       {/* Progress Bar */}
@@ -515,7 +594,7 @@ const EvidenceBoardScreen = ({
                       — Gabby Beckford
                     </Text>
                   </LinearGradient>
-                </View>
+              </Animated.View>
               )}
             </>
           )}
