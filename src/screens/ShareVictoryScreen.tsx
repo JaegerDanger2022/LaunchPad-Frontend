@@ -35,6 +35,8 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
   onNavigate,
   victory,
 }) => {
+  console.log("[ShareVictoryScreen] Received victory:", victory);
+
   const [evidenceSnippet, setEvidenceSnippet] = useState(
     victory?.evidenceSnippet || "",
   );
@@ -47,6 +49,16 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
   const { updateCouragePoints } = useAuthStore();
 
   const handleShare = async () => {
+    if (!victory) {
+      console.error("[ShareVictoryScreen] No victory data available");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Victory data not found",
+      });
+      return;
+    }
+
     if (!evidenceSnippet.trim()) {
       Toast.show({
         type: "error",
@@ -58,6 +70,7 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
 
     try {
       setIsSaving(true);
+      console.log("[ShareVictoryScreen] Creating victory card with milestoneId:", victory.milestoneId);
       await createVictoryCard(
         victory.milestoneId,
         evidenceSnippet.trim(),
@@ -88,14 +101,26 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
     }
   };
 
+  // Provide default values to prevent undefined errors
   const previewVictory: VictoryCardType = {
-    ...victory,
+    id: victory?.id || '',
+    userId: victory?.userId || '',
+    userDisplayName: isAnonymous ? "Anonymous" : (victory?.userDisplayName || 'User'),
+    userLocation: isAnonymous ? undefined : victory?.userLocation,
+    userAge: isAnonymous ? undefined : victory?.userAge,
+    milestoneId: victory?.milestoneId || '',
+    milestoneTitle: victory?.milestoneTitle || '',
+    dreamId: victory?.dreamId || '',
+    dreamTitle: victory?.dreamTitle || '',
+    dreamCategory: victory?.dreamCategory || 'achievement_goals',
     evidenceSnippet,
+    confidenceBoost: victory?.confidenceBoost || 10,
     impactLevel: selectedImpact,
+    completedDate: victory?.completedDate || new Date().toISOString(),
+    createdAt: victory?.createdAt || new Date().toISOString(),
+    courageBoosts: victory?.courageBoosts || 0,
+    hasUserBoosted: victory?.hasUserBoosted || false,
     isAnonymous,
-    userDisplayName: isAnonymous ? "Anonymous" : victory.userDisplayName,
-    userLocation: isAnonymous ? undefined : victory.userLocation,
-    userAge: isAnonymous ? undefined : victory.userAge,
   };
 
   return (

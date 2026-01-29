@@ -109,7 +109,12 @@ const MilestoneScreen = ({
             (m: any) => m.id === milestoneId,
           );
           if (foundMilestone) {
-            setMilestone(foundMilestone);
+            // Add dream metadata to milestone for victory card creation
+            setMilestone({
+              ...foundMilestone,
+              dreamTitle: dream.dream || '',
+              dreamCategory: dream.category || 'achievement_goals',
+            });
             setThreadId(dream?.thread_id || "");
 
             // Show unlock message toast if available (after 2 second delay)
