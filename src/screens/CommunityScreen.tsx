@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { useCommunityStore } from '../store/communityStore';
 import { useAuthStore } from '../store/authStore';
+import { useThemeStore } from '../store/themeStore';
+import { getThemeColors } from '../constants/GlobalStyles';
 import { useFocusEffect } from '@react-navigation/native';
 import { VictoryCard as VictoryCardComponent } from '../components/community/VictoryCard';
 import { VictoryCard, DreamCategory, PermissionSlip, PermissionType } from '../types/community';
@@ -46,6 +48,10 @@ interface CommunityScreenProps {
 }
 
 export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) => {
+  // Get theme
+  const { theme } = useThemeStore();
+  const themeColors = getThemeColors(theme);
+
   // Get current user
   const { user } = useAuthStore();
 
@@ -402,6 +408,8 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
     (t) => t.value === filters.timeframe
   )?.label;
 
+  const styles = createStyles(themeColors);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -544,35 +552,35 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (themeColors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFBFC',
+    backgroundColor: themeColors.bg_primary,
   },
   header: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     paddingTop: 50,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: themeColors.bg_secondary,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: themeColors.border,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#111827',
+    color: themeColors.text_primary,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: '#6B7280',
+    color: themeColors.text_secondary,
     marginTop: 4,
   },
   filterContainer: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: themeColors.bg_secondary,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: themeColors.border,
   },
   filterRow: {
     flexDirection: 'row',
@@ -584,25 +592,25 @@ const styles = StyleSheet.create({
   filterButton: {
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: themeColors.bg_primary,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: themeColors.border,
   },
   filterButtonText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#374151',
+    color: themeColors.text_primary,
   },
   dropdown: {
     position: 'absolute',
     top: 40,
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: themeColors.bg_secondary,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: themeColors.border,
     zIndex: 10,
     maxHeight: 200,
     shadowColor: '#000',
@@ -615,11 +623,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: themeColors.border,
   },
   dropdownItemText: {
     fontSize: 12,
-    color: '#374151',
+    color: themeColors.text_secondary,
   },
   dropdownItemActive: {
     fontWeight: '600',
@@ -642,13 +650,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
+    color: themeColors.text_primary,
     textAlign: 'center',
     marginBottom: 8,
   },
   emptyDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: themeColors.text_secondary,
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 24,
