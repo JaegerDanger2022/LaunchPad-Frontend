@@ -9,7 +9,7 @@ import {
   ScrollView,
   Switch,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   VictoryCard as VictoryCardType,
   ImpactLevel,
@@ -39,6 +39,7 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
   console.log("[ShareVictoryScreen] Victory milestoneTitle:", victory?.milestoneTitle);
   console.log("[ShareVictoryScreen] Victory dreamTitle:", victory?.dreamTitle);
 
+  const insets = useSafeAreaInsets();
   const [evidenceSnippet, setEvidenceSnippet] = useState(
     victory?.evidenceSnippet || "",
   );
@@ -126,22 +127,22 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <TouchableOpacity
+          onPress={() => onNavigate("Home")}
+          disabled={isSaving}>
+          <Text style={styles.closeButton}>✕</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Share Your Victory</Text>
+        <View style={styles.spacer} />
+      </View>
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         scrollEnabled={true}
         bounces={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => onNavigate("Home")}
-            disabled={isSaving}>
-            <Text style={styles.closeButton}>✕</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Share Your Victory</Text>
-          <View style={styles.spacer} />
-        </View>
-
         {/* Preview */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preview</Text>
@@ -233,7 +234,7 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -250,7 +251,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
     backgroundColor: "#FFFFFF",
