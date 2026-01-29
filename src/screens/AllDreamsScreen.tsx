@@ -107,7 +107,6 @@ const AllDreamsScreen = ({
     return (
       <>
         <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
-          <BottomNavbar onNavigate={onNavigate} activeTab="dreams" />
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40 }}>
             {/* Empty State */}
             <View
@@ -173,6 +172,7 @@ const AllDreamsScreen = ({
             </View>
           </View>
         </SafeAreaView>
+        <BottomNavbar onNavigate={onNavigate} activeTab="dreams" />
         <CreateDreamModal
           visible={isCreateDreamModalVisible}
           onClose={() => setIsCreateDreamModalVisible(false)}
@@ -185,8 +185,6 @@ const AllDreamsScreen = ({
   return (
     <>
       <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
-        <BottomNavbar onNavigate={onNavigate} activeTab="dreams" />
-
         {/* Dreams Grid */}
         <Animated.ScrollView
           style={{ flex: 1 }}
@@ -246,6 +244,7 @@ const AllDreamsScreen = ({
           </TouchableOpacity>
         </View>
       </SafeAreaView>
+      <BottomNavbar onNavigate={onNavigate} activeTab="dreams" />
       <CreateDreamModal
         visible={isCreateDreamModalVisible}
         onClose={() => setIsCreateDreamModalVisible(false)}
