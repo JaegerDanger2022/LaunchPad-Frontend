@@ -14,6 +14,19 @@ export type DreamCategory =
 
 export type ImpactLevel = 'critical' | 'high' | 'medium' | 'low';
 
+export type PermissionType = 1 | 2 | 3 | 4;
+
+export interface PermissionSlip {
+  id: string;
+  victoryCardId: string;
+  giverId: string;
+  giverDisplayName: string; // "Sarah" or "Anonymous"
+  receiverId: string;
+  permissionType: PermissionType;
+  permissionText: string;
+  createdAt: string; // ISO date
+}
+
 export interface VictoryCard {
   id: string;
   userId: string;
@@ -36,6 +49,9 @@ export interface VictoryCard {
 
   courageBoosts: number;
   hasUserBoosted?: boolean; // Client-side tracking
+
+  permissionsCount: number; // Count of permission slips
+  permissions?: PermissionSlip[]; // Optional - loaded on demand
 
   isAnonymous: boolean;
 }
@@ -91,4 +107,19 @@ export interface CommunityStats {
 export interface CommunityFilters {
   categories: DreamCategory[];
   timeframe: 'all' | 'week' | 'month';
+}
+
+export interface GivePermissionRequest {
+  permissionType: PermissionType;
+}
+
+export interface GivePermissionResponse {
+  success: boolean;
+  permissionText: string;
+  couragePointsAwarded: number;
+}
+
+export interface GetPermissionsResponse {
+  permissions: PermissionSlip[];
+  count: number;
 }

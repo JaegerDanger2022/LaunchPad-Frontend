@@ -14,12 +14,16 @@ import { formatDate, getConfidenceText } from '../../utils/communityUtils';
 interface VictoryCardProps {
   victory: VictoryCardType;
   onBoost: (victoryId: string) => void;
+  onPermission?: (victoryId: string) => void;
+  onViewPermissions?: (victoryId: string) => void;
   onPress?: () => void;
 }
 
 export const VictoryCard: React.FC<VictoryCardProps> = ({
   victory,
   onBoost,
+  onPermission,
+  onViewPermissions,
   onPress,
 }) => {
   const categoryColor = CATEGORY_COLORS[victory.dreamCategory];
@@ -91,6 +95,32 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
           onPress={() => onBoost(victory.id)}
           size="medium"
         />
+
+        {/* Permission Button */}
+        {onPermission && (
+          <TouchableOpacity
+            style={styles.permissionButton}
+            onPress={() => onPermission(victory.id)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.permissionIcon}>💬</Text>
+            <Text style={styles.permissionText}>Give Permission</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* View Permissions */}
+        {victory.permissionsCount > 0 && onViewPermissions && (
+          <TouchableOpacity
+            style={styles.viewPermissionsButton}
+            onPress={() => onViewPermissions(victory.id)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.permissionIcon}>💬</Text>
+            <Text style={styles.viewPermissionsText}>
+              {victory.permissionsCount} {victory.permissionsCount === 1 ? 'Permission' : 'Permissions'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -186,6 +216,42 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
+  permissionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    backgroundColor: '#FFFFFF',
+  },
+  permissionIcon: {
+    fontSize: 16,
+  },
+  permissionText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  viewPermissionsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#F0F5FF',
+  },
+  viewPermissionsText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#2D5BFF',
   },
 });

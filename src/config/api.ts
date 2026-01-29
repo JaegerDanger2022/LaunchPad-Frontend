@@ -647,6 +647,77 @@ export async function giveCourageBoost(
   }
 }
 
+export async function givePermissionSlip(
+  victoryId: string,
+  data: import("../types/community").GivePermissionRequest,
+): Promise<import("../types/community").GivePermissionResponse> {
+  try {
+    const url = `${API_BASE_URL}/victories/${victoryId}/permission`;
+    console.log("[givePermissionSlip] Giving permission at:", url);
+    console.log("[givePermissionSlip] Payload:", data);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    console.log("[givePermissionSlip] Response status:", response.status);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log("[givePermissionSlip] Success:", result);
+    return result as import("../types/community").GivePermissionResponse;
+  } catch (error: any) {
+    console.error("[givePermissionSlip] Error:", error.message);
+    throw error;
+  }
+}
+
+export async function getVictoryPermissions(
+  victoryId: string,
+): Promise<import("../types/community").GetPermissionsResponse> {
+  try {
+    const url = `${API_BASE_URL}/victories/${victoryId}/permissions`;
+    console.log("[getVictoryPermissions] Fetching permissions from:", url);
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    console.log("[getVictoryPermissions] Response status:", response.status);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log("[getVictoryPermissions] Success, got", result.count, "permissions");
+    return result as import("../types/community").GetPermissionsResponse;
+  } catch (error: any) {
+    console.error("[getVictoryPermissions] Error:", error.message);
+    throw error;
+  }
+}
+
 export async function getUserCommunityStats(
   userId: string,
 ): Promise<CommunityStats> {

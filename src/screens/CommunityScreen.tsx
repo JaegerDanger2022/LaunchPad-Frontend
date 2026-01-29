@@ -11,11 +11,13 @@ import {
 import { useCommunityStore } from '../store/communityStore';
 import { useFocusEffect } from '@react-navigation/native';
 import { VictoryCard as VictoryCardComponent } from '../components/community/VictoryCard';
-import { VictoryCard, DreamCategory } from '../types/community';
+import { VictoryCard, DreamCategory, PermissionSlip, PermissionType } from '../types/community';
 import { CATEGORY_LABELS } from '../constants/communityColors';
 import { fetchVictories } from '../config/api';
 import Toast from 'react-native-toast-message';
 import { BottomNavbar } from '../components/BottomNavbar';
+import { PermissionSlipModal } from '../components/community/PermissionSlipModal';
+import { PermissionSlipList } from '../components/community/PermissionSlipList';
 
 const CATEGORY_OPTIONS: Array<{ label: string; value: DreamCategory | 'all' }> =
   [
@@ -48,6 +50,8 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
     filters,
     error: storeError,
     boostVictory,
+    givePermission,
+    loadPermissions,
     setFilters,
     clearError,
   } = useCommunityStore();
@@ -60,6 +64,12 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
   const [refreshing, setRefreshing] = useState(false);
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showTimeMenu, setShowTimeMenu] = useState(false);
+
+  // Permission slip modals
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
+  const [selectedVictoryForPermission, setSelectedVictoryForPermission] = useState<VictoryCard | null>(null);
+  const [showPermissionsList, setShowPermissionsList] = useState(false);
+  const [permissionsToView, setPermissionsToView] = useState<PermissionSlip[]>([]);
 
   // Fetch victories from backend (streaming)
   const loadVictories = async (page: number, reset: boolean = false) => {
@@ -180,6 +190,56 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
       Toast.show({
         type: 'error',
         text1: 'Failed to give boost',
+        text2: 'Please try again',
+        visibilityTime: 2000,
+      });
+    }
+  };
+
+  // Permission slip handlers
+  const handlePermissionClick = (victoryId: string) => {
+    const victory = victories.find(v => v.id === victoryId);
+    if (victory) {
+      setSelectedVictoryForPermission(victory);
+      setShowPermissionModal(true);
+    }
+  };
+
+  const handleGivePermission = async (permissionType: PermissionType) => {
+    if (!selectedVictoryForPermission) return;
+
+    try {
+      const permissionText = await givePermission(selectedVictoryForPermission.id, permissionType);
+
+      // Update local state - increment permission count
+      setVictories(prev =>
+        prev.map(v =>
+          v.id === selectedVictoryForPermission.id
+            ? { ...v, permissionsCount: v.permissionsCount + 1 }
+            : v
+        )
+      );
+
+      Toast.show({
+        type: 'success',
+        text1: 'Permission Granted! 💬',
+        text2: `+5 courage points awarded`,
+        visibilityTime: 2000,
+      });
+    } catch (err) {
+      // Error already shown by store
+    }
+  };
+
+  const handleViewPermissions = async (victoryId: string) => {
+    try {
+      const permissions = await loadPermissions(victoryId);
+      setPermissionsToView(permissions);
+      setShowPermissionsList(true);
+    } catch (err) {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to load permissions',
         text2: 'Please try again',
         visibilityTime: 2000,
       });
@@ -313,6 +373,8 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
           <VictoryCardComponent
             victory={item}
             onBoost={handleBoost}
+            onPermission={handlePermissionClick}
+            onViewPermissions={handleViewPermissions}
           />
         )}
         keyExtractor={(item) => item.id}
@@ -331,6 +393,31 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
           victories.length === 0 ? styles.emptyContainer : undefined
         }
       />
+
+      {/* Permission Slip Modal */}
+      {selectedVictoryForPermission && (
+        <PermissionSlipModal
+          visible={showPermissionModal}
+          victoryId={selectedVictoryForPermission.id}
+          dreamCategory={selectedVictoryForPermission.dreamCategory}
+          onClose={() => {
+            setShowPermissionModal(false);
+            setSelectedVictoryForPermission(null);
+          }}
+          onGrant={handleGivePermission}
+        />
+      )}
+
+      {/* Permissions List Modal */}
+      <PermissionSlipList
+        visible={showPermissionsList}
+        permissions={permissionsToView}
+        onClose={() => {
+          setShowPermissionsList(false);
+          setPermissionsToView([]);
+        }}
+      />
+
       <BottomNavbar onNavigate={onNavigate} activeTab="community" />
     </View>
   );

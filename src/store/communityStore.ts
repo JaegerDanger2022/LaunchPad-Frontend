@@ -3,11 +3,15 @@ import {
   CommunityStats,
   CommunityFilters,
   ImpactLevel,
+  PermissionType,
+  PermissionSlip,
 } from '../types/community';
 import {
   createVictory,
   giveCourageBoost,
   getUserCommunityStats,
+  givePermissionSlip,
+  getVictoryPermissions,
 } from '../config/api';
 
 interface CommunityState {
@@ -25,6 +29,8 @@ interface CommunityState {
     impact?: ImpactLevel
   ) => Promise<string>;
   boostVictory: (victoryId: string) => Promise<void>;
+  givePermission: (victoryId: string, permissionType: PermissionType) => Promise<string>;
+  loadPermissions: (victoryId: string) => Promise<PermissionSlip[]>;
   setFilters: (filters: CommunityFilters) => void;
   resetFilters: () => void;
   loadUserStats: (userId: string) => Promise<void>;
@@ -71,6 +77,30 @@ export const useCommunityStore = create<CommunityState>((set) => ({
       set({ error: null });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to give boost';
+      set({ error: errorMessage });
+      throw error;
+    }
+  },
+
+  givePermission: async (victoryId: string, permissionType: PermissionType) => {
+    try {
+      const response = await givePermissionSlip(victoryId, { permissionType });
+      set({ error: null });
+      return response.permissionText;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to give permission';
+      set({ error: errorMessage });
+      throw error;
+    }
+  },
+
+  loadPermissions: async (victoryId: string) => {
+    try {
+      const response = await getVictoryPermissions(victoryId);
+      set({ error: null });
+      return response.permissions;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load permissions';
       set({ error: errorMessage });
       throw error;
     }
