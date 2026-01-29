@@ -112,18 +112,23 @@ const MilestoneScreen = ({
             setMilestone(foundMilestone);
             setThreadId(dream?.thread_id || "");
 
-            // Show unlock message toast if available
+            // Show unlock message toast if available (after 2 second delay)
             if (foundMilestone.unlock_message) {
               const messages = Array.isArray(foundMilestone.unlock_message)
                 ? foundMilestone.unlock_message
                 : [foundMilestone.unlock_message];
 
               if (messages.length > 0) {
-                // Pick a random message
-                const randomMessage =
-                  messages[Math.floor(Math.random() * messages.length)];
-                setUnlockMessage(randomMessage);
-                setShowUnlockToast(true);
+                // Delay showing the toast by 2 seconds
+                const timer = setTimeout(() => {
+                  // Pick a random message
+                  const randomMessage =
+                    messages[Math.floor(Math.random() * messages.length)];
+                  setUnlockMessage(randomMessage);
+                  setShowUnlockToast(true);
+                }, 2000);
+
+                return () => clearTimeout(timer);
               }
             }
             break;
