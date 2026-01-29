@@ -1,5 +1,4 @@
-import * as React from "react";
-import { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,9 +9,11 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Plus } from "lucide-react-native";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { GoalCard, type GoalCardData } from "../components/GoalCard";
 import { BottomNavbar } from "../components/BottomNavbar";
+import { CreateDreamModal } from "../components/CreateDreamModal";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 
@@ -24,6 +25,7 @@ const AllDreamsScreen = ({
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const { width } = useWindowDimensions();
+  const [isCreateDreamModalVisible, setIsCreateDreamModalVisible] = useState(false);
 
   // Get user data from auth store
   const { userData, addToRecents } = useAuthStore();
@@ -103,160 +105,153 @@ const AllDreamsScreen = ({
 
   if (!hasDreams) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
-        <BottomNavbar onNavigate={onNavigate} activeTab="dreams" />
-        <View style={{ flex: 1 }}>
-          {/* Header */}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingHorizontal: 17,
-              paddingVertical: 16,
-              borderBottomWidth: 1,
-              borderBottomColor: themeColors.border,
-            }}>
-            <TouchableOpacity onPress={() => onNavigate("Home")}>
-              <Text
-                style={{
-                  fontSize: 18,
-                  color: themeColors.text_primary,
-                  fontFamily: "InstrumentSans-Bold",
-                }}>
-                ← Back
-              </Text>
-            </TouchableOpacity>
-            <Text
-              style={{
-                flex: 1,
-                fontSize: 20,
-                fontWeight: "700",
-                color: themeColors.text_primary,
-                fontFamily: "InstrumentSans-Bold",
-                textAlign: "center",
-                marginRight: 60,
-              }}>
-              All Dreams
-            </Text>
-          </View>
-
-          {/* Empty State */}
-          <View
-            style={{
-              flex: 1,
-              alignItems: "center",
-              justifyContent: "center",
-              paddingHorizontal: 40,
-            }}>
+      <>
+        <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
+          <BottomNavbar onNavigate={onNavigate} activeTab="dreams" />
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40 }}>
+            {/* Empty State */}
             <View
               style={{
-                width: 120,
-                height: 120,
-                borderRadius: 60,
-                backgroundColor: "#F0F0F0",
                 alignItems: "center",
                 justifyContent: "center",
-                marginBottom: 24,
               }}>
-              <Text style={{ fontSize: 60, opacity: 0.6 }}>🌙</Text>
+              <View
+                style={{
+                  width: 120,
+                  height: 120,
+                  borderRadius: 60,
+                  backgroundColor: "#F0F0F0",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 24,
+                }}>
+                <Text style={{ fontSize: 60, opacity: 0.6 }}>🌙</Text>
+              </View>
+
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: "700",
+                  color: themeColors.text_primary,
+                  fontFamily: "InstrumentSans-Bold",
+                  marginBottom: 12,
+                  textAlign: "center",
+                }}>
+                No Dreams Yet
+              </Text>
+
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: themeColors.text_secondary,
+                  fontFamily: "InstrumentSans-Regular",
+                  textAlign: "center",
+                  lineHeight: 20,
+                  marginBottom: 40,
+                }}>
+                Create your first dream to get started on your journey
+              </Text>
+
+              {/* Add New Dream Button */}
+              <TouchableOpacity
+                onPress={() => setIsCreateDreamModalVisible(true)}
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 28,
+                  backgroundColor: Color.colorOrangered,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  shadowColor: Color.colorOrangered,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 8,
+                  elevation: 6,
+                }}>
+                <Plus size={28} color={Color.colorWhite} strokeWidth={2.5} />
+              </TouchableOpacity>
             </View>
-
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: "700",
-                color: themeColors.text_primary,
-                fontFamily: "InstrumentSans-Bold",
-                marginBottom: 12,
-                textAlign: "center",
-              }}>
-              No Dreams Yet
-            </Text>
-
-            <Text
-              style={{
-                fontSize: 14,
-                color: themeColors.text_secondary,
-                fontFamily: "InstrumentSans-Regular",
-                textAlign: "center",
-                lineHeight: 20,
-              }}>
-              Create your first dream to get started on your journey
-            </Text>
           </View>
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
+        <CreateDreamModal
+          visible={isCreateDreamModalVisible}
+          onClose={() => setIsCreateDreamModalVisible(false)}
+          onDreamCreated={() => setIsCreateDreamModalVisible(false)}
+        />
+      </>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
-      <BottomNavbar onNavigate={onNavigate} activeTab="dreams" />
-      {/* Header */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: 17,
-          paddingVertical: 16,
-          borderBottomWidth: 1,
-          borderBottomColor: themeColors.border,
-        }}>
-        <TouchableOpacity onPress={() => onNavigate("Home")}>
-          <Text
-            style={{
-              fontSize: 18,
-              color: themeColors.text_primary,
-              fontFamily: "InstrumentSans-Bold",
-            }}>
-            ← Back
-          </Text>
-        </TouchableOpacity>
-        <Text
-          style={{
-            flex: 1,
-            fontSize: 20,
-            fontWeight: "700",
-            color: themeColors.text_primary,
-            fontFamily: "InstrumentSans-Bold",
-            textAlign: "center",
-            marginRight: 60,
-          }}>
-          All Dreams
-        </Text>
-      </View>
+    <>
+      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
+        <BottomNavbar onNavigate={onNavigate} activeTab="dreams" />
 
-      {/* Dreams Grid */}
-      <Animated.ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        showsVerticalScrollIndicator={false}>
-        <Animated.View
+        {/* Dreams Grid */}
+        <Animated.ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          showsVerticalScrollIndicator={false}>
+          <Animated.View
+            style={{
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+              marginHorizontal: 17,
+              marginTop: 20,
+            }}>
+            <FlatList
+              data={sortedDreams}
+              renderItem={({ item }) => (
+                <View style={{ width: columnWidth }}>
+                  <GoalCard
+                    data={item}
+                    onPress={() => handleGoalCardPress(item.threadId || "", item.status || "")}
+                  />
+                </View>
+              )}
+              keyExtractor={(_, index) => index.toString()}
+              numColumns={2}
+              columnWrapperStyle={{ gap: 14, marginBottom: 14 }}
+              scrollEnabled={false}
+              nestedScrollEnabled={false}
+            />
+          </Animated.View>
+        </Animated.ScrollView>
+
+        {/* Floating Add Button */}
+        <View
           style={{
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-            marginHorizontal: 17,
-            marginTop: 20,
+            position: "absolute",
+            bottom: 100,
+            left: 0,
+            right: 0,
+            alignItems: "center",
           }}>
-          <FlatList
-            data={sortedDreams}
-            renderItem={({ item }) => (
-              <View style={{ width: columnWidth }}>
-                <GoalCard
-                  data={item}
-                  onPress={() => handleGoalCardPress(item.threadId || "", item.status || "")}
-                />
-              </View>
-            )}
-            keyExtractor={(_, index) => index.toString()}
-            numColumns={2}
-            columnWrapperStyle={{ gap: 14, marginBottom: 14 }}
-            scrollEnabled={false}
-            nestedScrollEnabled={false}
-          />
-        </Animated.View>
-      </Animated.ScrollView>
-    </SafeAreaView>
+          <TouchableOpacity
+            onPress={() => setIsCreateDreamModalVisible(true)}
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              backgroundColor: Color.colorOrangered,
+              alignItems: "center",
+              justifyContent: "center",
+              shadowColor: Color.colorOrangered,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 6,
+            }}>
+            <Plus size={28} color={Color.colorWhite} strokeWidth={2.5} />
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+      <CreateDreamModal
+        visible={isCreateDreamModalVisible}
+        onClose={() => setIsCreateDreamModalVisible(false)}
+        onDreamCreated={() => setIsCreateDreamModalVisible(false)}
+      />
+    </>
   );
 };
 
