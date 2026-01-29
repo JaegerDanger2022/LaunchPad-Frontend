@@ -18,6 +18,7 @@ import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateU
 import { findNextIncompleteMilestone } from '../utils/upNextHelper';
 import { StreakData } from '../types/index';
 import * as SecureStore from 'expo-secure-store';
+import { identifyRevenueCatUser, logoutRevenueCatUser } from '../config/revenuecat';
 
 interface AuthState {
   user: User | null;
@@ -60,6 +61,14 @@ export const useAuthStore = create<AuthState>((set) => ({
           await SecureStore.setItemAsync('userToken', token);
           set({ user, isAuthenticated: true, loading: false });
 
+          // Identify user in RevenueCat
+          try {
+            await identifyRevenueCatUser(user.uid);
+          } catch (error) {
+            console.error('[Auth] RevenueCat identification error:', error);
+            // Don't block auth flow on RevenueCat error
+          }
+
           // Load user data from MongoDB
           console.log('Auth state changed - loading user data');
           const userData = await fetchUserData(user.uid);
@@ -91,6 +100,14 @@ export const useAuthStore = create<AuthState>((set) => ({
           email,
         });
 
+        // Identify user in RevenueCat
+        try {
+          await identifyRevenueCatUser(userCredential.user.uid);
+        } catch (error) {
+          console.error('[SignUp] RevenueCat identification error:', error);
+          // Don't block signup flow on RevenueCat error
+        }
+
         // Load user data immediately after registration
         const userData = await fetchUserData(userCredential.user.uid);
         set({ user: userCredential.user, userData, isAuthenticated: true, loading: false });
@@ -108,6 +125,14 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ loading: true, error: null });
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+      // Identify user in RevenueCat
+      try {
+        await identifyRevenueCatUser(userCredential.user.uid);
+      } catch (error) {
+        console.error('[Login] RevenueCat identification error:', error);
+        // Don't block login flow on RevenueCat error
+      }
 
       // Load user data from MongoDB
       const userData = await fetchUserData(userCredential.user.uid);
@@ -140,6 +165,15 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (userInfo.data?.idToken) {
         const credential = GoogleAuthProvider.credential(userInfo.data.idToken);
         const userCredential = await signInWithCredential(auth, credential);
+
+        // Identify user in RevenueCat
+        try {
+          await identifyRevenueCatUser(userCredential.user.uid);
+        } catch (error) {
+          console.error('[GoogleSignIn] RevenueCat identification error:', error);
+          // Don't block login flow on RevenueCat error
+        }
+
         set({ user: userCredential.user, isAuthenticated: true, loading: false });
       } else {
         throw new Error('No ID token from Google Sign-In');
@@ -177,6 +211,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     try {
       set({ loading: true });
+
+      // Logout from RevenueCat
+      try {
+        await logoutRevenueCatUser();
+      } catch (error) {
+        console.error('[Logout] RevenueCat logout error:', error);
+        // Don't block logout flow on RevenueCat error
+      }
+
       await signOut(auth);
       await SecureStore.deleteItemAsync('userToken').catch(() => {});
       set({ user: null, userData: null, isAuthenticated: false, loading: false });

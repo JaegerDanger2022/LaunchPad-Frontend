@@ -22,6 +22,7 @@ import { useAuthStore } from './src/store/authStore';
 import { useThemeStore } from './src/store/themeStore';
 import { Color } from './src/constants/GlobalStyles';
 import Toast from 'react-native-toast-message';
+import { configureRevenueCat } from './src/config/revenuecat';
 
 export type RootStackParamList = {
   // Auth screens
@@ -341,6 +342,13 @@ export default function App() {
   const { theme } = useThemeStore();
 
   useEffect(() => {
+    // Initialize RevenueCat SDK
+    configureRevenueCat().catch((error) => {
+      console.error('[App] RevenueCat initialization error:', error);
+      // Don't block app on RevenueCat error
+    });
+
+    // Initialize auth (will also identify user in RevenueCat if logged in)
     initializeAuth();
   }, []);
 
