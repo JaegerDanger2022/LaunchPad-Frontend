@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,24 +10,31 @@ import {
   ScrollView,
   SafeAreaView,
   Switch,
-} from 'react-native';
-import { VictoryCard as VictoryCardType, ImpactLevel } from '../../types/community';
-import { VictoryCard } from './VictoryCard';
-import Toast from 'react-native-toast-message';
+} from "react-native";
+import {
+  VictoryCard as VictoryCardType,
+  ImpactLevel,
+} from "../../types/community";
+import { VictoryCard } from "./VictoryCard";
+import Toast from "react-native-toast-message";
 
 interface ShareVictoryModalProps {
   visible: boolean;
   victory: VictoryCardType | null;
   onClose: () => void;
-  onShare: (evidenceSnippet: string, isAnonymous: boolean, impact: ImpactLevel) => Promise<void>;
+  onShare: (
+    evidenceSnippet: string,
+    isAnonymous: boolean,
+    impact: ImpactLevel,
+  ) => Promise<void>;
   loading?: boolean;
 }
 
 const IMPACT_LEVELS: Array<{ label: string; value: ImpactLevel }> = [
-  { label: 'Critical', value: 'critical' },
-  { label: 'High', value: 'high' },
-  { label: 'Medium', value: 'medium' },
-  { label: 'Low', value: 'low' },
+  { label: "Critical", value: "critical" },
+  { label: "High", value: "high" },
+  { label: "Medium", value: "medium" },
+  { label: "Low", value: "low" },
 ];
 
 export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
@@ -38,10 +45,10 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
   loading = false,
 }) => {
   const [evidenceSnippet, setEvidenceSnippet] = useState(
-    victory?.evidenceSnippet || ''
+    victory?.evidenceSnippet || "",
   );
   const [selectedImpact, setSelectedImpact] = useState<ImpactLevel>(
-    victory?.impactLevel || 'high'
+    victory?.impactLevel || "high",
   );
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -57,9 +64,9 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
   const handleShare = async () => {
     if (!evidenceSnippet.trim()) {
       Toast.show({
-        type: 'error',
-        text1: 'Evidence Required',
-        text2: 'Please add proof of your victory',
+        type: "error",
+        text1: "Evidence Required",
+        text2: "Please add proof of your victory",
       });
       return;
     }
@@ -82,7 +89,7 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
     evidenceSnippet,
     impactLevel: selectedImpact,
     isAnonymous,
-    userDisplayName: isAnonymous ? 'Anonymous' : victory.userDisplayName,
+    userDisplayName: isAnonymous ? "Anonymous" : victory.userDisplayName,
     userLocation: isAnonymous ? undefined : victory.userLocation,
     userAge: isAnonymous ? undefined : victory.userAge,
   };
@@ -92,16 +99,17 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
       visible={visible}
       animationType="slide"
       presentationStyle="fullScreen"
-      onRequestClose={onClose}
+      onRequestClose={() => {}}
     >
       <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          scrollEnabled={true}
+          bounces={false}
+        >
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity
-              onPress={onClose}
-              disabled={isSaving}
-            >
+            <TouchableOpacity onPress={onClose} disabled={isSaving}>
               <Text style={styles.closeButton}>✕</Text>
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Share Your Victory</Text>
@@ -111,10 +119,7 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
           {/* Preview */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Preview</Text>
-            <VictoryCard
-              victory={previewVictory}
-              onBoost={() => {}}
-            />
+            <VictoryCard victory={previewVictory} onBoost={() => {}} />
           </View>
 
           {/* Evidence Input */}
@@ -146,19 +151,16 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
                   key={level.value}
                   style={[
                     styles.impactButton,
-                    selectedImpact === level.value &&
-                    styles.impactButtonActive,
+                    selectedImpact === level.value && styles.impactButtonActive,
                   ]}
                   onPress={() => setSelectedImpact(level.value)}
-                  disabled={isSaving}
-                >
+                  disabled={isSaving}>
                   <Text
                     style={[
                       styles.impactButtonText,
                       selectedImpact === level.value &&
-                      styles.impactButtonTextActive,
-                    ]}
-                  >
+                        styles.impactButtonTextActive,
+                    ]}>
                     {level.label}
                   </Text>
                 </TouchableOpacity>
@@ -178,8 +180,8 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
             </View>
             <Text style={styles.helperText}>
               {isAnonymous
-                ? 'Your victory will show as "A woman"'
-                : 'Your name will be visible to the community'}
+                ? 'Your victory will show as "Someone"'
+                : "Your name will be visible to the community"}
             </Text>
           </View>
 
@@ -188,18 +190,13 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
             <TouchableOpacity
               style={styles.buttonSecondary}
               onPress={onClose}
-              disabled={isSaving}
-            >
+              disabled={isSaving}>
               <Text style={styles.buttonSecondaryText}>Skip for Now</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[
-                styles.buttonPrimary,
-                isSaving && styles.buttonDisabled,
-              ]}
+              style={[styles.buttonPrimary, isSaving && styles.buttonDisabled]}
               onPress={handleShare}
-              disabled={isSaving}
-            >
+              disabled={isSaving}>
               {isSaving ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
@@ -218,29 +215,29 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFBFC',
+    backgroundColor: "#FAFBFC",
   },
   scrollContent: {
     paddingBottom: 40,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
+    borderBottomColor: "#E5E7EB",
+    backgroundColor: "#FFFFFF",
   },
   closeButton: {
     fontSize: 24,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
+    fontWeight: "600",
+    color: "#111827",
   },
   spacer: {
     width: 24,
@@ -248,85 +245,85 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     marginTop: 12,
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
+    fontWeight: "600",
+    color: "#111827",
     marginBottom: 12,
   },
   label: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#111827',
+    fontWeight: "600",
+    color: "#111827",
     marginBottom: 8,
   },
   labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   charCounter: {
     fontSize: 11,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: "#D1D5DB",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#111827',
+    color: "#111827",
     minHeight: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   impactGrid: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   impactButton: {
     flex: 1,
-    minWidth: '45%',
+    minWidth: "45%",
     paddingVertical: 12,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: "#D1D5DB",
     borderRadius: 8,
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
   },
   impactButtonActive: {
-    backgroundColor: '#2D5BFF',
-    borderColor: '#2D5BFF',
+    backgroundColor: "#2D5BFF",
+    borderColor: "#2D5BFF",
   },
   impactButtonText: {
     fontSize: 12,
-    fontWeight: '500',
-    color: '#374151',
+    fontWeight: "500",
+    color: "#374151",
   },
   impactButtonTextActive: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   anonymousRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   helperText: {
     fontSize: 12,
-    color: '#6B7280',
-    fontStyle: 'italic',
+    color: "#6B7280",
+    fontStyle: "italic",
   },
   buttonContainer: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     marginTop: 20,
   },
@@ -335,30 +332,30 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: "#D1D5DB",
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
   },
   buttonSecondaryText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
+    fontWeight: "600",
+    color: "#374151",
   },
   buttonPrimary: {
     flex: 1,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2D5BFF',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2D5BFF",
   },
   buttonPrimaryText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
   buttonDisabled: {
     opacity: 0.6,
