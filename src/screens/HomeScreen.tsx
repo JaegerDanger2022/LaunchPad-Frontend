@@ -24,10 +24,11 @@ import { EmptyDreamsState } from "../components/EmptyDreamsState";
 import { SkeletonDreamCards } from "../components/SkeletonDreamCards";
 import { NoRecentsState } from "../components/NoRecentsState";
 import { StreakBadge } from "../components/streak/StreakBadge";
+import { VictoryCard } from "../components/community/VictoryCard";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { areDependenciesCompleted } from "../utils/dependencyChecker";
-import { fetchVictories } from "../config/api";
+import { fetchVictories, fetchInspirationVictories } from "../config/api";
 import { VictoryCard as VictoryCardType } from "../types/community";
 import { formatDate } from "../utils/communityUtils";
 
@@ -40,6 +41,8 @@ const HomeScreen = ({
   const [isAtBottom, setIsAtBottom] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [recentVictories, setRecentVictories] = useState<VictoryCardType[]>([]);
+  const [inspirationVictories, setInspirationVictories] = useState<VictoryCardType[]>([]);
+  const [inspirationLoading, setInspirationLoading] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const communityFadeAnim = useRef(new Animated.Value(0)).current;
@@ -84,9 +87,28 @@ const HomeScreen = ({
     }
   };
 
+  // Load inspiration victories (victories user has Me Too'd)
+  const loadInspirationVictories = async () => {
+    if (!user?.uid) return;
+
+    setInspirationLoading(true);
+    try {
+      const response = await fetchInspirationVictories(user.uid);
+      setInspirationVictories(response.victories);
+    } catch (error) {
+      console.error("Failed to load inspiration victories:", error);
+      setInspirationVictories([]);
+    } finally {
+      setInspirationLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadRecentVictories();
-  }, []);
+    if (user?.uid) {
+      loadInspirationVictories();
+    }
+  }, [user?.uid]);
 
   useEffect(() => {
     // Fade out and slide down
@@ -126,6 +148,8 @@ const HomeScreen = ({
         await loadUserData(user.uid);
         // Reload recent victories
         await loadRecentVictories();
+        // Reload inspiration victories
+        await loadInspirationVictories();
       }
     } catch (error) {
       console.error('[HomeScreen] Refresh failed:', error);
@@ -388,82 +412,113 @@ const HomeScreen = ({
                   <NoRecentsState />
                 )
               ) : (
-                /* No Timeline Yet Placeholder */
-                <View
-                  style={{
-                    alignItems: "center",
-                    justifyContent: "center",
-                    paddingVertical: 60,
-                    paddingHorizontal: 40,
-                  }}>
-                  {/* Decorative Circle Background */}
+                /* Inspiration Tab - Saved Victories */
+                inspirationLoading ? (
                   <View
                     style={{
-                      width: 120,
-                      height: 120,
-                      borderRadius: 60,
-                      backgroundColor: "#F0F0F0",
                       alignItems: "center",
                       justifyContent: "center",
-                      marginBottom: 24,
+                      paddingVertical: 60,
                     }}>
-                    {/* Lightbulb Icon */}
                     <Text
                       style={{
-                        fontSize: 60,
-                        opacity: 0.6,
+                        fontSize: 14,
+                        color: themeColors.text_secondary,
+                        fontFamily: "InstrumentSans-Regular",
                       }}>
-                      💡
+                      Loading inspiration...
                     </Text>
                   </View>
-
-                  {/* Main Text */}
-                  <Text
-                    style={{
-                      fontSize: 20,
-                      fontWeight: "700",
-                      color: themeColors.text_primary,
-                      fontFamily: "InstrumentSans-Bold",
-                      marginBottom: 12,
-                      textAlign: "center",
-                    }}>
-                    No Timeline Yet
-                  </Text>
-
-                  {/* Subtitle */}
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      color: themeColors.text_secondary,
-                      fontFamily: "InstrumentSans-Regular",
-                      textAlign: "center",
-                      lineHeight: 20,
-                      marginBottom: 24,
-                    }}>
-                    Discover goals and ideas from our community to get started
-                    on your journey
-                  </Text>
-
-                  {/* Decorative Dots */}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      gap: 6,
-                      marginTop: 12,
-                    }}>
-                    {[1, 2, 3].map((dot) => (
-                      <View
-                        key={dot}
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: 3,
-                          backgroundColor: dot === 2 ? "#00D4AA" : "#E0E0E0",
+                ) : inspirationVictories.length > 0 ? (
+                  <View style={{ paddingHorizontal: 0 }}>
+                    {inspirationVictories.map((victory) => (
+                      <VictoryCard
+                        key={victory.id}
+                        victory={victory}
+                        onBoost={() => {}}
+                        onPress={() => {
+                          // Navigate to victory detail if needed
                         }}
                       />
                     ))}
                   </View>
-                </View>
+                ) : (
+                  /* No Inspiration Yet Placeholder */
+                  <View
+                    style={{
+                      alignItems: "center",
+                      justifyContent: "center",
+                      paddingVertical: 60,
+                      paddingHorizontal: 40,
+                    }}>
+                    {/* Decorative Circle Background */}
+                    <View
+                      style={{
+                        width: 120,
+                        height: 120,
+                        borderRadius: 60,
+                        backgroundColor: "#F0F0F0",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginBottom: 24,
+                      }}>
+                      {/* Lightbulb Icon */}
+                      <Text
+                        style={{
+                          fontSize: 60,
+                          opacity: 0.6,
+                        }}>
+                        💡
+                      </Text>
+                    </View>
+
+                    {/* Main Text */}
+                    <Text
+                      style={{
+                        fontSize: 20,
+                        fontWeight: "700",
+                        color: themeColors.text_primary,
+                        fontFamily: "InstrumentSans-Bold",
+                        marginBottom: 12,
+                        textAlign: "center",
+                      }}>
+                      No Inspiration Yet
+                    </Text>
+
+                    {/* Subtitle */}
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: themeColors.text_secondary,
+                        fontFamily: "InstrumentSans-Regular",
+                        textAlign: "center",
+                        lineHeight: 20,
+                        marginBottom: 24,
+                      }}>
+                      Visit the Community Wall and tap "Me Too" on victories that inspire you to save them here
+                    </Text>
+
+                    {/* Decorative Dots */}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        gap: 6,
+                        marginTop: 12,
+                      }}>
+                      {[1, 2, 3].map((dot) => (
+                        <View
+                          key={dot}
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: 3,
+                            backgroundColor: dot === 2 ? "#00D4AA" : "#E0E0E0",
+                          }}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                )
               )}
             </Animated.View>
           </View>

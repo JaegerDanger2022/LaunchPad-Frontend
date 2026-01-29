@@ -837,3 +837,46 @@ export async function getUserCommunityStats(
     throw error;
   }
 }
+
+export async function fetchInspirationVictories(
+  userId: string,
+): Promise<VictoriesResponse> {
+  try {
+    const url = `${API_BASE_URL}/users/${userId}/inspiration`;
+
+    if (__DEV__) {
+      console.log("[fetchInspirationVictories] Fetching from:", url);
+    }
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (__DEV__) {
+      console.log("[fetchInspirationVictories] Response status:", response.status);
+    }
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    if (__DEV__) {
+      console.log("[fetchInspirationVictories] Success:", result);
+    }
+    return result as VictoriesResponse;
+  } catch (error: any) {
+    if (__DEV__) {
+      console.error("[fetchInspirationVictories] Error:", error.message);
+    }
+    throw error;
+  }
+}
