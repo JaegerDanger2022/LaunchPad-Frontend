@@ -38,16 +38,13 @@ const HomeScreen = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>("recents");
   const [isAtBottom, setIsAtBottom] = useState(false);
-  const [isAtTop, setIsAtTop] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [recentVictories, setRecentVictories] = useState<VictoryCardType[]>([]);
-  const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const communityFadeAnim = useRef(new Animated.Value(0)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
   const bottomEffectAnim = useRef(new Animated.Value(0)).current;
-  const loadingSpinAnim = useRef(new Animated.Value(0)).current;
   const { width } = useWindowDimensions();
 
   // Get user data from auth store
@@ -76,17 +73,18 @@ const HomeScreen = ({
     }
   }, []);
 
+  // Load recent community victories
+  const loadRecentVictories = async () => {
+    try {
+      const response = await fetchVictories({ page: 1, limit: 3 });
+      setRecentVictories(response.victories.slice(0, 2)); // Show only 2
+    } catch (error) {
+      console.error("Failed to load recent victories:", error);
+      setRecentVictories([]);
+    }
+  };
+
   useEffect(() => {
-    // Load recent community victories
-    const loadRecentVictories = async () => {
-      try {
-        const response = await fetchVictories({ page: 1, limit: 3 });
-        setRecentVictories(response.victories.slice(0, 2)); // Show only 2
-      } catch (error) {
-        console.error("Failed to load recent victories:", error);
-        setRecentVictories([]);
-      }
-    };
     loadRecentVictories();
   }, []);
 
@@ -123,12 +121,17 @@ const HomeScreen = ({
   // Pull to refresh handler
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    if (user?.uid) {
-      await loadUserData(user.uid);
-      // Reload recent victories
-      await loadRecentVictories();
+    try {
+      if (user?.uid) {
+        await loadUserData(user.uid);
+        // Reload recent victories
+        await loadRecentVictories();
+      }
+    } catch (error) {
+      console.error('[HomeScreen] Refresh failed:', error);
+    } finally {
+      setIsRefreshing(false);
     }
-    setIsRefreshing(false);
   };
 
   const handleScroll = Animated.event(
@@ -241,7 +244,14 @@ const HomeScreen = ({
         scrollEventThrottle={16}
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 20 }}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor="#2D5BFF"
+          />
+        }>
         <View
           style={{
             flexDirection: "column",
@@ -658,36 +668,6 @@ const HomeScreen = ({
           )}
         </View>
       </Animated.ScrollView>
-
-      {/* Loading Spinner Overlay */}
-      {isRefreshing && (
-        <Animated.View
-          style={{
-            position: "absolute",
-            bottom: 80,
-            left: "50%",
-            marginLeft: -30,
-            transform: [
-              {
-                rotate: loadingSpinAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ["0deg", "360deg"],
-                }),
-              },
-            ],
-          }}>
-          <View
-            style={{
-              width: 60,
-              height: 60,
-              borderRadius: 30,
-              borderWidth: 3,
-              borderColor: Color.colorOrangered,
-              borderTopColor: "transparent",
-            }}
-          />
-        </Animated.View>
-      )}
     </SafeAreaView>
   );
 };
