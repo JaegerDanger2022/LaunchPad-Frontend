@@ -1,19 +1,21 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { BottomNavbar } from '../components/BottomNavbar';
-import { ProfileHeader } from '../components/settings/ProfileHeader';
-import { SettingRow } from '../components/settings/SettingRow';
-import { useAuthStore } from '../store/authStore';
-import { useThemeStore } from '../store/themeStore';
-import { getThemeColors } from '../constants/GlobalStyles';
-import Toast from 'react-native-toast-message';
+import React from "react";
+import { View, Text, ScrollView, StyleSheet, Alert } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { BottomNavbar } from "../components/BottomNavbar";
+import { ProfileHeader } from "../components/settings/ProfileHeader";
+import { SettingRow } from "../components/settings/SettingRow";
+import { useAuthStore } from "../store/authStore";
+import { useThemeStore } from "../store/themeStore";
+import { getThemeColors } from "../constants/GlobalStyles";
+import Toast from "react-native-toast-message";
 
 interface SettingsScreenProps {
   onNavigate?: (screen: string) => void;
 }
 
-export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onNavigate }) => {
+export const SettingsScreen: React.FC<SettingsScreenProps> = ({
+  onNavigate,
+}) => {
   const { user, userData, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const themeColors = getThemeColors(theme);
@@ -26,116 +28,156 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onNavigate }) =>
   // Count completed milestones
   const completedMilestones =
     userData?.dreams?.reduce((total: number, dream: any) => {
-      const completed = dream.roadmap?.milestones?.filter(
-        (m: any) => m.status === 'completed'
-      ).length || 0;
+      const completed =
+        dream.roadmap?.milestones?.filter((m: any) => m.status === "completed")
+          .length || 0;
       return total + completed;
     }, 0) || 0;
 
   const handleLogout = () => {
     Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
+      "Logout",
+      "Are you sure you want to logout?",
       [
         {
-          text: 'Cancel',
-          style: 'cancel',
+          text: "Cancel",
+          style: "cancel",
         },
         {
-          text: 'Logout',
-          style: 'destructive',
+          text: "Logout",
+          style: "destructive",
           onPress: async () => {
             try {
               await logout();
               Toast.show({
-                type: 'success',
-                text1: 'Logged Out',
-                text2: 'See you soon!',
+                type: "success",
+                text1: "Logged Out",
+                text2: "See you soon!",
                 visibilityTime: 2000,
               });
             } catch (error) {
               Toast.show({
-                type: 'error',
-                text1: 'Logout Failed',
-                text2: 'Please try again',
+                type: "error",
+                text1: "Logout Failed",
+                text2: "Please try again",
                 visibilityTime: 2000,
               });
             }
           },
         },
       ],
-      { cancelable: true }
+      { cancelable: true },
     );
   };
 
   const handleChangePassword = () => {
-    onNavigate?.('ChangePassword');
+    onNavigate?.("ChangePassword");
   };
 
   const handleOpenLink = (linkType: string) => {
     Toast.show({
-      type: 'info',
-      text1: 'Coming Soon',
+      type: "info",
+      text1: "Coming Soon",
       text2: `${linkType} will be available soon`,
       visibilityTime: 2000,
     });
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.bg_primary }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: themeColors.bg_primary }]}>
       <BottomNavbar onNavigate={onNavigate} activeTab="settings" />
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+        showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
         {userData && (
           <ProfileHeader
-            firstname={userData.firstname || 'User'}
-            lastname={userData.lastname || ''}
-            email={userData.email || user?.email || ''}
+            firstname={userData.firstname || "User"}
+            lastname={userData.lastname || ""}
+            email={userData.email || user?.email || ""}
             createdAt={userData.created_at}
           />
         )}
 
         {/* Stats Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
+          <Text
+            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
             Your Stats
           </Text>
-          <View style={[styles.card, { backgroundColor: themeColors.bg_secondary, borderColor: themeColors.border }]}>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: themeColors.bg_secondary,
+                borderColor: themeColors.border,
+              },
+            ]}>
             <View style={styles.statsGrid}>
               <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: themeColors.text_primary }]}>
+                <Text
+                  style={[
+                    styles.statValue,
+                    { color: themeColors.text_primary },
+                  ]}>
                   {currentStreak}
                 </Text>
-                <Text style={[styles.statLabel, { color: themeColors.text_secondary }]}>
+                <Text
+                  style={[
+                    styles.statLabel,
+                    { color: themeColors.text_secondary },
+                  ]}>
                   Day Streak
                 </Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: themeColors.text_primary }]}>
+                <Text
+                  style={[
+                    styles.statValue,
+                    { color: themeColors.text_primary },
+                  ]}>
                   {couragePoints}
                 </Text>
-                <Text style={[styles.statLabel, { color: themeColors.text_secondary }]}>
+                <Text
+                  style={[
+                    styles.statLabel,
+                    { color: themeColors.text_secondary },
+                  ]}>
                   Courage Points
                 </Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: themeColors.text_primary }]}>
+                <Text
+                  style={[
+                    styles.statValue,
+                    { color: themeColors.text_primary },
+                  ]}>
                   {dreamCount}
                 </Text>
-                <Text style={[styles.statLabel, { color: themeColors.text_secondary }]}>
+                <Text
+                  style={[
+                    styles.statLabel,
+                    { color: themeColors.text_secondary },
+                  ]}>
                   Dreams
                 </Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: themeColors.text_primary }]}>
+                <Text
+                  style={[
+                    styles.statValue,
+                    { color: themeColors.text_primary },
+                  ]}>
                   {completedMilestones}
                 </Text>
-                <Text style={[styles.statLabel, { color: themeColors.text_secondary }]}>
+                <Text
+                  style={[
+                    styles.statLabel,
+                    { color: themeColors.text_secondary },
+                  ]}>
                   Completed
                 </Text>
               </View>
@@ -145,21 +187,29 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onNavigate }) =>
 
         {/* Preferences Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
+          <Text
+            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
             Preferences
           </Text>
-          <View style={[styles.card, { backgroundColor: themeColors.bg_secondary, borderColor: themeColors.border }]}>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: themeColors.bg_secondary,
+                borderColor: themeColors.border,
+              },
+            ]}>
             <SettingRow
               icon="🎨"
               label="Theme"
-              value={theme === 'light' ? 'Light' : 'Dark'}
+              value={theme === "light" ? "Light" : "Dark"}
               isSwitch
-              switchValue={theme === 'dark'}
+              switchValue={theme === "dark"}
               onSwitchChange={(value) => {
                 toggleTheme();
                 Toast.show({
-                  type: 'success',
-                  text1: `${value ? 'Dark' : 'Light'} Mode Enabled`,
+                  type: "success",
+                  text1: `${value ? "Dark" : "Light"} Mode Enabled`,
                   visibilityTime: 1500,
                 });
               }}
@@ -169,42 +219,54 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onNavigate }) =>
 
         {/* About Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
+          <Text
+            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
             About
           </Text>
-          <View style={[styles.card, { backgroundColor: themeColors.bg_secondary, borderColor: themeColors.border }]}>
-            <SettingRow
-              icon="ℹ️"
-              label="App Version"
-              value="1.0.0"
-            />
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: themeColors.bg_secondary,
+                borderColor: themeColors.border,
+              },
+            ]}>
+            <SettingRow icon="ℹ️" label="App Version" value="0.10" />
             <SettingRow
               icon="📄"
               label="Terms of Service"
               showArrow
-              onPress={() => handleOpenLink('Terms of Service')}
+              onPress={() => handleOpenLink("Terms of Service")}
             />
             <SettingRow
               icon="🔒"
               label="Privacy Policy"
               showArrow
-              onPress={() => handleOpenLink('Privacy Policy')}
+              onPress={() => handleOpenLink("Privacy Policy")}
             />
             <SettingRow
               icon="❓"
               label="Help & Support"
               showArrow
-              onPress={() => handleOpenLink('Help & Support')}
+              onPress={() => handleOpenLink("Help & Support")}
             />
           </View>
         </View>
 
         {/* Account Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
+          <Text
+            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
             Account
           </Text>
-          <View style={[styles.card, { backgroundColor: themeColors.bg_secondary, borderColor: themeColors.border }]}>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: themeColors.bg_secondary,
+                borderColor: themeColors.border,
+              },
+            ]}>
             <SettingRow
               icon="🔑"
               label="Change Password"
@@ -242,8 +304,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    fontFamily: 'InstrumentSans-Bold',
+    fontWeight: "700",
+    fontFamily: "InstrumentSans-Bold",
     marginBottom: 12,
     marginHorizontal: 20,
   },
@@ -251,26 +313,26 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 16,
     borderWidth: 1,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     padding: 20,
   },
   statItem: {
-    width: '50%',
-    alignItems: 'center',
+    width: "50%",
+    alignItems: "center",
     marginBottom: 20,
   },
   statValue: {
     fontSize: 32,
-    fontWeight: '700',
-    fontFamily: 'InstrumentSans-Bold',
+    fontWeight: "700",
+    fontFamily: "InstrumentSans-Bold",
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 14,
-    fontFamily: 'InstrumentSans-Regular',
+    fontFamily: "InstrumentSans-Regular",
   },
 });
