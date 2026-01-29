@@ -8,6 +8,7 @@ import {
   useWindowDimensions,
   StatusBar,
   TouchableOpacity,
+  RefreshControl,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -119,6 +120,17 @@ const HomeScreen = ({
     }).start();
   }, [communityFadeAnim]);
 
+  // Pull to refresh handler
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    if (user?.uid) {
+      await loadUserData(user.uid);
+      // Reload recent victories
+      await loadRecentVictories();
+    }
+    setIsRefreshing(false);
+  };
+
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
     {
@@ -128,47 +140,8 @@ const HomeScreen = ({
         const contentHeight = event.nativeEvent.contentSize.height;
         const layoutHeight = event.nativeEvent.layoutMeasurement.height;
 
-        // Check if we're at top (within 50px of the beginning)
-        const isTop = contentOffsetY <= 50;
-
         // Check if we're at bottom (within 50px of the end)
         const isBottom = contentOffsetY + layoutHeight >= contentHeight - 50;
-
-        // Handle top edge detection
-        if (isTop && !isAtTop) {
-          setIsAtTop(true);
-          // Trigger haptic feedback
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-          // Set refreshing state and start loading animation
-          setIsRefreshing(true);
-          Animated.loop(
-            Animated.timing(loadingSpinAnim, {
-              toValue: 1,
-              duration: 1000,
-              useNativeDriver: true,
-            }),
-          ).start();
-
-          // Wait 1 second before refetching user data
-          if (refreshTimeoutRef.current) {
-            clearTimeout(refreshTimeoutRef.current);
-          }
-          refreshTimeoutRef.current = setTimeout(() => {
-            if (user?.uid) {
-              loadUserData(user.uid).then(() => {
-                setIsRefreshing(false);
-              });
-            }
-          }, 1000);
-        } else if (!isTop && isAtTop) {
-          setIsAtTop(false);
-          // Clear timeout if user scrolls away before refresh completes
-          if (refreshTimeoutRef.current) {
-            clearTimeout(refreshTimeoutRef.current);
-          }
-          setIsRefreshing(false);
-        }
 
         // Handle bottom edge detection
         if (isBottom && !isAtBottom) {
