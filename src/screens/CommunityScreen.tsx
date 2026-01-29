@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useCommunityStore } from '../store/communityStore';
+import { useAuthStore } from '../store/authStore';
 import { useFocusEffect } from '@react-navigation/native';
 import { VictoryCard as VictoryCardComponent } from '../components/community/VictoryCard';
 import { VictoryCard, DreamCategory, PermissionSlip, PermissionType } from '../types/community';
@@ -45,6 +46,9 @@ interface CommunityScreenProps {
 }
 
 export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) => {
+  // Get current user
+  const { user } = useAuthStore();
+
   // Get filters and actions from store (NO victory caching)
   const {
     filters,
@@ -489,8 +493,8 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
           <VictoryCardComponent
             victory={item}
             onBoost={handleBoost}
-            onMeToo={handleMeToo}
-            onPermission={handlePermissionClick}
+            onMeToo={item.userId !== user?.uid ? handleMeToo : undefined}
+            onPermission={item.userId !== user?.uid ? handlePermissionClick : undefined}
             onViewPermissions={handleViewPermissions}
           />
         )}
