@@ -16,14 +16,14 @@ export const UnlockMessageToast: React.FC<UnlockMessageToastProps> = ({
   onComplete,
   duration = 4000,
 }) => {
-  const translateX = useRef(new Animated.Value(400)).current;
+  const translateY = useRef(new Animated.Value(300)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
-      // Slide in from right and fade in
+      // Slide up from bottom and fade in
       Animated.parallel([
-        Animated.timing(translateX, {
+        Animated.timing(translateY, {
           toValue: 0,
           duration: 400,
           useNativeDriver: true,
@@ -38,8 +38,8 @@ export const UnlockMessageToast: React.FC<UnlockMessageToastProps> = ({
       // Auto-dismiss
       const timer = setTimeout(() => {
         Animated.parallel([
-          Animated.timing(translateX, {
-            toValue: 400,
+          Animated.timing(translateY, {
+            toValue: 300,
             duration: 400,
             useNativeDriver: true,
           }),
@@ -55,7 +55,7 @@ export const UnlockMessageToast: React.FC<UnlockMessageToastProps> = ({
 
       return () => clearTimeout(timer);
     }
-  }, [visible, duration, translateX, opacity, onComplete]);
+  }, [visible, duration, translateY, opacity, onComplete]);
 
   if (!visible) return null;
 
@@ -63,7 +63,7 @@ export const UnlockMessageToast: React.FC<UnlockMessageToastProps> = ({
     <Animated.View
       style={[
         styles.container,
-        { transform: [{ translateX }], opacity },
+        { transform: [{ translateY }], opacity },
       ]}
       pointerEvents="none"
       accessibilityElementsHidden={true}
@@ -84,10 +84,12 @@ export const UnlockMessageToast: React.FC<UnlockMessageToastProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: 60,
+    bottom: 20,
+    left: 20,
     right: 20,
     zIndex: 9999,
-    alignItems: 'flex-end',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   toast: {
     flexDirection: 'row',
