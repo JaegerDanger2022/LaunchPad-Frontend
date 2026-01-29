@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   Alert,
+  Animated,
 } from "react-native";
 import Svg, { Line } from "react-native-svg";
 import { Color, getThemeColors } from "../../constants/GlobalStyles";
@@ -13,6 +14,10 @@ import { updateMilestoneStatus, updateStreak } from "../../config/api";
 import { SuccessAnimationOverlay } from "../animations/SuccessAnimationOverlay";
 import { StreakToastNotification } from "../streak/StreakToastNotification";
 import { StreakAchievementModal } from "../streak/StreakAchievementModal";
+import { ShareVictoryModal } from "../community/ShareVictoryModal";
+import { VictoryCard, ImpactLevel } from "../../types/community";
+import { useCommunityStore } from "../../store/communityStore";
+import Toast from "react-native-toast-message";
 
 interface OneTimeGoalProps {
   isCompleted: boolean;
@@ -40,6 +45,13 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
   const [currentStreak, setCurrentStreak] = useState(0);
   const [showAchievementModal, setShowAchievementModal] = useState(false);
   const [achievementType, setAchievementType] = useState<'3_day' | '7_day' | '30_day' | null>(null);
+
+  // Victory Wall share flow
+  const [showShareButton, setShowShareButton] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareButtonOpacity] = useState(new Animated.Value(0));
+  const { createVictoryCard } = useCommunityStore();
+  const { userData, updateCouragePoints } = useAuthStore();
 
   const handlePress = async () => {
     // console.log("=== OneTimeGoal Button Pressed ===");
@@ -210,7 +222,18 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
       {showSuccessAnimation && (
         <SuccessAnimationOverlay
           visible={showSuccessAnimation}
-          onComplete={() => setShowSuccessAnimation(false)}
+          onComplete={() => {
+            setShowSuccessAnimation(false);
+            // Show share button after animation completes
+            setTimeout(() => {
+              setShowShareButton(true);
+              Animated.timing(shareButtonOpacity, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+              }).start();
+            }, 500);
+          }}
           duration={2000}
         />
       )}
@@ -232,6 +255,117 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
           achievementType={achievementType}
           streakCount={currentStreak}
           onClose={() => setShowAchievementModal(false)}
+        />
+      )}
+
+      {/* Share Victory Button */}
+      {showShareButton && !showShareModal && (
+        <Animated.View
+          style={{
+            position: 'absolute',
+            bottom: 80,
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+            opacity: shareButtonOpacity,
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#2D5BFF',
+              paddingHorizontal: 24,
+              paddingVertical: 14,
+              borderRadius: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 6,
+              elevation: 8,
+            }}
+            onPress={() => setShowShareModal(true)}
+          >
+            <Text style={{ fontSize: 20 }}>🏆</Text>
+            <Text
+              style={{
+                color: '#FFFFFF',
+                fontSize: 16,
+                fontWeight: '600',
+              }}
+            >
+              Share your victory?
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              marginTop: 12,
+              paddingVertical: 8,
+              paddingHorizontal: 16,
+            }}
+            onPress={() => {
+              setShowShareButton(false);
+              shareButtonOpacity.setValue(0);
+            }}
+          >
+            <Text style={{ color: themeColors.text_secondary, fontSize: 14 }}>
+              Skip for now
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
+      )}
+
+      {/* Share Victory Modal */}
+      {showShareModal && milestone && (
+        <ShareVictoryModal
+          visible={showShareModal}
+          victory={{
+            id: '',
+            userId: user?.uid || '',
+            userDisplayName: userData?.firstname || 'User',
+            userLocation: userData?.communityProfile?.location,
+            userAge: userData?.communityProfile?.age,
+            milestoneId: milestoneId || '',
+            milestoneTitle: milestone.title || '',
+            dreamId: threadId || '',
+            dreamTitle: milestone.dreamTitle || '',
+            dreamCategory: milestone.dreamCategory || 'achievement_goals',
+            evidenceSnippet: milestone.evidence || '',
+            confidenceBoost: milestone.xp_points || 10,
+            impactLevel: (milestone.impact as ImpactLevel) || 'high',
+            completedDate: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            courageBoosts: 0,
+            hasUserBoosted: false,
+            isAnonymous: false,
+          }}
+          onClose={() => setShowShareModal(false)}
+          onShare={async (evidenceSnippet, isAnonymous, impact) => {
+            try {
+              await createVictoryCard(
+                milestoneId || '',
+                evidenceSnippet,
+                isAnonymous,
+                impact
+              );
+
+              // Award courage points locally
+              updateCouragePoints(5);
+
+              Toast.show({
+                type: 'success',
+                text1: 'Victory Shared! 🎉',
+                text2: '+5 courage points earned',
+                visibilityTime: 3000,
+              });
+
+              setShowShareModal(false);
+              setShowShareButton(false);
+            } catch (error) {
+              console.error('Failed to share victory:', error);
+            }
+          }}
         />
       )}
     </View>

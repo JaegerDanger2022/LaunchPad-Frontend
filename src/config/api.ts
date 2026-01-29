@@ -526,28 +526,31 @@ export interface FetchVictoriesParams {
   page?: number;
   limit?: number;
   categories?: DreamCategory[];
-  timeframe?: 'week' | 'month';
+  timeframe?: "week" | "month";
 }
 
-export async function fetchVictories(params: FetchVictoriesParams): Promise<VictoriesResponse> {
+export async function fetchVictories(
+  params: FetchVictoriesParams,
+): Promise<VictoriesResponse> {
   try {
-    const url = new URL(`${API_BASE_URL}/api/victories`);
+    const url = new URL(`${API_BASE_URL}/victories`);
 
-    if (params.page) url.searchParams.append('page', params.page.toString());
-    if (params.limit) url.searchParams.append('limit', params.limit.toString());
+    if (params.page) url.searchParams.append("page", params.page.toString());
+    if (params.limit) url.searchParams.append("limit", params.limit.toString());
     if (params.categories && params.categories.length > 0) {
-      url.searchParams.append('categories', params.categories.join(','));
+      url.searchParams.append("categories", params.categories.join(","));
     }
-    if (params.timeframe) url.searchParams.append('timeframe', params.timeframe);
+    if (params.timeframe)
+      url.searchParams.append("timeframe", params.timeframe);
 
-    console.log('[fetchVictories] Fetching from:', url.toString());
+    console.log("[fetchVictories] Fetching from:", url.toString());
 
     const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
     });
 
-    console.log('[fetchVictories] Response status:', response.status);
+    console.log("[fetchVictories] Response status:", response.status);
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -561,27 +564,33 @@ export async function fetchVictories(params: FetchVictoriesParams): Promise<Vict
     }
 
     const result = await response.json();
-    console.log('[fetchVictories] Success, got', result.victories.length, 'victories');
+    console.log(
+      "[fetchVictories] Success, got",
+      result.victories.length,
+      "victories",
+    );
     return result as VictoriesResponse;
   } catch (error: any) {
-    console.error('[fetchVictories] Error:', error.message);
+    console.error("[fetchVictories] Error:", error.message);
     throw error;
   }
 }
 
-export async function createVictory(data: CreateVictoryRequest): Promise<CreateVictoryResponse> {
+export async function createVictory(
+  data: CreateVictoryRequest,
+): Promise<CreateVictoryResponse> {
   try {
-    const url = `${API_BASE_URL}/api/victories`;
-    console.log('[createVictory] Creating victory at:', url);
-    console.log('[createVictory] Payload:', data);
+    const url = `${API_BASE_URL}/victories`;
+    console.log("[createVictory] Creating victory at:", url);
+    console.log("[createVictory] Payload:", data);
 
     const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
 
-    console.log('[createVictory] Response status:', response.status);
+    console.log("[createVictory] Response status:", response.status);
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -595,26 +604,28 @@ export async function createVictory(data: CreateVictoryRequest): Promise<CreateV
     }
 
     const result = await response.json();
-    console.log('[createVictory] Success:', result);
+    console.log("[createVictory] Success:", result);
     return result as CreateVictoryResponse;
   } catch (error: any) {
-    console.error('[createVictory] Error:', error.message);
+    console.error("[createVictory] Error:", error.message);
     throw error;
   }
 }
 
-export async function giveCourageBoost(victoryId: string): Promise<CourageBoostResponse> {
+export async function giveCourageBoost(
+  victoryId: string,
+): Promise<CourageBoostResponse> {
   try {
-    const url = `${API_BASE_URL}/api/victories/${victoryId}/boost`;
-    console.log('[giveCourageBoost] Boosting victory at:', url);
+    const url = `${API_BASE_URL}/victories/${victoryId}/boost`;
+    console.log("[giveCourageBoost] Boosting victory at:", url);
 
     const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
     });
 
-    console.log('[giveCourageBoost] Response status:', response.status);
+    console.log("[giveCourageBoost] Response status:", response.status);
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -628,25 +639,27 @@ export async function giveCourageBoost(victoryId: string): Promise<CourageBoostR
     }
 
     const result = await response.json();
-    console.log('[giveCourageBoost] Success:', result);
+    console.log("[giveCourageBoost] Success:", result);
     return result as CourageBoostResponse;
   } catch (error: any) {
-    console.error('[giveCourageBoost] Error:', error.message);
+    console.error("[giveCourageBoost] Error:", error.message);
     throw error;
   }
 }
 
-export async function getUserCommunityStats(userId: string): Promise<CommunityStats> {
+export async function getUserCommunityStats(
+  userId: string,
+): Promise<CommunityStats> {
   try {
     const url = `${API_BASE_URL}/api/users/${userId}/community-stats`;
-    console.log('[getUserCommunityStats] Fetching stats from:', url);
+    console.log("[getUserCommunityStats] Fetching stats from:", url);
 
     const response = await fetch(url, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
     });
 
-    console.log('[getUserCommunityStats] Response status:', response.status);
+    console.log("[getUserCommunityStats] Response status:", response.status);
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -660,10 +673,10 @@ export async function getUserCommunityStats(userId: string): Promise<CommunitySt
     }
 
     const result = await response.json();
-    console.log('[getUserCommunityStats] Success:', result);
+    console.log("[getUserCommunityStats] Success:", result);
     return result as CommunityStats;
   } catch (error: any) {
-    console.error('[getUserCommunityStats] Error:', error.message);
+    console.error("[getUserCommunityStats] Error:", error.message);
     throw error;
   }
 }
