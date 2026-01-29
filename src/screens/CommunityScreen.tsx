@@ -7,13 +7,13 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   RefreshControl,
-  SafeAreaView,
 } from 'react-native';
 import { useCommunityStore } from '../store/communityStore';
 import { useFocusEffect } from '@react-navigation/native';
-import { VictoryCard } from '../components/community/VictoryCard';
-import { DreamCategory } from '../types/community';
+import { VictoryCard as VictoryCardComponent } from '../components/community/VictoryCard';
+import { VictoryCard, DreamCategory } from '../types/community';
 import { CATEGORY_LABELS } from '../constants/communityColors';
+import { fetchVictories } from '../config/api';
 import Toast from 'react-native-toast-message';
 
 const CATEGORY_OPTIONS: Array<{ label: string; value: DreamCategory | 'all' }> =
@@ -42,53 +42,89 @@ interface CommunityScreenProps {
 }
 
 export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) => {
+  // Get filters and actions from store (NO victory caching)
   const {
-    victories,
-    loading,
-    hasMore,
     filters,
-    error,
-    fetchFeed,
+    error: storeError,
     boostVictory,
     setFilters,
-    resetFilters,
     clearError,
   } = useCommunityStore();
 
+  // LOCAL component state for streaming pagination
+  const [victories, setVictories] = useState<VictoryCard[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showTimeMenu, setShowTimeMenu] = useState(false);
 
+  // Fetch victories from backend (streaming)
+  const loadVictories = async (page: number, reset: boolean = false) => {
+    if (loading) return;
+
+    try {
+      setLoading(true);
+
+      const response = await fetchVictories({
+        page,
+        limit: 20,
+        categories: filters.categories.length > 0 ? filters.categories : undefined,
+        timeframe: filters.timeframe !== 'all' ? filters.timeframe : undefined,
+      });
+
+      setVictories(prev => reset ? response.victories : [...prev, ...response.victories]);
+      setCurrentPage(response.pagination.page);
+      setTotalPages(response.pagination.totalPages);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading victories:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to load victories',
+        text2: 'Please try again',
+        visibilityTime: 3000,
+      });
+      setLoading(false);
+    }
+  };
+
+  // Load initial feed on mount
   useFocusEffect(
     React.useCallback(() => {
-      fetchFeed(true);
-    }, [fetchFeed])
+      loadVictories(1, true);
+    }, [filters])
   );
 
+  // Show error toasts from store
   useEffect(() => {
-    if (error) {
+    if (storeError) {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: error,
-        duration: 3000,
+        text2: storeError,
+        visibilityTime: 3000,
       });
       clearError();
     }
-  }, [error, clearError]);
+  }, [storeError, clearError]);
 
+  // Pull to refresh
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchFeed(true);
+    await loadVictories(1, true);
     setRefreshing(false);
   };
 
+  // Load more on scroll (pagination)
   const handleLoadMore = () => {
-    if (hasMore && !loading) {
-      fetchFeed();
+    if (currentPage < totalPages && !loading) {
+      loadVictories(currentPage + 1, false);
     }
   };
 
+  // Filter handlers
   const handleCategoryChange = (value: string) => {
     setShowCategoryMenu(false);
     if (value === 'all') {
@@ -112,21 +148,39 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
     });
   };
 
+  // Boost handler with optimistic update
   const handleBoost = async (victoryId: string) => {
+    // Optimistic UI update
+    setVictories(prev =>
+      prev.map(v =>
+        v.id === victoryId
+          ? { ...v, courageBoosts: v.courageBoosts + 1, hasUserBoosted: true }
+          : v
+      )
+    );
+
     try {
       await boostVictory(victoryId);
       Toast.show({
         type: 'success',
         text1: 'Courage Boost Given! ⚡',
         text2: '+1 courage point awarded',
-        duration: 2000,
+        visibilityTime: 2000,
       });
     } catch (err) {
+      // Rollback optimistic update on error
+      setVictories(prev =>
+        prev.map(v =>
+          v.id === victoryId
+            ? { ...v, courageBoosts: v.courageBoosts - 1, hasUserBoosted: false }
+            : v
+        )
+      );
       Toast.show({
         type: 'error',
         text1: 'Failed to give boost',
         text2: 'Please try again',
-        duration: 2000,
+        visibilityTime: 2000,
       });
     }
   };
@@ -142,10 +196,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
       </Text>
       <TouchableOpacity
         style={styles.emptyButton}
-        onPress={() => {
-          // Navigate to Dreams screen
-          // Will be connected to navigation
-        }}
+        onPress={() => onNavigate?.('AllDreams')}
       >
         <Text style={styles.emptyButtonText}>Go to My Dreams</Text>
       </TouchableOpacity>
@@ -153,7 +204,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
   );
 
   const renderFooter = () => {
-    if (!hasMore) return null;
+    if (currentPage >= totalPages) return null;
     return loading ? (
       <View style={styles.footer}>
         <ActivityIndicator size="large" color="#2D5BFF" />
@@ -171,7 +222,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
   )?.label;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Victory Wall</Text>
         <Text style={styles.headerSubtitle}>
@@ -258,7 +309,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
       <FlatList
         data={victories}
         renderItem={({ item }) => (
-          <VictoryCard
+          <VictoryCardComponent
             victory={item}
             onBoost={handleBoost}
           />
@@ -279,7 +330,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
           victories.length === 0 ? styles.emptyContainer : undefined
         }
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -291,6 +342,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 16,
     paddingVertical: 12,
+    paddingTop: 50,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
