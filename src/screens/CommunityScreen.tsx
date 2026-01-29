@@ -15,6 +15,7 @@ import { VictoryCard, DreamCategory } from '../types/community';
 import { CATEGORY_LABELS } from '../constants/communityColors';
 import { fetchVictories } from '../config/api';
 import Toast from 'react-native-toast-message';
+import { BottomNavbar } from '../components/BottomNavbar';
 
 const CATEGORY_OPTIONS: Array<{ label: string; value: DreamCategory | 'all' }> =
   [
@@ -330,6 +331,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
           victories.length === 0 ? styles.emptyContainer : undefined
         }
       />
+      <BottomNavbar onNavigate={onNavigate} activeTab="community" />
     </View>
   );
 };
