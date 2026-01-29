@@ -76,24 +76,18 @@ const HomeScreenBase = ({ navigation }: any) => (
 
 const HomeScreenWrapper = withFadeAnimation(HomeScreenBase);
 
-const MilestoneScreenWrapper = ({ navigation, route }: any) => {
-  console.log(
-    "[App.tsx] MilestoneScreenWrapper - route.params:",
-    route.params,
-  );
-  return (
-    <MilestoneScreen
-      onNavigate={(screen) => {
-        if (screen === 'Home') {
-          navigation.goBack();
-        } else {
-          navigation.navigate(screen as keyof RootStackParamList);
-        }
-      }}
-      milestoneId={route.params?.milestoneId}
-    />
-  );
-};
+const MilestoneScreenWrapper = ({ navigation, route }: any) => (
+  <MilestoneScreen
+    onNavigate={(screen) => {
+      if (screen === 'Home') {
+        navigation.goBack();
+      } else {
+        navigation.navigate(screen as keyof RootStackParamList);
+      }
+    }}
+    milestoneId={route.params?.milestoneId}
+  />
+);
 
 const AllDreamsScreenBase = ({ navigation }: any) => (
   <AllDreamsScreen onNavigate={(screen) => {

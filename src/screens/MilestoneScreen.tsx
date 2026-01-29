@@ -98,9 +98,6 @@ const MilestoneScreen = ({
 
   // Extract milestone data by milestone ID
   React.useEffect(() => {
-    console.log("[MilestoneScreen] Looking for milestoneId:", milestoneId);
-    // console.log("[MilestoneScreen] userData?.dreams:", userData?.dreams);
-
     if (milestoneId && userData?.dreams) {
       // Search through all dreams and milestones to find the one with matching ID
       for (const dream of userData.dreams) {
@@ -109,14 +106,12 @@ const MilestoneScreen = ({
             (m: any) => m.id === milestoneId,
           );
           if (foundMilestone) {
-            console.log("[MilestoneScreen] Found milestone:", foundMilestone);
             setMilestone(foundMilestone);
             setThreadId(dream?.thread_id || "");
             break;
           }
         }
       }
-      console.log("[MilestoneScreen] Milestone not found for ID:", milestoneId);
     }
   }, [milestoneId, userData]);
 
@@ -287,7 +282,7 @@ const MilestoneScreen = ({
                 style={{
                   alignItems: "center",
                   paddingHorizontal: 40,
-                  marginTop: 40,
+                  marginTop: 10,
                   paddingBottom: 40,
                 }}>
                 {/* Challenge Type Animation - Above Title */}
