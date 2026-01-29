@@ -412,12 +412,23 @@ const MilestoneScreen = ({
         )}
       </Animated.View>
 
-      {/* Unlock Message Toast - Rendered on top, outside flex layout */}
-      <UnlockMessageToast
-        visible={showUnlockToast}
-        message={unlockMessage}
-        onComplete={() => setShowUnlockToast(false)}
-      />
+      {/* Unlock Message Toast - Wrapped in absolute positioned View */}
+      <View
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          pointerEvents: 'none',
+          zIndex: 9999,
+        }}>
+        <UnlockMessageToast
+          visible={showUnlockToast}
+          message={unlockMessage}
+          onComplete={() => setShowUnlockToast(false)}
+        />
+      </View>
     </View>
   );
 };
