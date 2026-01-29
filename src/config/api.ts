@@ -858,6 +858,17 @@ export async function fetchInspirationVictories(
     }
 
     if (!response.ok) {
+      // If endpoint doesn't exist yet (404), return empty array gracefully
+      if (response.status === 404) {
+        if (__DEV__) {
+          console.warn("[fetchInspirationVictories] Endpoint not implemented yet, returning empty array");
+        }
+        return {
+          victories: [],
+          pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
+        };
+      }
+
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
       try {
         const errorData = await response.json();
@@ -877,6 +888,10 @@ export async function fetchInspirationVictories(
     if (__DEV__) {
       console.error("[fetchInspirationVictories] Error:", error.message);
     }
-    throw error;
+    // Return empty array instead of throwing for better UX
+    return {
+      victories: [],
+      pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
+    };
   }
 }
