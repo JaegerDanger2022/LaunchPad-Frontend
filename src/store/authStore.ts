@@ -8,6 +8,9 @@ import {
   GoogleAuthProvider,
   User,
   onAuthStateChanged,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { ensureGoogleSignInInitialized, isGoogleSignInAvailable } from '../config/googleSignIn';
@@ -29,6 +32,7 @@ interface AuthState {
   googleSignIn: () => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   clearError: () => void;
   initializeAuth: () => void;
   loadUserData: (userId: string) => Promise<void>;
@@ -187,6 +191,31 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ loading: true, error: null });
       await sendPasswordResetEmail(auth, email);
+      set({ loading: false });
+    } catch (error: any) {
+      const errorMessage = getErrorMessage(error.code);
+      set({ error: errorMessage, loading: false });
+      throw error;
+    }
+  },
+
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    try {
+      set({ loading: true, error: null });
+
+      const user = auth.currentUser;
+      if (!user || !user.email) {
+        throw new Error('No user is currently signed in');
+      }
+
+      // Re-authenticate user with current password before changing password
+      // This is a security requirement from Firebase
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, credential);
+
+      // Update to new password
+      await updatePassword(user, newPassword);
+
       set({ loading: false });
     } catch (error: any) {
       const errorMessage = getErrorMessage(error.code);

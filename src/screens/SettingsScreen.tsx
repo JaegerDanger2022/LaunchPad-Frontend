@@ -69,12 +69,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onNavigate }) =>
   };
 
   const handleChangePassword = () => {
-    Toast.show({
-      type: 'info',
-      text1: 'Coming Soon',
-      text2: 'Password change feature will be available soon',
-      visibilityTime: 2000,
-    });
+    onNavigate?.('ChangePassword');
   };
 
   const handleOpenLink = (linkType: string) => {

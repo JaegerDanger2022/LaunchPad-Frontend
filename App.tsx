@@ -17,6 +17,7 @@ import ShareVictoryScreen from './src/screens/ShareVictoryScreen';
 import LoginScreen from './src/screens/auth/LoginScreen';
 import SignupScreen from './src/screens/auth/SignupScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
+import { ChangePasswordScreen } from './src/screens/auth/ChangePasswordScreen';
 import { useAuthStore } from './src/store/authStore';
 import { useThemeStore } from './src/store/themeStore';
 import { Color } from './src/constants/GlobalStyles';
@@ -36,6 +37,7 @@ export type RootStackParamList = {
   Dream: undefined;
   StreakStats: undefined;
   ShareVictory: { victory: any };
+  ChangePassword: undefined;
 };
 
 export type TabParamList = {
@@ -184,6 +186,18 @@ const ShareVictoryScreenWrapper = ({ navigation, route }: any) => (
   />
 );
 
+const ChangePasswordScreenWrapper = ({ navigation }: any) => (
+  <ChangePasswordScreen
+    onNavigate={(screen) => {
+      if (screen === 'Settings') {
+        navigation.goBack();
+      } else {
+        navigation.navigate(screen as keyof RootStackParamList);
+      }
+    }}
+  />
+);
+
 // Auth Navigator
 function AuthNavigator() {
   return (
@@ -296,6 +310,15 @@ function AppNavigator() {
         <Stack.Screen
           name="ShareVictory"
           component={ShareVictoryScreenWrapper}
+          options={{
+            presentation: 'transparentModal',
+            headerShown: false,
+            animation: 'slide_from_bottom',
+          }}
+        />
+        <Stack.Screen
+          name="ChangePassword"
+          component={ChangePasswordScreenWrapper}
           options={{
             presentation: 'transparentModal',
             headerShown: false,
