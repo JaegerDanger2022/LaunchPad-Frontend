@@ -430,18 +430,27 @@ const HomeScreen = ({
                     </Text>
                   </View>
                 ) : inspirationVictories.length > 0 ? (
-                  <View style={{ paddingHorizontal: 0 }}>
+                  <Animated.ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{
+                      paddingRight: 17,
+                    }}
+                    snapToInterval={width - 20}
+                    decelerationRate="fast"
+                    style={{ marginLeft: -17 }}>
                     {inspirationVictories.map((victory) => (
-                      <VictoryCard
-                        key={victory.id}
-                        victory={victory}
-                        onBoost={() => {}}
-                        onPress={() => {
-                          // Navigate to victory detail if needed
-                        }}
-                      />
+                      <View key={victory.id} style={{ width: width - 20 }}>
+                        <VictoryCard
+                          victory={victory}
+                          onBoost={() => {}}
+                          onPress={() => {
+                            // Navigate to victory detail if needed
+                          }}
+                        />
+                      </View>
                     ))}
-                  </View>
+                  </Animated.ScrollView>
                 ) : (
                   /* No Inspiration Yet Placeholder */
                   <View
@@ -573,152 +582,162 @@ const HomeScreen = ({
                 </TouchableOpacity>
               </View>
 
-              {/* Victory Cards */}
-              {recentVictories.map((victory) => (
-                <LinearGradient
-                  key={victory.id}
-                  colors={[themeColors.bg_secondary, themeColors.bg_secondary]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{
-                    borderRadius: 16,
-                    paddingHorizontal: 18,
-                    paddingVertical: 18,
-                    flexDirection: "column",
-                    gap: 14,
-                    borderWidth: 1,
-                    borderColor: themeColors.border,
-                    overflow: "hidden",
-                    marginBottom: 12,
-                  }}>
-                  {/* Avatar and User Info Row */}
-                  <View
+              {/* Victory Cards Carousel */}
+              <Animated.ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{
+                  paddingRight: 17,
+                }}
+                snapToInterval={width - 34}
+                decelerationRate="fast">
+                {recentVictories.map((victory) => (
+                  <LinearGradient
+                    key={victory.id}
+                    colors={[themeColors.bg_secondary, themeColors.bg_secondary]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
                     style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 12,
+                      borderRadius: 16,
+                      paddingHorizontal: 18,
+                      paddingVertical: 18,
+                      flexDirection: "column",
+                      gap: 14,
+                      borderWidth: 1,
+                      borderColor: themeColors.border,
+                      overflow: "hidden",
+                      marginRight: 12,
+                      width: width - 34,
                     }}>
-                    {/* Avatar Circle */}
-                    <View
-                      style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 24,
-                        backgroundColor: "rgba(180, 197, 253, 0.4)",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}>
-                      <AvatarIcon size={28} color={Color.colorLightsteelblue} />
-                    </View>
-
-                    {/* User Name */}
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={{
-                          color: themeColors.text_primary,
-                          fontFamily: "InstrumentSans-Bold",
-                          fontWeight: "700",
-                          fontSize: 16,
-                        }}>
-                        {victory.userDisplayName}
-                      </Text>
-                      <Text
-                        style={{
-                          color: "#A0A0A0",
-                          fontSize: 12,
-                          fontFamily: "InstrumentSans-Regular",
-                        }}>
-                        {victory.dreamTitle}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Milestone Title */}
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontWeight: "600",
-                      textAlign: "left",
-                      color: themeColors.text_primary,
-                      fontFamily: "InstrumentSans-SemiBold",
-                      lineHeight: 20,
-                    }}>
-                    {victory.milestoneTitle}
-                  </Text>
-
-                  {/* Evidence Snippet */}
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      textAlign: "left",
-                      color: themeColors.text_secondary,
-                      fontFamily: "InstrumentSans-Regular",
-                      fontWeight: "400",
-                      lineHeight: 20,
-                      fontStyle: "italic",
-                    }}>
-                    "{victory.evidenceSnippet}"
-                  </Text>
-
-                  {/* Stats Row */}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}>
+                    {/* Avatar and User Info Row */}
                     <View
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        gap: 8,
+                        gap: 12,
                       }}>
+                      {/* Avatar Circle */}
                       <View
                         style={{
-                          backgroundColor: "rgba(0, 212, 170, 0.2)",
-                          paddingHorizontal: 10,
-                          paddingVertical: 6,
-                          borderRadius: 12,
+                          width: 48,
+                          height: 48,
+                          borderRadius: 24,
+                          backgroundColor: "rgba(180, 197, 253, 0.4)",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}>
+                        <AvatarIcon size={28} color={Color.colorLightsteelblue} />
+                      </View>
+
+                      {/* User Name */}
+                      <View style={{ flex: 1 }}>
                         <Text
                           style={{
-                            color: "#00D4AA",
-                            fontSize: 12,
-                            fontWeight: "600",
-                            fontFamily: "InstrumentSans-Medium",
+                            color: themeColors.text_primary,
+                            fontFamily: "InstrumentSans-Bold",
+                            fontWeight: "700",
+                            fontSize: 16,
                           }}>
-                          +{victory.confidenceBoost}% confidence
+                          {victory.userDisplayName}
+                        </Text>
+                        <Text
+                          style={{
+                            color: "#A0A0A0",
+                            fontSize: 12,
+                            fontFamily: "InstrumentSans-Regular",
+                          }}>
+                          {victory.dreamTitle}
                         </Text>
                       </View>
+                    </View>
+
+                    {/* Milestone Title */}
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: "600",
+                        textAlign: "left",
+                        color: themeColors.text_primary,
+                        fontFamily: "InstrumentSans-SemiBold",
+                        lineHeight: 20,
+                      }}>
+                      {victory.milestoneTitle}
+                    </Text>
+
+                    {/* Evidence Snippet */}
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        textAlign: "left",
+                        color: themeColors.text_secondary,
+                        fontFamily: "InstrumentSans-Regular",
+                        fontWeight: "400",
+                        lineHeight: 20,
+                        fontStyle: "italic",
+                      }}>
+                      "{victory.evidenceSnippet}"
+                    </Text>
+
+                    {/* Stats Row */}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}>
                       <View
                         style={{
                           flexDirection: "row",
                           alignItems: "center",
-                          gap: 4,
+                          gap: 8,
                         }}>
-                        <Text style={{ fontSize: 14 }}>⚡</Text>
-                        <Text
+                        <View
                           style={{
-                            color: "#F59E0B",
-                            fontSize: 12,
-                            fontWeight: "600",
-                            fontFamily: "InstrumentSans-Medium",
+                            backgroundColor: "rgba(0, 212, 170, 0.2)",
+                            paddingHorizontal: 10,
+                            paddingVertical: 6,
+                            borderRadius: 12,
                           }}>
-                          {victory.courageBoosts}
-                        </Text>
+                          <Text
+                            style={{
+                              color: "#00D4AA",
+                              fontSize: 12,
+                              fontWeight: "600",
+                              fontFamily: "InstrumentSans-Medium",
+                            }}>
+                            +{victory.confidenceBoost}% confidence
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 4,
+                          }}>
+                          <Text style={{ fontSize: 14 }}>⚡</Text>
+                          <Text
+                            style={{
+                              color: "#F59E0B",
+                              fontSize: 12,
+                              fontWeight: "600",
+                              fontFamily: "InstrumentSans-Medium",
+                            }}>
+                            {victory.courageBoosts}
+                          </Text>
+                        </View>
                       </View>
+                      <Text
+                        style={{
+                          color: "#A0A0A0",
+                          fontSize: 11,
+                          fontFamily: "InstrumentSans-Regular",
+                        }}>
+                        {formatDate(victory.createdAt)}
+                      </Text>
                     </View>
-                    <Text
-                      style={{
-                        color: "#A0A0A0",
-                        fontSize: 11,
-                        fontFamily: "InstrumentSans-Regular",
-                      }}>
-                      {formatDate(victory.createdAt)}
-                    </Text>
-                  </View>
-                </LinearGradient>
-              ))}
+                  </LinearGradient>
+                ))}
+              </Animated.ScrollView>
             </Animated.View>
           )}
         </View>
