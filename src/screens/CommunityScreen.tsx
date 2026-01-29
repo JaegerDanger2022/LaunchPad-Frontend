@@ -187,12 +187,39 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
             : v
         )
       );
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to give boost',
-        text2: 'Please try again',
-        visibilityTime: 2000,
-      });
+
+      // Show specific error message based on error type
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+
+      if (errorMessage.includes('Cannot boost your own victory')) {
+        Toast.show({
+          type: 'info',
+          text1: 'Can\'t Boost Your Own Victory',
+          text2: 'Share the love with others! 💙',
+          visibilityTime: 2500,
+        });
+      } else if (errorMessage.includes('already boosted')) {
+        Toast.show({
+          type: 'info',
+          text1: 'Already Boosted',
+          text2: 'You\'ve already given this victory a boost',
+          visibilityTime: 2000,
+        });
+      } else if (errorMessage.includes('not authenticated')) {
+        Toast.show({
+          type: 'error',
+          text1: 'Not Authenticated',
+          text2: 'Please log in to give boosts',
+          visibilityTime: 2000,
+        });
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Failed to give boost',
+          text2: 'Please try again',
+          visibilityTime: 2000,
+        });
+      }
     }
   };
 

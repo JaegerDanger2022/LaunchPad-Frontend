@@ -614,10 +614,15 @@ export async function createVictory(
 
 export async function giveCourageBoost(
   victoryId: string,
+  userId: string,
 ): Promise<CourageBoostResponse> {
   try {
-    const url = `${API_BASE_URL}/victories/${victoryId}/boost`;
-    console.log("[giveCourageBoost] Boosting victory at:", url);
+    // Backend expects giver_user_id as a query parameter
+    const url = `${API_BASE_URL}/victories/${victoryId}/boost?giver_user_id=${encodeURIComponent(userId)}`;
+
+    if (__DEV__) {
+      console.log("[giveCourageBoost] Boosting victory at:", url);
+    }
 
     const response = await fetch(url, {
       method: "POST",
@@ -625,24 +630,41 @@ export async function giveCourageBoost(
       body: JSON.stringify({}),
     });
 
-    console.log("[giveCourageBoost] Response status:", response.status);
+    if (__DEV__) {
+      console.log("[giveCourageBoost] Response status:", response.status);
+    }
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      let errorData = null;
       try {
-        const errorData = await response.json();
+        errorData = await response.json();
+        if (__DEV__) {
+          console.error("[giveCourageBoost] Error response data:", errorData);
+        }
         errorMessage = errorData.detail || errorData.message || errorMessage;
       } catch (parseError) {
-        // Silent fail
+        if (__DEV__) {
+          console.error("[giveCourageBoost] Could not parse error response");
+        }
       }
       throw new Error(errorMessage);
     }
 
     const result = await response.json();
-    console.log("[giveCourageBoost] Success:", result);
+    if (__DEV__) {
+      console.log("[giveCourageBoost] Success:", result);
+    }
     return result as CourageBoostResponse;
   } catch (error: any) {
-    console.error("[giveCourageBoost] Error:", error.message);
+    if (__DEV__) {
+      console.error("[giveCourageBoost] Error:", error);
+      console.error("[giveCourageBoost] Error details:", {
+        message: error?.message,
+        name: error?.name,
+        stack: error?.stack,
+      });
+    }
     throw error;
   }
 }

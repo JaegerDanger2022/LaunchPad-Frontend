@@ -19,6 +19,7 @@ import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
 import { useAuthStore } from './src/store/authStore';
 import { useThemeStore } from './src/store/themeStore';
 import { Color } from './src/constants/GlobalStyles';
+import Toast from 'react-native-toast-message';
 
 export type RootStackParamList = {
   // Auth screens
@@ -305,6 +306,7 @@ export default function App() {
     <NavigationContainer>
       {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
       <StatusBar style={theme === 'light' ? 'dark' : 'light'} backgroundColor={theme === 'light' ? Color.colorSnow : '#050938'} />
+      <Toast />
     </NavigationContainer>
   );
 }

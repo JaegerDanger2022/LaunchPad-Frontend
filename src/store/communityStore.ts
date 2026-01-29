@@ -13,6 +13,7 @@ import {
   givePermissionSlip,
   getVictoryPermissions,
 } from '../config/api';
+import { useAuthStore } from './authStore';
 
 interface CommunityState {
   // ONLY store filter state and stats - NO victory card caching
@@ -73,7 +74,11 @@ export const useCommunityStore = create<CommunityState>((set) => ({
 
   boostVictory: async (victoryId: string) => {
     try {
-      await giveCourageBoost(victoryId);
+      const userId = useAuthStore.getState().user?.uid;
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+      await giveCourageBoost(victoryId, userId);
       set({ error: null });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to give boost';
