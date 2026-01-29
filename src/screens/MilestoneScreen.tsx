@@ -210,13 +210,6 @@ const MilestoneScreen = ({
     <View style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" />
 
-      {/* Unlock Message Toast */}
-      <UnlockMessageToast
-        visible={showUnlockToast}
-        message={unlockMessage}
-        onComplete={() => setShowUnlockToast(false)}
-      />
-
       {/* Modal sliding from bottom */}
       <Animated.View
         style={{
@@ -418,6 +411,13 @@ const MilestoneScreen = ({
           </Modal>
         )}
       </Animated.View>
+
+      {/* Unlock Message Toast - Rendered on top, outside flex layout */}
+      <UnlockMessageToast
+        visible={showUnlockToast}
+        message={unlockMessage}
+        onComplete={() => setShowUnlockToast(false)}
+      />
     </View>
   );
 };
