@@ -651,7 +651,7 @@ export async function getUserCommunityStats(
   userId: string,
 ): Promise<CommunityStats> {
   try {
-    const url = `${API_BASE_URL}/api/users/${userId}/community-stats`;
+    const url = `${API_BASE_URL}/users/${userId}/community-stats`;
     console.log("[getUserCommunityStats] Fetching stats from:", url);
 
     const response = await fetch(url, {
