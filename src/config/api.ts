@@ -4,6 +4,15 @@ export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000";
 
 import { StreakData } from "../types/index";
+import {
+  VictoryCard,
+  VictoriesResponse,
+  CreateVictoryRequest,
+  CreateVictoryResponse,
+  CourageBoostResponse,
+  CommunityStats,
+  DreamCategory,
+} from "../types/community";
 
 export interface UpNextMilestone {
   milestone_id: string;
@@ -506,5 +515,155 @@ export async function getStreak(userId: string): Promise<GetStreakResponse> {
       streak_broken: false,
       recalculated: false,
     };
+  }
+}
+
+// ============================================================================
+// COMMUNITY ENDPOINTS (Victory Wall)
+// ============================================================================
+
+export interface FetchVictoriesParams {
+  page?: number;
+  limit?: number;
+  categories?: DreamCategory[];
+  timeframe?: 'week' | 'month';
+}
+
+export async function fetchVictories(params: FetchVictoriesParams): Promise<VictoriesResponse> {
+  try {
+    const url = new URL(`${API_BASE_URL}/api/victories`);
+
+    if (params.page) url.searchParams.append('page', params.page.toString());
+    if (params.limit) url.searchParams.append('limit', params.limit.toString());
+    if (params.categories && params.categories.length > 0) {
+      url.searchParams.append('categories', params.categories.join(','));
+    }
+    if (params.timeframe) url.searchParams.append('timeframe', params.timeframe);
+
+    console.log('[fetchVictories] Fetching from:', url.toString());
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    console.log('[fetchVictories] Response status:', response.status);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log('[fetchVictories] Success, got', result.victories.length, 'victories');
+    return result as VictoriesResponse;
+  } catch (error: any) {
+    console.error('[fetchVictories] Error:', error.message);
+    throw error;
+  }
+}
+
+export async function createVictory(data: CreateVictoryRequest): Promise<CreateVictoryResponse> {
+  try {
+    const url = `${API_BASE_URL}/api/victories`;
+    console.log('[createVictory] Creating victory at:', url);
+    console.log('[createVictory] Payload:', data);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    console.log('[createVictory] Response status:', response.status);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log('[createVictory] Success:', result);
+    return result as CreateVictoryResponse;
+  } catch (error: any) {
+    console.error('[createVictory] Error:', error.message);
+    throw error;
+  }
+}
+
+export async function giveCourageBoost(victoryId: string): Promise<CourageBoostResponse> {
+  try {
+    const url = `${API_BASE_URL}/api/victories/${victoryId}/boost`;
+    console.log('[giveCourageBoost] Boosting victory at:', url);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+
+    console.log('[giveCourageBoost] Response status:', response.status);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log('[giveCourageBoost] Success:', result);
+    return result as CourageBoostResponse;
+  } catch (error: any) {
+    console.error('[giveCourageBoost] Error:', error.message);
+    throw error;
+  }
+}
+
+export async function getUserCommunityStats(userId: string): Promise<CommunityStats> {
+  try {
+    const url = `${API_BASE_URL}/api/users/${userId}/community-stats`;
+    console.log('[getUserCommunityStats] Fetching stats from:', url);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    console.log('[getUserCommunityStats] Response status:', response.status);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log('[getUserCommunityStats] Success:', result);
+    return result as CommunityStats;
+  } catch (error: any) {
+    console.error('[getUserCommunityStats] Error:', error.message);
+    throw error;
   }
 }

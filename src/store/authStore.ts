@@ -36,6 +36,7 @@ interface AuthState {
   addToRecents: (threadId: string) => void;
   updateUpNext: () => void;
   updateStreakData: (streakData: StreakData) => void;
+  updateCouragePoints: (amount: number) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -342,6 +343,18 @@ export const useAuthStore = create<AuthState>((set) => ({
       // Deep copy to avoid mutations
       const updatedUserData = JSON.parse(JSON.stringify(state.userData));
       updatedUserData.streak = streakData;
+
+      return { userData: updatedUserData };
+    });
+  },
+
+  updateCouragePoints: (amount: number) => {
+    set((state) => {
+      if (!state.userData) return state;
+
+      // Deep copy to avoid mutations
+      const updatedUserData = JSON.parse(JSON.stringify(state.userData));
+      updatedUserData.couragePoints = (updatedUserData.couragePoints || 0) + amount;
 
       return { userData: updatedUserData };
     });

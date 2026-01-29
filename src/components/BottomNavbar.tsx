@@ -6,12 +6,17 @@ import { useThemeStore } from "../store/themeStore";
 
 interface BottomNavbarProps {
   onNavigate?: (screen: string) => void;
-  activeTab?: "home" | "dreams" | "evidence";
+  activeTab?: "home" | "dreams" | "evidence" | "community";
 }
 
 export const BottomNavbar: React.FC<BottomNavbarProps> = ({ onNavigate, activeTab = "home" }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
+
+  // Adjust gap based on number of tabs (3 or 4)
+  const tabCount = 4;
+  const baseGap = 20;
+  const adjustedGap = Math.max(8, baseGap - (tabCount - 3) * 3);
 
   return (
     <View
@@ -31,7 +36,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({ onNavigate, activeTa
         borderWidth: 1,
         borderColor: themeColors.bg_primary,
         borderStyle: "solid",
-        gap: 20,
+        gap: adjustedGap,
         zIndex: 20,
       }}>
       {/* Active Home Tab */}
@@ -129,6 +134,44 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({ onNavigate, activeTa
               textAlign: "center",
             }}>
             Evidence
+          </Text>
+        )}
+      </TouchableOpacity>
+
+      {/* Community Icon */}
+      <TouchableOpacity
+        onPress={() => onNavigate?.("Community")}
+        style={{
+          backgroundColor: activeTab === "community" ? Color.colorOrangered : "transparent",
+          height: 43,
+          width: activeTab === "community" ? 117 : 43,
+          alignItems: "center",
+          justifyContent: "center",
+          borderTopRightRadius: 40,
+          borderTopLeftRadius: 40,
+          borderBottomRightRadius: activeTab === "community" ? 35 : 21,
+          borderBottomLeftRadius: activeTab === "community" ? 35 : 21,
+          borderWidth: 1,
+          borderColor: activeTab === "community" ? Color.colorWhite : "transparent",
+          borderStyle: "solid",
+          flexDirection: "row",
+          gap: 8,
+        }}>
+        <Text style={{
+          fontSize: 28,
+          color: activeTab === "community" ? Color.colorWhite : themeColors.text_secondary,
+        }}>
+          🏆
+        </Text>
+        {activeTab === "community" && (
+          <Text
+            style={{
+              color: Color.colorWhite,
+              fontFamily: "InstrumentSans-Regular",
+              fontSize: 20,
+              textAlign: "center",
+            }}>
+            Victory
           </Text>
         )}
       </TouchableOpacity>
