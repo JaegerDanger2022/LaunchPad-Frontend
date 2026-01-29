@@ -46,14 +46,16 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
 
     onPress();
 
-    // Show immediate success animation when button is clicked
-    setShowSuccessAnimation(true);
-
     // Call API if we have the necessary data
     if (user?.uid && milestoneId && threadId) {
       setIsLoading(true);
       const newCompletedSteps = completedSteps + 1;
       const status = newCompletedSteps === 3 ? "completed" : "in_progress";
+
+      // Only show success animation when completing the final step
+      if (newCompletedSteps === 3) {
+        setShowSuccessAnimation(true);
+      }
 
       // console.log("Making API call with:", {
       //   userId: user.uid,
