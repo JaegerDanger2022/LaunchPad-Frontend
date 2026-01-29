@@ -6,15 +6,15 @@ import { useThemeStore } from "../store/themeStore";
 
 interface BottomNavbarProps {
   onNavigate?: (screen: string) => void;
-  activeTab?: "home" | "dreams" | "evidence" | "community";
+  activeTab?: "home" | "dreams" | "evidence" | "community" | "settings";
 }
 
 export const BottomNavbar: React.FC<BottomNavbarProps> = ({ onNavigate, activeTab = "home" }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
 
-  // Adjust gap based on number of tabs (3 or 4)
-  const tabCount = 4;
+  // Adjust gap based on number of tabs (now 5 tabs)
+  const tabCount = 5;
   const baseGap = 20;
   const adjustedGap = Math.max(8, baseGap - (tabCount - 3) * 3);
 
@@ -172,6 +172,44 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({ onNavigate, activeTa
               textAlign: "center",
             }}>
             Victory
+          </Text>
+        )}
+      </TouchableOpacity>
+
+      {/* Settings Icon */}
+      <TouchableOpacity
+        onPress={() => onNavigate?.("Settings")}
+        style={{
+          backgroundColor: activeTab === "settings" ? Color.colorOrangered : "transparent",
+          height: 43,
+          width: activeTab === "settings" ? 117 : 43,
+          alignItems: "center",
+          justifyContent: "center",
+          borderTopRightRadius: 40,
+          borderTopLeftRadius: 40,
+          borderBottomRightRadius: activeTab === "settings" ? 35 : 21,
+          borderBottomLeftRadius: activeTab === "settings" ? 35 : 21,
+          borderWidth: 1,
+          borderColor: activeTab === "settings" ? Color.colorWhite : "transparent",
+          borderStyle: "solid",
+          flexDirection: "row",
+          gap: 8,
+        }}>
+        <Text style={{
+          fontSize: 28,
+          color: activeTab === "settings" ? Color.colorWhite : themeColors.text_secondary,
+        }}>
+          ⚙️
+        </Text>
+        {activeTab === "settings" && (
+          <Text
+            style={{
+              color: Color.colorWhite,
+              fontFamily: "InstrumentSans-Regular",
+              fontSize: 20,
+              textAlign: "center",
+            }}>
+            Settings
           </Text>
         )}
       </TouchableOpacity>

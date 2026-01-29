@@ -12,6 +12,7 @@ import AllDreamsScreen from './src/screens/AllDreamsScreen';
 import EvidenceBoardScreen from './src/screens/EvidenceBoardScreen';
 import { StreakStatsScreen } from './src/screens/StreakStatsScreen';
 import { CommunityScreen } from './src/screens/CommunityScreen';
+import { SettingsScreen } from './src/screens/SettingsScreen';
 import ShareVictoryScreen from './src/screens/ShareVictoryScreen';
 import LoginScreen from './src/screens/auth/LoginScreen';
 import SignupScreen from './src/screens/auth/SignupScreen';
@@ -42,6 +43,7 @@ export type TabParamList = {
   AllDreams: undefined;
   EvidenceBoard: undefined;
   Community: undefined;
+  Settings: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -147,6 +149,18 @@ const CommunityScreenBase = ({ navigation }: any) => (
 
 const CommunityScreenWrapper = withFadeAnimation(CommunityScreenBase);
 
+const SettingsScreenBase = ({ navigation }: any) => (
+  <SettingsScreen onNavigate={(screen) => {
+    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community') {
+      navigation.navigate(screen as keyof TabParamList);
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList);
+    }
+  }} />
+);
+
+const SettingsScreenWrapper = withFadeAnimation(SettingsScreenBase);
+
 const StreakStatsScreenWrapper = ({ navigation }: any) => (
   <StreakStatsScreen onNavigate={(screen) => {
     if (screen === 'Home') {
@@ -213,6 +227,13 @@ function TabNavigator() {
       <Tab.Screen
         name="Community"
         component={CommunityScreenWrapper}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreenWrapper}
         options={{
           headerShown: false,
         }}

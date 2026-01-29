@@ -254,7 +254,38 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
         visibilityTime: 2000,
       });
     } catch (err) {
-      // Error already shown by store
+      // Show specific error message based on error type
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+
+      if (errorMessage.includes('Cannot give permission to your own victory')) {
+        Toast.show({
+          type: 'info',
+          text1: 'Can\'t Give Permission to Your Victory',
+          text2: 'Share encouragement with others! 💙',
+          visibilityTime: 2500,
+        });
+      } else if (errorMessage.includes('already given a permission')) {
+        Toast.show({
+          type: 'info',
+          text1: 'Already Granted',
+          text2: 'You\'ve already given a permission to this victory',
+          visibilityTime: 2000,
+        });
+      } else if (errorMessage.includes('not authenticated')) {
+        Toast.show({
+          type: 'error',
+          text1: 'Not Authenticated',
+          text2: 'Please log in to give permissions',
+          visibilityTime: 2000,
+        });
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Failed to give permission',
+          text2: 'Please try again',
+          visibilityTime: 2000,
+        });
+      }
     }
   };
 

@@ -671,12 +671,17 @@ export async function giveCourageBoost(
 
 export async function givePermissionSlip(
   victoryId: string,
+  userId: string,
   data: import("../types/community").GivePermissionRequest,
 ): Promise<import("../types/community").GivePermissionResponse> {
   try {
-    const url = `${API_BASE_URL}/victories/${victoryId}/permission`;
-    console.log("[givePermissionSlip] Giving permission at:", url);
-    console.log("[givePermissionSlip] Payload:", data);
+    // Backend expects giver_user_id as a query parameter
+    const url = `${API_BASE_URL}/victories/${victoryId}/permission?giver_user_id=${encodeURIComponent(userId)}`;
+
+    if (__DEV__) {
+      console.log("[givePermissionSlip] Giving permission at:", url);
+      console.log("[givePermissionSlip] Payload:", data);
+    }
 
     const response = await fetch(url, {
       method: "POST",
@@ -684,24 +689,36 @@ export async function givePermissionSlip(
       body: JSON.stringify(data),
     });
 
-    console.log("[givePermissionSlip] Response status:", response.status);
+    if (__DEV__) {
+      console.log("[givePermissionSlip] Response status:", response.status);
+    }
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      let errorData = null;
       try {
-        const errorData = await response.json();
+        errorData = await response.json();
+        if (__DEV__) {
+          console.error("[givePermissionSlip] Error response data:", errorData);
+        }
         errorMessage = errorData.detail || errorData.message || errorMessage;
       } catch (parseError) {
-        // Silent fail
+        if (__DEV__) {
+          console.error("[givePermissionSlip] Could not parse error response");
+        }
       }
       throw new Error(errorMessage);
     }
 
     const result = await response.json();
-    console.log("[givePermissionSlip] Success:", result);
+    if (__DEV__) {
+      console.log("[givePermissionSlip] Success:", result);
+    }
     return result as import("../types/community").GivePermissionResponse;
   } catch (error: any) {
-    console.error("[givePermissionSlip] Error:", error.message);
+    if (__DEV__) {
+      console.error("[givePermissionSlip] Error:", error);
+    }
     throw error;
   }
 }

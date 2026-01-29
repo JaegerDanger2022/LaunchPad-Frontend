@@ -89,7 +89,11 @@ export const useCommunityStore = create<CommunityState>((set) => ({
 
   givePermission: async (victoryId: string, permissionType: PermissionType) => {
     try {
-      const response = await givePermissionSlip(victoryId, { permissionType });
+      const userId = useAuthStore.getState().user?.uid;
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+      const response = await givePermissionSlip(victoryId, userId, { permissionType });
       set({ error: null });
       return response.permissionText;
     } catch (error) {
