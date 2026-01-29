@@ -65,11 +65,11 @@ const withFadeAnimation = (Component: any) => {
 
 // Wrapper components that accept navigation as a prop
 const HomeScreenBase = ({ navigation }: any) => (
-  <HomeScreen onNavigate={(screen) => {
+  <HomeScreen onNavigate={(screen, params) => {
     if (screen === 'AllDreams' || screen === 'EvidenceBoard') {
       navigation.navigate(screen as keyof TabParamList);
     } else {
-      navigation.navigate(screen as keyof RootStackParamList);
+      navigation.navigate(screen as keyof RootStackParamList, params);
     }
   }} />
 );

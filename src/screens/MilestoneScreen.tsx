@@ -71,7 +71,8 @@ const MilestoneScreen = ({
   const [milestone, setMilestone] = React.useState<any>(null);
   const [threadId, setThreadId] = React.useState<string>("");
   const [isCompleted, setIsCompleted] = React.useState(false);
-  const [showDreamCompleteAnimation, setShowDreamCompleteAnimation] = React.useState(false);
+  const [showDreamCompleteAnimation, setShowDreamCompleteAnimation] =
+    React.useState(false);
 
   // Drag handle hover animation
   const startHandleHover = () => {
@@ -98,7 +99,7 @@ const MilestoneScreen = ({
   // Extract milestone data by milestone ID
   React.useEffect(() => {
     console.log("[MilestoneScreen] Looking for milestoneId:", milestoneId);
-    console.log("[MilestoneScreen] userData?.dreams:", userData?.dreams);
+    // console.log("[MilestoneScreen] userData?.dreams:", userData?.dreams);
 
     if (milestoneId && userData?.dreams) {
       // Search through all dreams and milestones to find the one with matching ID
