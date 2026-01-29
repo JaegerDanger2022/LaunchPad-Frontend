@@ -26,6 +26,9 @@ import { StreakBadge } from "../components/streak/StreakBadge";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { areDependenciesCompleted } from "../utils/dependencyChecker";
+import { fetchVictories } from "../config/api";
+import { VictoryCard as VictoryCardType } from "../types/community";
+import { formatDate } from "../utils/communityUtils";
 
 const HomeScreen = ({
   onNavigate,
@@ -36,6 +39,7 @@ const HomeScreen = ({
   const [isAtBottom, setIsAtBottom] = useState(false);
   const [isAtTop, setIsAtTop] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [recentVictories, setRecentVictories] = useState<VictoryCardType[]>([]);
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
@@ -69,6 +73,20 @@ const HomeScreen = ({
         // console.error('[HomeScreen] Failed to refresh user data on mount:', error);
       });
     }
+  }, []);
+
+  useEffect(() => {
+    // Load recent community victories
+    const loadRecentVictories = async () => {
+      try {
+        const response = await fetchVictories({ page: 1, limit: 3 });
+        setRecentVictories(response.victories.slice(0, 2)); // Show only 2
+      } catch (error) {
+        console.error("Failed to load recent victories:", error);
+        setRecentVictories([]);
+      }
+    };
+    loadRecentVictories();
   }, []);
 
   useEffect(() => {
@@ -468,131 +486,203 @@ const HomeScreen = ({
           </View>
 
           {/* Community Wins Section */}
-          <Animated.View
-            style={{
-              flexDirection: "column",
-              marginHorizontal: 17,
-              marginTop: 20,
-              marginBottom: 20,
-              zIndex: 10,
-              opacity: communityFadeAnim,
-              transform: [
-                {
-                  translateY: communityFadeAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [20, 0],
-                  }),
-                },
-              ],
-            }}>
-            {/* Title */}
-            <Text
+          {recentVictories.length > 0 && (
+            <Animated.View
               style={{
-                fontSize: 20,
-                textAlign: "left",
-                color: themeColors.text_primary,
-                fontFamily: "InstrumentSans-Bold",
-                fontWeight: "700",
-                marginBottom: 12,
-              }}>
-              Community Wins
-            </Text>
-
-            {/* Card Content */}
-            <LinearGradient
-              colors={[themeColors.bg_secondary, themeColors.bg_secondary]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{
-                borderRadius: 16,
-                paddingHorizontal: 18,
-                paddingVertical: 18,
                 flexDirection: "column",
-                gap: 14,
-                borderWidth: 1,
-                borderColor: themeColors.border,
-                overflow: "hidden",
+                marginHorizontal: 17,
+                marginTop: 20,
+                marginBottom: 20,
+                zIndex: 10,
+                opacity: communityFadeAnim,
+                transform: [
+                  {
+                    translateY: communityFadeAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [20, 0],
+                    }),
+                  },
+                ],
               }}>
-              {/* Avatar and User Info Row */}
+              {/* Title */}
               <View
                 style={{
                   flexDirection: "row",
+                  justifyContent: "space-between",
                   alignItems: "center",
-                  gap: 12,
+                  marginBottom: 12,
                 }}>
-                {/* Avatar Circle */}
-                <View
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 24,
-                    backgroundColor: "rgba(180, 197, 253, 0.4)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}>
-                  <AvatarIcon size={28} color={Color.colorLightsteelblue} />
-                </View>
-
-                {/* User Name */}
                 <Text
                   style={{
+                    fontSize: 20,
+                    textAlign: "left",
                     color: themeColors.text_primary,
                     fontFamily: "InstrumentSans-Bold",
                     fontWeight: "700",
-                    fontSize: 16,
                   }}>
-                  Jessica M.
+                  Community Wins
                 </Text>
-              </View>
-
-              {/* Achievement Text */}
-              <Text
-                style={{
-                  fontSize: 14,
-                  textAlign: "left",
-                  color: themeColors.text_primary,
-                  fontFamily: "InstrumentSans-Regular",
-                  fontWeight: "400",
-                  lineHeight: 20,
-                }}>
-                🎉 Just booked my solo trip to Tokyo!
-              </Text>
-
-              {/* Action Badge */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 8,
-                }}>
-                <View
-                  style={{
-                    backgroundColor: "rgba(0, 212, 170, 0.2)",
-                    paddingHorizontal: 10,
-                    paddingVertical: 6,
-                    borderRadius: 12,
-                  }}>
+                <TouchableOpacity onPress={() => onNavigate("Community")}>
                   <Text
                     style={{
-                      color: "#00D4AA",
-                      fontSize: 12,
-                      fontWeight: "600",
+                      fontSize: 14,
+                      color: Color.colorOrangered,
                       fontFamily: "InstrumentSans-Medium",
+                      fontWeight: "600",
                     }}>
-                    +85 XP
+                    See All
                   </Text>
-                </View>
-                <Text
-                  style={{
-                    color: "#A0A0A0",
-                    fontSize: 11,
-                    fontFamily: "InstrumentSans-Regular",
-                  }}>
-                  2 hours ago
-                </Text>
+                </TouchableOpacity>
               </View>
-            </LinearGradient>
-          </Animated.View>
+
+              {/* Victory Cards */}
+              {recentVictories.map((victory) => (
+                <LinearGradient
+                  key={victory.id}
+                  colors={[themeColors.bg_secondary, themeColors.bg_secondary]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    borderRadius: 16,
+                    paddingHorizontal: 18,
+                    paddingVertical: 18,
+                    flexDirection: "column",
+                    gap: 14,
+                    borderWidth: 1,
+                    borderColor: themeColors.border,
+                    overflow: "hidden",
+                    marginBottom: 12,
+                  }}>
+                  {/* Avatar and User Info Row */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 12,
+                    }}>
+                    {/* Avatar Circle */}
+                    <View
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 24,
+                        backgroundColor: "rgba(180, 197, 253, 0.4)",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}>
+                      <AvatarIcon size={28} color={Color.colorLightsteelblue} />
+                    </View>
+
+                    {/* User Name */}
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          color: themeColors.text_primary,
+                          fontFamily: "InstrumentSans-Bold",
+                          fontWeight: "700",
+                          fontSize: 16,
+                        }}>
+                        {victory.userDisplayName}
+                      </Text>
+                      <Text
+                        style={{
+                          color: "#A0A0A0",
+                          fontSize: 12,
+                          fontFamily: "InstrumentSans-Regular",
+                        }}>
+                        {victory.dreamTitle}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Milestone Title */}
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: "600",
+                      textAlign: "left",
+                      color: themeColors.text_primary,
+                      fontFamily: "InstrumentSans-SemiBold",
+                      lineHeight: 20,
+                    }}>
+                    {victory.milestoneTitle}
+                  </Text>
+
+                  {/* Evidence Snippet */}
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      textAlign: "left",
+                      color: themeColors.text_secondary,
+                      fontFamily: "InstrumentSans-Regular",
+                      fontWeight: "400",
+                      lineHeight: 20,
+                      fontStyle: "italic",
+                    }}>
+                    "{victory.evidenceSnippet}"
+                  </Text>
+
+                  {/* Stats Row */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 8,
+                      }}>
+                      <View
+                        style={{
+                          backgroundColor: "rgba(0, 212, 170, 0.2)",
+                          paddingHorizontal: 10,
+                          paddingVertical: 6,
+                          borderRadius: 12,
+                        }}>
+                        <Text
+                          style={{
+                            color: "#00D4AA",
+                            fontSize: 12,
+                            fontWeight: "600",
+                            fontFamily: "InstrumentSans-Medium",
+                          }}>
+                          +{victory.confidenceBoost}% confidence
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 4,
+                        }}>
+                        <Text style={{ fontSize: 14 }}>⚡</Text>
+                        <Text
+                          style={{
+                            color: "#F59E0B",
+                            fontSize: 12,
+                            fontWeight: "600",
+                            fontFamily: "InstrumentSans-Medium",
+                          }}>
+                          {victory.courageBoosts}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text
+                      style={{
+                        color: "#A0A0A0",
+                        fontSize: 11,
+                        fontFamily: "InstrumentSans-Regular",
+                      }}>
+                      {formatDate(victory.createdAt)}
+                    </Text>
+                  </View>
+                </LinearGradient>
+              ))}
+            </Animated.View>
+          )}
         </View>
       </Animated.ScrollView>
 
