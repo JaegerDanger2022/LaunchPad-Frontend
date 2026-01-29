@@ -14,10 +14,7 @@ import { updateMilestoneStatus, updateStreak } from "../../config/api";
 import { SuccessAnimationOverlay } from "../animations/SuccessAnimationOverlay";
 import { StreakToastNotification } from "../streak/StreakToastNotification";
 import { StreakAchievementModal } from "../streak/StreakAchievementModal";
-import { ShareVictoryModal } from "../community/ShareVictoryModal";
-import { VictoryCard, ImpactLevel } from "../../types/community";
-import { useCommunityStore } from "../../store/communityStore";
-import Toast from "react-native-toast-message";
+import { ImpactLevel } from "../../types/community";
 
 interface OneTimeGoalProps {
   isCompleted: boolean;
@@ -26,6 +23,7 @@ interface OneTimeGoalProps {
   threadId?: string;
   milestone?: any;
   onDreamComplete?: () => void;
+  onNavigate?: (screen: string, params?: any) => void;
 }
 
 export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
@@ -35,6 +33,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
   threadId,
   milestone,
   onDreamComplete,
+  onNavigate,
 }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
@@ -48,12 +47,20 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
 
   // Victory Wall share flow
   const [showShareButton, setShowShareButton] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
   const [shareButtonOpacity] = useState(new Animated.Value(0));
-  const { createVictoryCard } = useCommunityStore();
-  const { userData, updateCouragePoints } = useAuthStore();
+  const { userData } = useAuthStore();
+
+  // Debug: Log when share button state changes
+  React.useEffect(() => {
+    console.log("[OneTimeGoal] showShareButton changed to:", showShareButton);
+  }, [showShareButton]);
 
   const handlePress = async () => {
+    // Prevent multiple clicks
+    if (isLoading || showSuccessAnimation) {
+      return;
+    }
+
     // console.log("=== OneTimeGoal Button Pressed ===");
     // console.log("userId:", user?.uid);
     // console.log("milestoneId:", milestoneId);
@@ -62,6 +69,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
     onPress();
 
     // Show immediate success animation when button is clicked
+    console.log("[OneTimeGoal] Setting showSuccessAnimation to true");
     setShowSuccessAnimation(true);
 
     // Call API if we have the necessary data
@@ -223,9 +231,11 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
         <SuccessAnimationOverlay
           visible={showSuccessAnimation}
           onComplete={() => {
+            console.log("[OneTimeGoal] Success animation completed");
             setShowSuccessAnimation(false);
             // Show share button after animation completes
             setTimeout(() => {
+              console.log("[OneTimeGoal] Showing share button");
               setShowShareButton(true);
               Animated.timing(shareButtonOpacity, {
                 toValue: 1,
@@ -259,7 +269,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
       )}
 
       {/* Share Victory Button */}
-      {showShareButton && !showShareModal && (
+      {showShareButton && (
         <Animated.View
           style={{
             position: 'absolute',
@@ -285,7 +295,32 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
               shadowRadius: 6,
               elevation: 8,
             }}
-            onPress={() => setShowShareModal(true)}
+            onPress={() => {
+              if (onNavigate && milestone) {
+                onNavigate('ShareVictory', {
+                  victory: {
+                    id: '',
+                    userId: user?.uid || '',
+                    userDisplayName: userData?.firstname || 'User',
+                    userLocation: userData?.communityProfile?.location,
+                    userAge: userData?.communityProfile?.age,
+                    milestoneId: milestoneId || '',
+                    milestoneTitle: milestone.title || '',
+                    dreamId: threadId || '',
+                    dreamTitle: milestone.dreamTitle || '',
+                    dreamCategory: milestone.dreamCategory || 'achievement_goals',
+                    evidenceSnippet: milestone.evidence || '',
+                    confidenceBoost: milestone.xp_points || 10,
+                    impactLevel: (milestone.impact as ImpactLevel) || 'high',
+                    completedDate: new Date().toISOString(),
+                    createdAt: new Date().toISOString(),
+                    courageBoosts: 0,
+                    hasUserBoosted: false,
+                    isAnonymous: false,
+                  },
+                });
+              }
+            }}
           >
             <Text style={{ fontSize: 20 }}>🏆</Text>
             <Text
@@ -314,59 +349,6 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
             </Text>
           </TouchableOpacity>
         </Animated.View>
-      )}
-
-      {/* Share Victory Modal */}
-      {showShareModal && milestone && (
-        <ShareVictoryModal
-          visible={showShareModal}
-          victory={{
-            id: '',
-            userId: user?.uid || '',
-            userDisplayName: userData?.firstname || 'User',
-            userLocation: userData?.communityProfile?.location,
-            userAge: userData?.communityProfile?.age,
-            milestoneId: milestoneId || '',
-            milestoneTitle: milestone.title || '',
-            dreamId: threadId || '',
-            dreamTitle: milestone.dreamTitle || '',
-            dreamCategory: milestone.dreamCategory || 'achievement_goals',
-            evidenceSnippet: milestone.evidence || '',
-            confidenceBoost: milestone.xp_points || 10,
-            impactLevel: (milestone.impact as ImpactLevel) || 'high',
-            completedDate: new Date().toISOString(),
-            createdAt: new Date().toISOString(),
-            courageBoosts: 0,
-            hasUserBoosted: false,
-            isAnonymous: false,
-          }}
-          onClose={() => setShowShareModal(false)}
-          onShare={async (evidenceSnippet, isAnonymous, impact) => {
-            try {
-              await createVictoryCard(
-                milestoneId || '',
-                evidenceSnippet,
-                isAnonymous,
-                impact
-              );
-
-              // Award courage points locally
-              updateCouragePoints(5);
-
-              Toast.show({
-                type: 'success',
-                text1: 'Victory Shared! 🎉',
-                text2: '+5 courage points earned',
-                visibilityTime: 3000,
-              });
-
-              setShowShareModal(false);
-              setShowShareButton(false);
-            } catch (error) {
-              console.error('Failed to share victory:', error);
-            }
-          }}
-        />
       )}
     </View>
   );

@@ -412,6 +412,7 @@ const MilestoneScreen = ({
             threadId={threadId}
             milestone={milestone}
             onDreamComplete={() => setShowDreamCompleteAnimation(true)}
+            onNavigate={onNavigate}
           />
         )}
 

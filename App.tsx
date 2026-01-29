@@ -12,6 +12,7 @@ import AllDreamsScreen from './src/screens/AllDreamsScreen';
 import EvidenceBoardScreen from './src/screens/EvidenceBoardScreen';
 import { StreakStatsScreen } from './src/screens/StreakStatsScreen';
 import { CommunityScreen } from './src/screens/CommunityScreen';
+import ShareVictoryScreen from './src/screens/ShareVictoryScreen';
 import LoginScreen from './src/screens/auth/LoginScreen';
 import SignupScreen from './src/screens/auth/SignupScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
@@ -32,6 +33,7 @@ export type RootStackParamList = {
   Milestone: { milestoneId: string };
   Dream: undefined;
   StreakStats: undefined;
+  ShareVictory: { victory: any };
 };
 
 export type TabParamList = {
@@ -154,6 +156,19 @@ const StreakStatsScreenWrapper = ({ navigation }: any) => (
   }} />
 );
 
+const ShareVictoryScreenWrapper = ({ navigation, route }: any) => (
+  <ShareVictoryScreen
+    onNavigate={(screen) => {
+      if (screen === 'Home') {
+        navigation.goBack();
+      } else {
+        navigation.navigate(screen as keyof RootStackParamList);
+      }
+    }}
+    victory={route.params?.victory}
+  />
+);
+
 // Auth Navigator
 function AuthNavigator() {
   return (
@@ -250,6 +265,15 @@ function AppNavigator() {
         <Stack.Screen
           name="StreakStats"
           component={StreakStatsScreenWrapper}
+          options={{
+            presentation: 'transparentModal',
+            headerShown: false,
+            animation: 'slide_from_bottom',
+          }}
+        />
+        <Stack.Screen
+          name="ShareVictory"
+          component={ShareVictoryScreenWrapper}
           options={{
             presentation: 'transparentModal',
             headerShown: false,

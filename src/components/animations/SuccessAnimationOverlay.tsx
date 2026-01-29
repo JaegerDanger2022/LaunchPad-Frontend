@@ -13,9 +13,30 @@ export const SuccessAnimationOverlay: React.FC<
 > = ({ visible, onComplete, duration = 3000 }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const lottieRef = useRef<LottieView>(null);
+  const animationTriggeredRef = useRef(false);
+  const onCompleteRef = useRef(onComplete);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Update ref when onComplete changes
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     if (visible) {
+      console.log("[SuccessAnimationOverlay] Animation triggered, visible:", visible);
+      // Reset fade animation
+      fadeAnim.setValue(0);
+
+      // Only trigger if not already animating
+      if (animationTriggeredRef.current) {
+        console.log("[SuccessAnimationOverlay] Already animating, skipping");
+        return;
+      }
+
+      animationTriggeredRef.current = true;
+      console.log("[SuccessAnimationOverlay] Starting animation with duration:", duration);
+
       // Fade in overlay
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -27,20 +48,33 @@ export const SuccessAnimationOverlay: React.FC<
       lottieRef.current?.play();
 
       // Auto-dismiss after duration
-      const timer = setTimeout(() => {
+      timerRef.current = setTimeout(() => {
+        console.log("[SuccessAnimationOverlay] Starting fade out");
         // Fade out
         Animated.timing(fadeAnim, {
           toValue: 0,
           duration: 300,
           useNativeDriver: true,
         }).start(() => {
-          onComplete();
+          console.log("[SuccessAnimationOverlay] Fade out complete, calling onComplete");
+          animationTriggeredRef.current = false;
+          onCompleteRef.current();
         });
       }, duration);
-
-      return () => clearTimeout(timer);
+    } else {
+      // Reset when visible becomes false
+      animationTriggeredRef.current = false;
     }
-  }, [visible, duration, fadeAnim, onComplete]);
+
+    return () => {
+      // Only clear timeout if component unmounts, not on re-renders
+      if (timerRef.current && !visible) {
+        console.log("[SuccessAnimationOverlay] Cleaning up timer");
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [visible, duration, fadeAnim]);
 
   if (!visible) return null;
 
