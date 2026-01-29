@@ -91,7 +91,11 @@ export const useCommunityStore = create<CommunityState>((set) => ({
 
   toggleMeToo: async (victoryId: string) => {
     try {
-      const response = await toggleMeToo(victoryId);
+      const userId = useAuthStore.getState().user?.uid;
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+      const response = await toggleMeToo(victoryId, userId);
       set({ error: null });
       return { newCount: response.newMeTooCount, added: response.added };
     } catch (error) {

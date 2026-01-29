@@ -759,10 +759,13 @@ export async function getVictoryPermissions(
 
 export async function toggleMeToo(
   victoryId: string,
+  userId: string,
 ): Promise<import("../types/community").MeTooResponse> {
   try {
-    const url = `${API_BASE_URL}/victories/${victoryId}/metoo`;
-    console.log("[toggleMeToo] Toggling Me Too at:", url);
+    const url = `${API_BASE_URL}/victories/${victoryId}/metoo?user_id=${encodeURIComponent(userId)}`;
+    if (__DEV__) {
+      console.log("[toggleMeToo] Toggling Me Too at:", url);
+    }
 
     const response = await fetch(url, {
       method: "POST",
@@ -770,12 +773,17 @@ export async function toggleMeToo(
       body: JSON.stringify({}),
     });
 
-    console.log("[toggleMeToo] Response status:", response.status);
+    if (__DEV__) {
+      console.log("[toggleMeToo] Response status:", response.status);
+    }
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
       try {
         const errorData = await response.json();
+        if (__DEV__) {
+          console.error("[toggleMeToo] Error response:", errorData);
+        }
         errorMessage = errorData.detail || errorData.message || errorMessage;
       } catch (parseError) {
         // Silent fail
@@ -784,10 +792,14 @@ export async function toggleMeToo(
     }
 
     const result = await response.json();
-    console.log("[toggleMeToo] Success:", result);
+    if (__DEV__) {
+      console.log("[toggleMeToo] Success:", result);
+    }
     return result as import("../types/community").MeTooResponse;
   } catch (error: any) {
-    console.error("[toggleMeToo] Error:", error.message);
+    if (__DEV__) {
+      console.error("[toggleMeToo] Error:", error.message);
+    }
     throw error;
   }
 }
