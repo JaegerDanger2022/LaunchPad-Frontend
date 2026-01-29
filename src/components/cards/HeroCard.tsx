@@ -91,7 +91,9 @@ export const HeroCard: React.FC<HeroCardProps> = ({
         overflow: "hidden",
         zIndex: 10,
         opacity: heroOpacity,
-        transform: [{ scale: Animated.multiply(heroScale, isLocked ? 1 : pulseScale) }],
+        transform: [
+          { scale: Animated.multiply(heroScale, isLocked ? 1 : pulseScale) },
+        ],
         shadowColor: cardColor,
         shadowOffset: { width: 0, height: 8 },
         shadowRadius: 16,
@@ -137,7 +139,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
             backgroundColor: "transparent",
             borderRadius: 35,
             height: 42,
-            width: 159,
+            width: 100,
             justifyContent: "center",
             alignItems: "center",
           }}
@@ -279,7 +281,10 @@ export const HeroCard: React.FC<HeroCardProps> = ({
         </View>
 
         {/* Action Button */}
-        <TouchableOpacity onPress={onPress} activeOpacity={isLocked ? 1 : 0.8} disabled={isLocked}>
+        <TouchableOpacity
+          onPress={onPress}
+          activeOpacity={isLocked ? 1 : 0.8}
+          disabled={isLocked}>
           <View
             style={{
               flexDirection: "row",

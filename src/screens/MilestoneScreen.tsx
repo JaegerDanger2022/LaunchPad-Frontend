@@ -303,8 +303,8 @@ const MilestoneScreen = ({
                       autoPlay
                       loop={false}
                       style={{
-                        width: 50,
-                        height: 50,
+                        width: 80,
+                        height: 80,
                       }}
                     />
                   </View>

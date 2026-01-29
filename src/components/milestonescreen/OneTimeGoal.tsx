@@ -194,18 +194,6 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={{ width: "100%", paddingVertical: 10 }}>
-        <Text
-          style={{
-            color: themeColors.text_secondary,
-            textAlign: "center",
-            fontSize: 16,
-            fontWeight: "500",
-          }}>
-          Skip this goal
-        </Text>
-      </TouchableOpacity>
-
       {/* Home Indicator Spacer */}
       <View
         style={{
