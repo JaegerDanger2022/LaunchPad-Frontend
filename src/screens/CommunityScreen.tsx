@@ -50,6 +50,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
     filters,
     error: storeError,
     boostVictory,
+    toggleMeToo,
     givePermission,
     loadPermissions,
     setFilters,
@@ -220,6 +221,63 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
           visibilityTime: 2000,
         });
       }
+    }
+  };
+
+  // Me Too handler with optimistic update
+  const handleMeToo = async (victoryId: string) => {
+    const victory = victories.find(v => v.id === victoryId);
+    if (!victory) return;
+
+    const previousState = victory.hasUserMeTooed;
+    const previousCount = victory.meTooCount;
+
+    // Optimistic UI update
+    setVictories(prev =>
+      prev.map(v =>
+        v.id === victoryId
+          ? {
+              ...v,
+              meTooCount: previousState ? v.meTooCount - 1 : v.meTooCount + 1,
+              hasUserMeTooed: !previousState,
+            }
+          : v
+      )
+    );
+
+    try {
+      const result = await toggleMeToo(victoryId);
+
+      // Update with actual count from server
+      setVictories(prev =>
+        prev.map(v =>
+          v.id === victoryId
+            ? { ...v, meTooCount: result.newCount, hasUserMeTooed: result.added }
+            : v
+        )
+      );
+
+      Toast.show({
+        type: 'success',
+        text1: result.added ? 'Me Too! 👥' : 'Removed',
+        text2: result.added ? 'Victory saved to your inspirations' : 'Removed from inspirations',
+        visibilityTime: 2000,
+      });
+    } catch (err) {
+      // Rollback optimistic update on error
+      setVictories(prev =>
+        prev.map(v =>
+          v.id === victoryId
+            ? { ...v, meTooCount: previousCount, hasUserMeTooed: previousState }
+            : v
+        )
+      );
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to toggle Me Too',
+        text2: 'Please try again',
+        visibilityTime: 2000,
+      });
     }
   };
 
@@ -431,6 +489,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
           <VictoryCardComponent
             victory={item}
             onBoost={handleBoost}
+            onMeToo={handleMeToo}
             onPermission={handlePermissionClick}
             onViewPermissions={handleViewPermissions}
           />

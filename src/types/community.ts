@@ -27,6 +27,13 @@ export interface PermissionSlip {
   createdAt: string; // ISO date
 }
 
+export interface MeToo {
+  id: string;
+  victoryCardId: string;
+  userId: string;
+  createdAt: string; // ISO date
+}
+
 export interface VictoryCard {
   id: string;
   userId: string;
@@ -52,6 +59,9 @@ export interface VictoryCard {
 
   permissionsCount: number; // Count of permission slips
   permissions?: PermissionSlip[]; // Optional - loaded on demand
+
+  meTooCount: number; // Count of "Me Too" clicks
+  hasUserMeTooed?: boolean; // Client-side tracking - has current user clicked Me Too
 
   isAnonymous: boolean;
 }
@@ -122,4 +132,10 @@ export interface GivePermissionResponse {
 export interface GetPermissionsResponse {
   permissions: PermissionSlip[];
   count: number;
+}
+
+export interface MeTooResponse {
+  success: boolean;
+  newMeTooCount: number;
+  added: boolean; // true if added, false if removed (toggle)
 }

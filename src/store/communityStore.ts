@@ -12,6 +12,7 @@ import {
   getUserCommunityStats,
   givePermissionSlip,
   getVictoryPermissions,
+  toggleMeToo,
 } from '../config/api';
 import { useAuthStore } from './authStore';
 
@@ -30,6 +31,7 @@ interface CommunityState {
     impact?: ImpactLevel
   ) => Promise<string>;
   boostVictory: (victoryId: string) => Promise<void>;
+  toggleMeToo: (victoryId: string) => Promise<{ newCount: number; added: boolean }>;
   givePermission: (victoryId: string, permissionType: PermissionType) => Promise<string>;
   loadPermissions: (victoryId: string) => Promise<PermissionSlip[]>;
   setFilters: (filters: CommunityFilters) => void;
@@ -82,6 +84,18 @@ export const useCommunityStore = create<CommunityState>((set) => ({
       set({ error: null });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to give boost';
+      set({ error: errorMessage });
+      throw error;
+    }
+  },
+
+  toggleMeToo: async (victoryId: string) => {
+    try {
+      const response = await toggleMeToo(victoryId);
+      set({ error: null });
+      return { newCount: response.newMeTooCount, added: response.added };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to toggle Me Too';
       set({ error: errorMessage });
       throw error;
     }

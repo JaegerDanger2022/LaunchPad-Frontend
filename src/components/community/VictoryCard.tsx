@@ -9,11 +9,13 @@ import { VictoryCard as VictoryCardType } from '../../types/community';
 import { CATEGORY_COLORS, CATEGORY_COLORS_LIGHT } from '../../constants/communityColors';
 import { CategoryBadge } from './CategoryBadge';
 import { CourageBoostButton } from './CourageBoostButton';
+import { MeTooButton } from './MeTooButton';
 import { formatDate, getConfidenceText } from '../../utils/communityUtils';
 
 interface VictoryCardProps {
   victory: VictoryCardType;
   onBoost: (victoryId: string) => void;
+  onMeToo?: (victoryId: string) => void;
   onPermission?: (victoryId: string) => void;
   onViewPermissions?: (victoryId: string) => void;
   onPress?: () => void;
@@ -22,6 +24,7 @@ interface VictoryCardProps {
 export const VictoryCard: React.FC<VictoryCardProps> = ({
   victory,
   onBoost,
+  onMeToo,
   onPermission,
   onViewPermissions,
   onPress,
@@ -95,6 +98,16 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
           onPress={() => onBoost(victory.id)}
           size="medium"
         />
+
+        {/* Me Too Button */}
+        {onMeToo && (
+          <MeTooButton
+            meTooCount={victory.meTooCount}
+            hasUserMeTooed={victory.hasUserMeTooed}
+            onPress={() => onMeToo(victory.id)}
+            size="medium"
+          />
+        )}
 
         {/* Permission Button */}
         {onPermission && (
