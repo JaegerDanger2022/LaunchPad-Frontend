@@ -83,7 +83,7 @@ const withFadeAnimation = (Component: any) => {
 // Wrapper components that accept navigation as a prop
 const HomeScreenBase = ({ navigation }: any) => (
   <HomeScreen onNavigate={(screen, params) => {
-    if (screen === 'AllDreams' || screen === 'EvidenceBoard') {
+    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Settings') {
       navigation.navigate(screen as keyof TabParamList);
     } else {
       navigation.navigate(screen as keyof RootStackParamList, params);
@@ -108,7 +108,7 @@ const MilestoneScreenWrapper = ({ navigation, route }: any) => (
 
 const AllDreamsScreenBase = ({ navigation }: any) => (
   <AllDreamsScreen onNavigate={(screen) => {
-    if (screen === 'Home' || screen === 'EvidenceBoard') {
+    if (screen === 'Home' || screen === 'EvidenceBoard' || screen === 'AllDreams' || screen === 'Community' || screen === 'Settings') {
       navigation.navigate(screen as keyof TabParamList);
     } else {
       navigation.navigate(screen as keyof RootStackParamList);
@@ -136,7 +136,7 @@ const DreamPageWrapper = ({ navigation }: any) => (
 
 const EvidenceBoardScreenBase = ({ navigation }: any) => (
   <EvidenceBoardScreen onNavigate={(screen, params) => {
-    if (screen === 'Home' || screen === 'AllDreams') {
+    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Settings') {
       navigation.navigate(screen as keyof TabParamList);
     } else {
       navigation.navigate(screen as keyof RootStackParamList, params);
@@ -148,7 +148,7 @@ const EvidenceBoardScreenWrapper = withFadeAnimation(EvidenceBoardScreenBase);
 
 const CommunityScreenBase = ({ navigation }: any) => (
   <CommunityScreen onNavigate={(screen) => {
-    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard') {
+    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Settings') {
       navigation.navigate(screen as keyof TabParamList);
     } else {
       navigation.navigate(screen as keyof RootStackParamList);
@@ -160,7 +160,7 @@ const CommunityScreenWrapper = withFadeAnimation(CommunityScreenBase);
 
 const SettingsScreenBase = ({ navigation }: any) => (
   <SettingsScreen onNavigate={(screen) => {
-    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community') {
+    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Settings') {
       navigation.navigate(screen as keyof TabParamList);
     } else {
       navigation.navigate(screen as keyof RootStackParamList);
