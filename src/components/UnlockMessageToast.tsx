@@ -16,21 +16,21 @@ export const UnlockMessageToast: React.FC<UnlockMessageToastProps> = ({
   onComplete,
   duration = 4000,
 }) => {
-  const translateY = useRef(new Animated.Value(-100)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
-      // Slide down and fade in
+      // Fade in without pushing content
       Animated.parallel([
         Animated.timing(translateY, {
-          toValue: 60,
-          duration: 500,
+          toValue: 0,
+          duration: 300,
           useNativeDriver: true,
         }),
         Animated.timing(opacity, {
           toValue: 1,
-          duration: 500,
+          duration: 300,
           useNativeDriver: true,
         }),
       ]).start();
@@ -39,13 +39,13 @@ export const UnlockMessageToast: React.FC<UnlockMessageToastProps> = ({
       const timer = setTimeout(() => {
         Animated.parallel([
           Animated.timing(translateY, {
-            toValue: -100,
-            duration: 500,
+            toValue: 0,
+            duration: 300,
             useNativeDriver: true,
           }),
           Animated.timing(opacity, {
             toValue: 0,
-            duration: 500,
+            duration: 300,
             useNativeDriver: true,
           }),
         ]).start(() => {
@@ -66,6 +66,7 @@ export const UnlockMessageToast: React.FC<UnlockMessageToastProps> = ({
         { transform: [{ translateY }], opacity },
       ]}
       pointerEvents="none"
+      accessibilityElementsHidden={true}
     >
       <LinearGradient
         colors={['#A78BFA', '#D8B4FE']}
@@ -83,7 +84,7 @@ export const UnlockMessageToast: React.FC<UnlockMessageToastProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: 0,
+    top: 20,
     left: 20,
     right: 20,
     zIndex: 9999,
@@ -101,14 +102,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+    maxWidth: '100%',
   },
   emoji: {
     fontSize: 24,
+    marginRight: 4,
   },
   text: {
     color: Color.colorWhite,
     fontSize: 16,
     fontWeight: '700',
     flex: 1,
+    flexWrap: 'wrap',
   },
 });
