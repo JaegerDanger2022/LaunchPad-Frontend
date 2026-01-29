@@ -330,6 +330,12 @@ const HomeScreen = ({
                   isLocked={!dependenciesMet}
                   onPress={() => {
                     if (dependenciesMet) {
+                      console.log(
+                        "[HomeScreen] Navigating to Milestone:",
+                        userData.up_next!.milestone_id,
+                        "Raw Milestone:",
+                        rawMilestone,
+                      );
                       onNavigate("Milestone", {
                         milestoneId: userData.up_next!.milestone_id,
                       });
