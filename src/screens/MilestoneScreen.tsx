@@ -56,7 +56,7 @@ const MilestoneScreen = ({
   onNavigate,
   milestoneId,
 }: {
-  onNavigate: (screen: string) => void;
+  onNavigate: (screen: string, params?: any) => void;
   milestoneId?: string;
 }) => {
   const completedSteps = useAppStore((state) => state.completedSteps);
@@ -110,11 +110,14 @@ const MilestoneScreen = ({
           );
           if (foundMilestone) {
             // Add dream metadata to milestone for victory card creation
-            setMilestone({
+            const enhancedMilestone = {
               ...foundMilestone,
               dreamTitle: dream.dream || '',
               dreamCategory: dream.category || 'achievement_goals',
-            });
+            };
+            console.log('[MilestoneScreen] Enhanced milestone:', enhancedMilestone);
+            console.log('[MilestoneScreen] Milestone title:', enhancedMilestone.title);
+            setMilestone(enhancedMilestone);
             setThreadId(dream?.thread_id || "");
 
             // Show unlock message toast if available (after 2 second delay)

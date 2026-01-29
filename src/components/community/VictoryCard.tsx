@@ -56,7 +56,7 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
       <View style={styles.cardContent}>
         {/* Milestone Title */}
         <Text style={styles.milestoneTitle}>
-          {victory.milestoneTitle.toUpperCase()}
+          {(victory.milestoneTitle || 'MILESTONE').toUpperCase()}
         </Text>
 
         {/* Dream and Category Info */}

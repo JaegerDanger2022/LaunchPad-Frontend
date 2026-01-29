@@ -297,6 +297,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
             }}
             onPress={() => {
               if (onNavigate && milestone) {
+                console.log('[OneTimeGoal] Navigating to ShareVictory with milestone:', milestone);
                 onNavigate('ShareVictory', {
                   victory: {
                     id: '',
@@ -305,13 +306,13 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
                     userLocation: userData?.communityProfile?.location,
                     userAge: userData?.communityProfile?.age,
                     milestoneId: milestoneId || '',
-                    milestoneTitle: milestone.title || '',
+                    milestoneTitle: milestone?.title || milestone?.name || '',
                     dreamId: threadId || '',
-                    dreamTitle: milestone.dreamTitle || '',
-                    dreamCategory: milestone.dreamCategory || 'achievement_goals',
-                    evidenceSnippet: milestone.evidence || '',
-                    confidenceBoost: milestone.xp_points || 10,
-                    impactLevel: (milestone.impact as ImpactLevel) || 'high',
+                    dreamTitle: milestone?.dreamTitle || '',
+                    dreamCategory: milestone?.dreamCategory || 'achievement_goals',
+                    evidenceSnippet: milestone?.evidence || '',
+                    confidenceBoost: milestone?.xp_points || 10,
+                    impactLevel: (milestone?.impact as ImpactLevel) || 'high',
                     completedDate: new Date().toISOString(),
                     createdAt: new Date().toISOString(),
                     courageBoosts: 0,

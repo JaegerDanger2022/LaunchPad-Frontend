@@ -36,6 +36,8 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
   victory,
 }) => {
   console.log("[ShareVictoryScreen] Received victory:", victory);
+  console.log("[ShareVictoryScreen] Victory milestoneTitle:", victory?.milestoneTitle);
+  console.log("[ShareVictoryScreen] Victory dreamTitle:", victory?.dreamTitle);
 
   const [evidenceSnippet, setEvidenceSnippet] = useState(
     victory?.evidenceSnippet || "",
@@ -46,7 +48,7 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { createVictoryCard } = useCommunityStore();
-  const { updateCouragePoints } = useAuthStore();
+  const { updateCouragePoints, userData } = useAuthStore();
 
   const handleShare = async () => {
     if (!victory) {
@@ -105,9 +107,9 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
   const previewVictory: VictoryCardType = {
     id: victory?.id || '',
     userId: victory?.userId || '',
-    userDisplayName: isAnonymous ? "Anonymous" : (victory?.userDisplayName || 'User'),
-    userLocation: isAnonymous ? undefined : victory?.userLocation,
-    userAge: isAnonymous ? undefined : victory?.userAge,
+    userDisplayName: isAnonymous ? "Anonymous" : (userData?.firstname || victory?.userDisplayName || 'User'),
+    userLocation: isAnonymous ? undefined : (userData?.location || victory?.userLocation),
+    userAge: isAnonymous ? undefined : (userData?.age || victory?.userAge),
     milestoneId: victory?.milestoneId || '',
     milestoneTitle: victory?.milestoneTitle || '',
     dreamId: victory?.dreamId || '',

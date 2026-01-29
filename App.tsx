@@ -83,11 +83,11 @@ const HomeScreenWrapper = withFadeAnimation(HomeScreenBase);
 
 const MilestoneScreenWrapper = ({ navigation, route }: any) => (
   <MilestoneScreen
-    onNavigate={(screen) => {
+    onNavigate={(screen, params?) => {
       if (screen === 'Home') {
         navigation.goBack();
       } else {
-        navigation.navigate(screen as keyof RootStackParamList);
+        navigation.navigate(screen as keyof RootStackParamList, params);
       }
     }}
     milestoneId={route.params?.milestoneId}
