@@ -54,19 +54,25 @@ const Tab = createBottomTabNavigator<TabParamList>();
 // HOC to add fade-in animation to tab screens
 const withFadeAnimation = (Component: any) => {
   return (props: any) => {
-    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const { theme } = useThemeStore();
 
     useFocusEffect(() => {
-      fadeAnim.setValue(0);
+      fadeAnim.setValue(0.95);
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 300,
+        duration: 200,
         useNativeDriver: true,
       }).start();
     });
 
     return (
-      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+      <Animated.View
+        style={{
+          flex: 1,
+          opacity: fadeAnim,
+          backgroundColor: theme === 'dark' ? '#121212' : '#FAFBFC'
+        }}>
         <Component {...props} />
       </Animated.View>
     );
