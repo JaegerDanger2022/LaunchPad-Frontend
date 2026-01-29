@@ -15,6 +15,7 @@ import {
   Color,
   getThemeColors,
   EvidenceBoardColors,
+  ChallengeTypeColors,
 } from "../constants/GlobalStyles";
 import { useThemeStore } from "../store/themeStore";
 import { useAuthStore } from "../store/authStore";
@@ -32,7 +33,7 @@ import {
 const EvidenceBoardScreen = ({
   onNavigate,
 }: {
-  onNavigate: (screen: string) => void;
+  onNavigate: (screen: string, params?: any) => void;
 }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
@@ -132,7 +133,7 @@ const EvidenceBoardScreen = ({
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
       <LinearGradient
-        colors={["#FDF2F8", "#F3E8FF", "#CCFBF1"]}
+        colors={[themeColors.bg_primary, themeColors.bg_primary]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ flex: 1 }}>
@@ -508,62 +509,97 @@ const EvidenceBoardScreen = ({
                             </View>
 
                             {/* Next Mission CTA */}
-                            {!dream.isComplete && (
-                              <LinearGradient
-                                colors={["#14B8A6", "#06B6D4"]}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                                style={{
-                                  borderRadius: 24,
-                                  padding: 24,
-                                  marginTop: 24,
-                                }}>
-                                <View
+                            {!dream.isComplete && (() => {
+                              // Find the corresponding dream data to get milestones
+                              const dreamData = userData?.dreams?.find(
+                                (d: any) => d.thread_id === dream.id
+                              );
+
+                              // Find first incomplete milestone
+                              const nextMilestone = dreamData?.roadmap?.milestones?.find(
+                                (m: any) => m.status !== "completed"
+                              );
+
+                              // Get challenge type color for gradient
+                              const challengeTypeColor =
+                                nextMilestone?.challenge_type &&
+                                ChallengeTypeColors[
+                                  nextMilestone.challenge_type as keyof typeof ChallengeTypeColors
+                                ]
+                                  ? ChallengeTypeColors[
+                                      nextMilestone.challenge_type as keyof typeof ChallengeTypeColors
+                                    ]
+                                  : "#14B8A6";
+
+                              const handleNextMission = () => {
+                                if (nextMilestone?.id) {
+                                  onNavigate("Milestone", {
+                                    milestoneId: nextMilestone.id,
+                                  });
+                                }
+                              };
+
+                              return (
+                                <LinearGradient
+                                  colors={[challengeTypeColor, challengeTypeColor]}
+                                  start={{ x: 0, y: 0 }}
+                                  end={{ x: 1, y: 0 }}
                                   style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    justifyContent: "space-between",
-                                    gap: 16,
+                                    borderRadius: 24,
+                                    padding: 24,
+                                    marginTop: 24,
                                   }}>
-                                  <View style={{ flex: 1 }}>
-                                    <Text
-                                      style={{
-                                        fontSize: 16,
-                                        fontWeight: "bold",
-                                        color: EvidenceBoardColors.white,
-                                        marginBottom: 4,
-                                      }}>
-                                      Ready for your next proof point?
-                                    </Text>
-                                    <Text
-                                      style={{
-                                        fontSize: 13,
-                                        color: "rgba(255, 255, 255, 0.9)",
-                                      }}>
-                                      Keep building your evidence. You're closer
-                                      than you think.
-                                    </Text>
-                                  </View>
-                                  <TouchableOpacity
+                                  <View
                                     style={{
-                                      backgroundColor:
-                                        EvidenceBoardColors.white,
-                                      paddingHorizontal: 16,
-                                      paddingVertical: 12,
-                                      borderRadius: 12,
+                                      flexDirection: "row",
+                                      alignItems: "center",
+                                      justifyContent: "space-between",
+                                      gap: 16,
                                     }}>
-                                    <Text
+                                    <View style={{ flex: 1 }}>
+                                      <Text
+                                        style={{
+                                          fontSize: 16,
+                                          fontWeight: "bold",
+                                          color: EvidenceBoardColors.white,
+                                          marginBottom: 4,
+                                        }}>
+                                        Ready for your next proof point?
+                                      </Text>
+                                      <Text
+                                        style={{
+                                          fontSize: 13,
+                                          color: "rgba(255, 255, 255, 0.9)",
+                                        }}>
+                                        Keep building your evidence. You're closer
+                                        than you think.
+                                      </Text>
+                                    </View>
+                                    <TouchableOpacity
+                                      onPress={handleNextMission}
+                                      disabled={!nextMilestone}
+                                      activeOpacity={0.8}
                                       style={{
-                                        fontSize: 14,
-                                        fontWeight: "600",
-                                        color: EvidenceBoardColors.teal,
+                                        backgroundColor:
+                                          EvidenceBoardColors.white,
+                                        paddingHorizontal: 16,
+                                        paddingVertical: 12,
+                                        borderRadius: 12,
+                                        opacity: nextMilestone ? 1 : 0.5,
                                       }}>
-                                      Next Mission →
-                                    </Text>
-                                  </TouchableOpacity>
-                                </View>
-                              </LinearGradient>
-                            )}
+                                      <Text
+                                        style={{
+                                          fontSize: 14,
+                                          fontWeight: "600",
+                                          color: challengeTypeColor,
+                                        }}>
+                                        Next Mission →
+                                      </Text>
+                                    </TouchableOpacity>
+                                  </View>
+                                </LinearGradient>
+                              );
+                            })()}
 
                             {/* Motivational Footer */}
                             <LinearGradient

@@ -292,45 +292,22 @@ export const HeroCard: React.FC<HeroCardProps> = ({
               height: 50,
               borderRadius: 10,
               overflow: "hidden",
+              backgroundColor: Color.colorWhite,
+              alignSelf: "center",
+              paddingHorizontal: 24,
+              gap: 8,
             }}>
-            <LinearGradient
+            <Text
               style={{
-                position: "absolute",
-                width: "100%",
-                height: "100%",
-              }}
-              locations={[0.38, 1]}
-              colors={[Color.colorOrangered, "rgba(247, 153, 113, 0.86)"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            />
-            <View
-              style={{
-                flex: 0.7,
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 1,
+                fontSize: 16,
+                color: cardColor,
+                fontFamily: "InstrumentSans-Bold",
+                fontWeight: "700",
+                textAlign: "center",
               }}>
-              <Text
-                style={{
-                  fontSize: 16,
-                  color: Color.colorWhite,
-                  fontFamily: "InstrumentSans-Bold",
-                  fontWeight: "700",
-                  textAlign: "center",
-                }}>
-                LET'S GOOO!
-              </Text>
-            </View>
-            <View
-              style={{
-                flex: 0.3,
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 1,
-              }}>
-              <ArrowRightIcon size={20} color="#fff" />
-            </View>
+              LET'S GOOO!
+            </Text>
+            <ArrowRightIcon size={20} color={cardColor} />
           </View>
         </TouchableOpacity>
       </LinearGradient>

@@ -15,6 +15,7 @@ import LoginScreen from './src/screens/auth/LoginScreen';
 import SignupScreen from './src/screens/auth/SignupScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
 import { useAuthStore } from './src/store/authStore';
+import { useThemeStore } from './src/store/themeStore';
 import { Color } from './src/constants/GlobalStyles';
 
 export type RootStackParamList = {
@@ -118,11 +119,11 @@ const DreamPageWrapper = ({ navigation }: any) => (
 );
 
 const EvidenceBoardScreenBase = ({ navigation }: any) => (
-  <EvidenceBoardScreen onNavigate={(screen) => {
+  <EvidenceBoardScreen onNavigate={(screen, params) => {
     if (screen === 'Home' || screen === 'AllDreams') {
       navigation.navigate(screen as keyof TabParamList);
     } else {
-      navigation.navigate(screen as keyof RootStackParamList);
+      navigation.navigate(screen as keyof RootStackParamList, params);
     }
   }} />
 );
@@ -241,6 +242,7 @@ function AppNavigator() {
 
 export default function App() {
   const { isAuthenticated, loading, initializeAuth } = useAuthStore();
+  const { theme } = useThemeStore();
 
   useEffect(() => {
     initializeAuth();
@@ -257,7 +259,7 @@ export default function App() {
   return (
     <NavigationContainer>
       {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
-      <StatusBar style="dark" />
+      <StatusBar style={theme === 'light' ? 'dark' : 'light'} backgroundColor={theme === 'light' ? Color.colorSnow : '#050938'} />
     </NavigationContainer>
   );
 }

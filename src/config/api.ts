@@ -465,14 +465,14 @@ export interface GetStreakResponse {
 export async function getStreak(userId: string): Promise<GetStreakResponse> {
   try {
     const url = `${API_BASE_URL}/users/${userId}/streak`;
-    console.log("[getStreak] Fetching streak for user:", userId);
+    // console.log("[getStreak] Fetching streak for user:", userId);
 
     const response = await fetch(url, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
 
-    console.log("[getStreak] Response status:", response.status);
+    // console.log("[getStreak] Response status:", response.status);
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -482,7 +482,7 @@ export async function getStreak(userId: string): Promise<GetStreakResponse> {
       } catch (parseError) {
         // Silent fail
       }
-      console.error("[getStreak] Error response:", errorMessage);
+      // console.error("[getStreak] Error response:", errorMessage);
       // Don't throw - allow app to continue even if streak fetch fails
       return {
         success: false,
@@ -494,10 +494,10 @@ export async function getStreak(userId: string): Promise<GetStreakResponse> {
     }
 
     const result = await response.json();
-    console.log("[getStreak] Success response:", result);
+    // console.log("[getStreak] Success response:", result);
     return result as GetStreakResponse;
   } catch (error: any) {
-    console.error("[getStreak] Exception:", error.message);
+    // console.error("[getStreak] Exception:", error.message);
     // Don't throw - allow app to continue
     return {
       success: false,
