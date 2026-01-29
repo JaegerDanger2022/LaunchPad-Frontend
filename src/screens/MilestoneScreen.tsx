@@ -26,6 +26,7 @@ import { RepeatableGoal } from "../components/milestonescreen/RepeatableGoal";
 import { OneTimeGoal } from "../components/milestonescreen/OneTimeGoal";
 import { SuccessAnimationOverlay } from "../components/animations/SuccessAnimationOverlay";
 import { FireworksAnimationOverlay } from "../components/animations/FireworksAnimationOverlay";
+import { UnlockMessageToast } from "../components/UnlockMessageToast";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -73,6 +74,8 @@ const MilestoneScreen = ({
   const [isCompleted, setIsCompleted] = React.useState(false);
   const [showDreamCompleteAnimation, setShowDreamCompleteAnimation] =
     React.useState(false);
+  const [showUnlockToast, setShowUnlockToast] = React.useState(false);
+  const [unlockMessage, setUnlockMessage] = React.useState<string>("");
 
   // Drag handle hover animation
   const startHandleHover = () => {
@@ -108,6 +111,21 @@ const MilestoneScreen = ({
           if (foundMilestone) {
             setMilestone(foundMilestone);
             setThreadId(dream?.thread_id || "");
+
+            // Show unlock message toast if available
+            if (foundMilestone.unlock_message) {
+              const messages = Array.isArray(foundMilestone.unlock_message)
+                ? foundMilestone.unlock_message
+                : [foundMilestone.unlock_message];
+
+              if (messages.length > 0) {
+                // Pick a random message
+                const randomMessage =
+                  messages[Math.floor(Math.random() * messages.length)];
+                setUnlockMessage(randomMessage);
+                setShowUnlockToast(true);
+              }
+            }
             break;
           }
         }
@@ -186,6 +204,13 @@ const MilestoneScreen = ({
   return (
     <View style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" />
+
+      {/* Unlock Message Toast */}
+      <UnlockMessageToast
+        visible={showUnlockToast}
+        message={unlockMessage}
+        onComplete={() => setShowUnlockToast(false)}
+      />
 
       {/* Modal sliding from bottom */}
       <Animated.View
