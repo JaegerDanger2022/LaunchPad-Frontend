@@ -323,6 +323,10 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
             }}
             onPress={() => {
               if (onNavigate && milestone) {
+                // Dismiss any active toasts before navigating
+                const Toast = require('react-native-toast-message').default;
+                Toast.hide();
+
                 // If dream is completed, navigate to ShareJourneyRecap instead
                 if (isDreamCompleted && dreamStats) {
                   console.log('[OneTimeGoal] Dream completed - Navigating to ShareJourneyRecap');

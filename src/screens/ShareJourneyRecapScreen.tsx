@@ -130,7 +130,11 @@ const ShareJourneyRecapScreen: React.FC<ShareJourneyRecapScreenProps> = ({
           <Text style={styles.celebrationTitle}>Dream Complete!</Text>
           <Text style={styles.celebrationText}>
             You completed "{journeyRecap.dreamTitle}" with {journeyRecap.totalMilestones} milestones
-            in {journeyRecap.durationDays} days. Share your journey to inspire others!
+            {journeyRecap.durationDays === 0
+              ? ' today'
+              : journeyRecap.durationDays === 1
+                ? ' in 1 day'
+                : ` in ${journeyRecap.durationDays} days`}. Share your journey to inspire others!
           </Text>
         </View>
 

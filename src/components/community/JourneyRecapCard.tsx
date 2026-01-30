@@ -70,8 +70,12 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{journeyRecap.durationDays}</Text>
-            <Text style={styles.statLabel}>Days</Text>
+            <Text style={styles.statValue}>
+              {journeyRecap.durationDays === 0 ? '<1' : journeyRecap.durationDays}
+            </Text>
+            <Text style={styles.statLabel}>
+              {journeyRecap.durationDays === 1 ? 'Day' : 'Days'}
+            </Text>
           </View>
         </View>
 
