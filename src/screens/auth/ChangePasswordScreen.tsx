@@ -15,6 +15,7 @@ import { useThemeStore } from '../../store/themeStore';
 import { useAuthStore } from '../../store/authStore';
 import { getThemeColors, Color } from '../../constants/GlobalStyles';
 import Toast from 'react-native-toast-message';
+import { ChevronLeft } from 'lucide-react-native';
 
 interface ChangePasswordScreenProps {
   onNavigate?: (screen: string) => void;
@@ -139,14 +140,28 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({ onNa
         >
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity
-              onPress={() => onNavigate?.('Settings')}
-              style={styles.backButton}
-            >
-              <Text style={[styles.backText, { color: Color.colorOrangered }]}>
-                ← Back
-              </Text>
-            </TouchableOpacity>
+            {/* Back Button - Semi-transparent Background */}
+            <View
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 12,
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}>
+              <TouchableOpacity
+                onPress={() => onNavigate?.('Settings')}
+                style={{
+                  width: 48,
+                  height: 48,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <ChevronLeft size={24} color={themeColors.text_primary} strokeWidth={2.5} />
+              </TouchableOpacity>
+            </View>
             <Text style={[styles.title, { color: themeColors.text_primary }]}>
               Change Password
             </Text>
@@ -268,14 +283,6 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 32,
-  },
-  backButton: {
-    marginBottom: 16,
-  },
-  backText: {
-    fontSize: 16,
-    fontFamily: 'InstrumentSans-Medium',
-    fontWeight: '600',
   },
   title: {
     fontSize: 32,
