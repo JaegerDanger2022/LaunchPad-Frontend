@@ -55,9 +55,23 @@ const ShareJourneyRecapScreen: React.FC<ShareJourneyRecapScreenProps> = ({
       return;
     }
 
+    if (journeyStory.trim().length < 10) {
+      Toast.show({
+        type: 'error',
+        text1: 'Story Too Short',
+        text2: 'Please write at least 10 characters',
+      });
+      return;
+    }
+
     try {
       setIsSaving(true);
       console.log('[ShareJourneyRecapScreen] Creating journey recap with dreamId:', journeyRecap.dreamId);
+      console.log('[ShareJourneyRecapScreen] journeyStory value:', journeyStory);
+      console.log('[ShareJourneyRecapScreen] journeyStory.trim():', journeyStory.trim());
+      console.log('[ShareJourneyRecapScreen] keyMoment value:', keyMoment);
+      console.log('[ShareJourneyRecapScreen] isAnonymous:', isAnonymous);
+
       await createJourneyRecapCard(
         journeyRecap.dreamId,
         journeyStory.trim(),
@@ -77,12 +91,21 @@ const ShareJourneyRecapScreen: React.FC<ShareJourneyRecapScreenProps> = ({
 
       setIsSaving(false);
       onNavigate('Home');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to share journey:', error);
+
+      // Extract meaningful error message
+      let errorMessage = 'Please try again';
+      if (error?.message && typeof error.message === 'string' && error.message !== '[object Object]') {
+        errorMessage = error.message;
+      } else if (error?.detail) {
+        errorMessage = error.detail;
+      }
+
       Toast.show({
         type: 'error',
         text1: 'Failed to Share',
-        text2: 'Please try again',
+        text2: errorMessage,
       });
       setIsSaving(false);
     }
@@ -150,10 +173,12 @@ const ShareJourneyRecapScreen: React.FC<ShareJourneyRecapScreenProps> = ({
         <View style={styles.section}>
           <View style={styles.labelRow}>
             <Text style={styles.label}>Your Journey Story *</Text>
-            <Text style={styles.charCounter}>{journeyStory.length}/500</Text>
+            <Text style={[styles.charCounter, journeyStory.length < 10 && styles.charCounterWarning]}>
+              {journeyStory.length}/500 (min 10)
+            </Text>
           </View>
           <Text style={styles.helperText}>
-            Reflect on your journey. What did you learn? How did it change you?
+            Reflect on your journey. What did you learn? How did it changed you?
           </Text>
           <TextInput
             style={styles.textArea}
@@ -307,6 +332,9 @@ const styles = StyleSheet.create({
   charCounter: {
     fontSize: 11,
     color: '#9CA3AF',
+  },
+  charCounterWarning: {
+    color: '#EF4444',
   },
   helperText: {
     fontSize: 12,

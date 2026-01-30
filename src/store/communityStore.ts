@@ -88,19 +88,28 @@ export const useCommunityStore = create<CommunityState>((set) => ({
     isAnonymous: boolean
   ) => {
     try {
+      console.log('[communityStore] createJourneyRecapCard called with:', {
+        dreamId,
+        journeyStory,
+        journeyStoryLength: journeyStory.length,
+        keyMoment,
+        isAnonymous
+      });
+
       const userId = useAuthStore.getState().user?.uid;
       if (!userId) {
         throw new Error('User not authenticated');
       }
-      const response = await createJourneyRecap(
-        {
-          dreamId,
-          journeyStory,
-          keyMoment: keyMoment || undefined,
-          isAnonymous,
-        },
-        userId
-      );
+
+      const requestData = {
+        dreamId,
+        journeyStory,
+        keyMoment: keyMoment || undefined,
+        isAnonymous,
+      };
+      console.log('[communityStore] Request data being sent:', requestData);
+
+      const response = await createJourneyRecap(requestData, userId);
 
       set({ error: null });
       return response.journeyRecapId;

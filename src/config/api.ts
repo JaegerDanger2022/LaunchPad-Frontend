@@ -914,10 +914,24 @@ export async function createJourneyRecap(
     console.log("[createJourneyRecap] Creating journey recap at:", url);
     console.log("[createJourneyRecap] Payload:", data);
 
+    // Clean up undefined values - convert to null or remove them
+    const cleanedData: any = {
+      dreamId: data.dreamId,
+      journeyStory: data.journeyStory,
+      isAnonymous: data.isAnonymous,
+    };
+
+    // Only include keyMoment if it has a value
+    if (data.keyMoment && data.keyMoment.trim()) {
+      cleanedData.keyMoment = data.keyMoment;
+    }
+
+    console.log("[createJourneyRecap] Cleaned payload:", cleanedData);
+
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(cleanedData),
     });
 
     console.log("[createJourneyRecap] Response status:", response.status);
