@@ -198,6 +198,12 @@ const ChangePasswordScreenWrapper = ({ navigation }: any) => (
     onNavigate={(screen) => {
       if (screen === 'Settings') {
         navigation.goBack();
+        // After closing the modal, navigate to the Settings tab
+        setTimeout(() => {
+          navigation.navigate('HomeTabs', {
+            screen: 'Settings',
+          });
+        }, 100);
       } else {
         navigation.navigate(screen as keyof RootStackParamList);
       }
