@@ -23,6 +23,7 @@ import Toast from 'react-native-toast-message';
 import { BottomNavbar } from '../components/BottomNavbar';
 import { PermissionSlipModal } from '../components/community/PermissionSlipModal';
 import { PermissionSlipList } from '../components/community/PermissionSlipList';
+import { VictoryCardSkeleton } from '../components/community/VictoryCardSkeleton';
 
 const CATEGORY_OPTIONS: Array<{ label: string; value: DreamCategory | 'all' }> =
   [
@@ -516,20 +517,36 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
       </View>
 
       {/* Feed */}
-      {victories.length === 0 && !loading ? (
+      {(loading || refreshing) && victories.length === 0 ? (
+        // Show skeleton loaders on initial load or refresh with no data
+        <>
+          <VictoryCardSkeleton />
+          <VictoryCardSkeleton />
+          <VictoryCardSkeleton />
+        </>
+      ) : victories.length === 0 && !loading && !refreshing ? (
         renderEmpty()
       ) : (
         <>
-          {victories.map((item) => (
-            <VictoryCardComponent
-              key={item.id}
-              victory={item}
-              onBoost={handleBoost}
-              onMeToo={item.userId !== user?.uid ? handleMeToo : undefined}
-              onPermission={item.userId !== user?.uid ? handlePermissionClick : undefined}
-              onViewPermissions={handleViewPermissions}
-            />
-          ))}
+          {refreshing && victories.length > 0 ? (
+            // Show skeleton loaders while refreshing with existing data
+            <>
+              <VictoryCardSkeleton />
+              <VictoryCardSkeleton />
+              <VictoryCardSkeleton />
+            </>
+          ) : (
+            victories.map((item) => (
+              <VictoryCardComponent
+                key={item.id}
+                victory={item}
+                onBoost={handleBoost}
+                onMeToo={item.userId !== user?.uid ? handleMeToo : undefined}
+                onPermission={item.userId !== user?.uid ? handlePermissionClick : undefined}
+                onViewPermissions={handleViewPermissions}
+              />
+            ))
+          )}
           {renderFooter()}
         </>
       )}
