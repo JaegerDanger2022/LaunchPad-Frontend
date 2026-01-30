@@ -56,10 +56,17 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
     }
   };
 
-  // Parallax effect for background image
+  // Parallax effect for background image with elastic stretch on pull down
   const imageTranslate = scrollY.interpolate({
-    inputRange: [0, parallaxHeight],
-    outputRange: [0, -parallaxHeight / 2],
+    inputRange: [-parallaxHeight, 0, parallaxHeight],
+    outputRange: [-parallaxHeight / 2, 0, -parallaxHeight / 2],
+    extrapolate: 'clamp',
+  });
+
+  // Stretch/scale effect when pulling down
+  const imageScale = scrollY.interpolate({
+    inputRange: [-parallaxHeight, 0, parallaxHeight],
+    outputRange: [2, 1, 1],
     extrapolate: 'clamp',
   });
 
@@ -84,6 +91,91 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
 
   return (
     <View style={{ flex: 1 }}>
+      {/* Parallax Header Background - Fixed position */}
+      <View style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: parallaxHeight,
+        overflow: 'hidden',
+        zIndex: 0,
+      }}>
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: parallaxHeight * 1.5,
+            transform: [
+              { translateY: imageTranslate },
+              { scale: imageScale },
+            ],
+          }}>
+          {backgroundImage ? (
+            <>
+              <Image
+                source={backgroundImage}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  resizeMode: 'cover',
+                }}
+              />
+              <LinearGradient
+                colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)']}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                }}
+              />
+            </>
+          ) : (
+            <View style={{ flex: 1, backgroundColor }} />
+          )}
+        </Animated.View>
+
+        {/* Title and Subtitle in Header */}
+        <Animated.View
+          style={{
+            position: 'absolute',
+            bottom: 30,
+            left: 20,
+            right: 20,
+            opacity: imageOpacity,
+            transform: [{ scale: titleScale }],
+          }}>
+          <Text
+            style={[
+              {
+                fontSize: 32,
+                fontWeight: 'bold',
+                color: '#FFFFFF',
+                marginBottom: 8,
+              },
+              titleStyle,
+            ]}>
+            {title}
+          </Text>
+          {subtitle && (
+            <Text
+              style={[
+                {
+                  fontSize: 14,
+                  color: 'rgba(255, 255, 255, 0.9)',
+                },
+                subtitleStyle,
+              ]}>
+              {subtitle}
+            </Text>
+          )}
+        </Animated.View>
+      </View>
+
       {/* Sticky Header (appears on scroll) */}
       <Animated.View
         style={{
@@ -122,82 +214,8 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
             listener: handleScroll,
           }
         )}
-        contentContainerStyle={contentContainerStyle}>
-        {/* Parallax Header */}
-        <View style={{ height: parallaxHeight, overflow: 'hidden' }}>
-          <Animated.View
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: parallaxHeight * 1.5,
-              transform: [{ translateY: imageTranslate }],
-            }}>
-            {backgroundImage ? (
-              <>
-                <Image
-                  source={backgroundImage}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    resizeMode: 'cover',
-                  }}
-                />
-                <LinearGradient
-                  colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)']}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                  }}
-                />
-              </>
-            ) : (
-              <View style={{ flex: 1, backgroundColor }} />
-            )}
-          </Animated.View>
-
-          {/* Title and Subtitle in Header */}
-          <Animated.View
-            style={{
-              position: 'absolute',
-              bottom: 30,
-              left: 20,
-              right: 20,
-              opacity: imageOpacity,
-              transform: [{ scale: titleScale }],
-            }}>
-            <Text
-              style={[
-                {
-                  fontSize: 32,
-                  fontWeight: 'bold',
-                  color: '#FFFFFF',
-                  marginBottom: 8,
-                },
-                titleStyle,
-              ]}>
-              {title}
-            </Text>
-            {subtitle && (
-              <Text
-                style={[
-                  {
-                    fontSize: 14,
-                    color: 'rgba(255, 255, 255, 0.9)',
-                  },
-                  subtitleStyle,
-                ]}>
-                {subtitle}
-              </Text>
-            )}
-          </Animated.View>
-        </View>
-
-        {/* Content */}
+        contentContainerStyle={[{ paddingTop: parallaxHeight }, contentContainerStyle]}>
+        {/* Content starts after the header */}
         {children}
       </Animated.ScrollView>
     </View>
