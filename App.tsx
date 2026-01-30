@@ -14,6 +14,7 @@ import { StreakStatsScreen } from './src/screens/StreakStatsScreen';
 import { CommunityScreen } from './src/screens/CommunityScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import ShareVictoryScreen from './src/screens/ShareVictoryScreen';
+import ShareJourneyRecapScreen from './src/screens/ShareJourneyRecapScreen';
 import LoginScreen from './src/screens/auth/LoginScreen';
 import SignupScreen from './src/screens/auth/SignupScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
@@ -38,6 +39,7 @@ export type RootStackParamList = {
   Dream: undefined;
   StreakStats: undefined;
   ShareVictory: { victory: any };
+  ShareJourneyRecap: { journeyRecap: any };
   ChangePassword: undefined;
 };
 
@@ -193,6 +195,19 @@ const ShareVictoryScreenWrapper = ({ navigation, route }: any) => (
   />
 );
 
+const ShareJourneyRecapScreenWrapper = ({ navigation, route }: any) => (
+  <ShareJourneyRecapScreen
+    onNavigate={(screen) => {
+      if (screen === 'Home') {
+        navigation.goBack();
+      } else {
+        navigation.navigate(screen as keyof RootStackParamList);
+      }
+    }}
+    journeyRecap={route.params?.journeyRecap}
+  />
+);
+
 const ChangePasswordScreenWrapper = ({ navigation }: any) => (
   <ChangePasswordScreen
     onNavigate={(screen) => {
@@ -323,6 +338,15 @@ function AppNavigator() {
         <Stack.Screen
           name="ShareVictory"
           component={ShareVictoryScreenWrapper}
+          options={{
+            presentation: 'transparentModal',
+            headerShown: false,
+            animation: 'slide_from_bottom',
+          }}
+        />
+        <Stack.Screen
+          name="ShareJourneyRecap"
+          component={ShareJourneyRecapScreenWrapper}
           options={{
             presentation: 'transparentModal',
             headerShown: false,

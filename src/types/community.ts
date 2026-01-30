@@ -139,3 +139,47 @@ export interface MeTooResponse {
   newMeTooCount: number;
   added: boolean; // true if added, false if removed (toggle)
 }
+
+export interface JourneyRecap {
+  id: string;
+  userId: string;
+  userDisplayName: string; // "Sarah" or "Anonymous"
+  userLocation?: string;
+  userAge?: number;
+
+  dreamId: string;
+  dreamTitle: string;
+  dreamCategory: DreamCategory;
+
+  journeyStory: string; // User's reflection on completing the dream
+  totalMilestones: number;
+  durationDays: number; // Days from first milestone to completion
+  keyMoment?: string; // Optional: Most memorable moment
+
+  completedDate: string; // ISO date - when dream was completed
+  createdAt: string; // ISO date - when posted to wall
+
+  courageBoosts: number;
+  hasUserBoosted?: boolean; // Client-side tracking
+
+  permissionsCount: number;
+  permissions?: PermissionSlip[];
+
+  meTooCount: number;
+  hasUserMeTooed?: boolean;
+
+  isAnonymous: boolean;
+}
+
+export interface CreateJourneyRecapRequest {
+  dreamId: string;
+  journeyStory: string;
+  keyMoment?: string;
+  isAnonymous: boolean;
+}
+
+export interface CreateJourneyRecapResponse {
+  success: boolean;
+  journeyRecapId: string;
+  couragePointsAwarded: number;
+}

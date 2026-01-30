@@ -50,6 +50,10 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
   const [shareButtonOpacity] = useState(new Animated.Value(0));
   const { userData } = useAuthStore();
 
+  // Journey Recap flow (when dream is completed)
+  const [isDreamCompleted, setIsDreamCompleted] = useState(false);
+  const [dreamStats, setDreamStats] = useState<any>(null);
+
   // Debug: Log when share button state changes
   React.useEffect(() => {
     console.log("[OneTimeGoal] showShareButton changed to:", showShareButton);
@@ -98,8 +102,16 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
           // 1. Update milestone status immediately (no flash, instant UI update)
           updateMilestoneStatusLocal(threadId, milestoneId, "completed");
 
-          // 2. Show dream complete animation if dream is complete
-          if (response.isComplete) {
+          // 2. Check if dream is complete (new Journey Recap flow)
+          if (response.dreamCompleted) {
+            console.log("Dream complete! dreamCompleted:", response.dreamCompleted);
+            console.log("Dream stats:", response.dreamStats);
+            setIsDreamCompleted(true);
+            setDreamStats(response.dreamStats);
+            onDreamComplete?.();
+          }
+          // Fallback to old isComplete flag if dreamCompleted not present
+          else if (response.isComplete) {
             console.log("Dream complete! isComplete:", response.isComplete);
             onDreamComplete?.();
           }
@@ -297,33 +309,66 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
             }}
             onPress={() => {
               if (onNavigate && milestone) {
-                console.log('[OneTimeGoal] Navigating to ShareVictory with milestone:', milestone);
-                onNavigate('ShareVictory', {
-                  victory: {
-                    id: '',
-                    userId: user?.uid || '',
-                    userDisplayName: userData?.firstname || 'User',
-                    userLocation: userData?.communityProfile?.location,
-                    userAge: userData?.communityProfile?.age,
-                    milestoneId: milestoneId || '',
-                    milestoneTitle: milestone?.title || milestone?.name || '',
-                    dreamId: threadId || '',
-                    dreamTitle: milestone?.dreamTitle || '',
-                    dreamCategory: milestone?.dreamCategory || 'achievement_goals',
-                    evidenceSnippet: milestone?.evidence || '',
-                    confidenceBoost: milestone?.xp_points || 10,
-                    impactLevel: (milestone?.impact as ImpactLevel) || 'high',
-                    completedDate: new Date().toISOString(),
-                    createdAt: new Date().toISOString(),
-                    courageBoosts: 0,
-                    hasUserBoosted: false,
-                    isAnonymous: false,
-                  },
-                });
+                // If dream is completed, navigate to ShareJourneyRecap instead
+                if (isDreamCompleted && dreamStats) {
+                  console.log('[OneTimeGoal] Dream completed - Navigating to ShareJourneyRecap');
+                  onNavigate('ShareJourneyRecap', {
+                    journeyRecap: {
+                      id: '',
+                      userId: user?.uid || '',
+                      userDisplayName: userData?.firstname || 'User',
+                      userLocation: userData?.communityProfile?.location,
+                      userAge: userData?.communityProfile?.age,
+                      dreamId: threadId || '',
+                      dreamTitle: milestone?.dreamTitle || '',
+                      dreamCategory: milestone?.dreamCategory || 'achievement_goals',
+                      journeyStory: '',
+                      totalMilestones: dreamStats.totalMilestones || 0,
+                      durationDays: dreamStats.durationDays || 0,
+                      keyMoment: '',
+                      completedDate: dreamStats.dreamCompletedDate || new Date().toISOString(),
+                      createdAt: new Date().toISOString(),
+                      courageBoosts: 0,
+                      hasUserBoosted: false,
+                      permissionsCount: 0,
+                      meTooCount: 0,
+                      hasUserMeTooed: false,
+                      isAnonymous: false,
+                    },
+                  });
+                } else {
+                  // Regular milestone - navigate to ShareVictory
+                  console.log('[OneTimeGoal] Navigating to ShareVictory with milestone:', milestone);
+                  onNavigate('ShareVictory', {
+                    victory: {
+                      id: '',
+                      userId: user?.uid || '',
+                      userDisplayName: userData?.firstname || 'User',
+                      userLocation: userData?.communityProfile?.location,
+                      userAge: userData?.communityProfile?.age,
+                      milestoneId: milestoneId || '',
+                      milestoneTitle: milestone?.title || milestone?.name || '',
+                      dreamId: threadId || '',
+                      dreamTitle: milestone?.dreamTitle || '',
+                      dreamCategory: milestone?.dreamCategory || 'achievement_goals',
+                      evidenceSnippet: milestone?.evidence || '',
+                      confidenceBoost: milestone?.xp_points || 10,
+                      impactLevel: (milestone?.impact as ImpactLevel) || 'high',
+                      completedDate: new Date().toISOString(),
+                      createdAt: new Date().toISOString(),
+                      courageBoosts: 0,
+                      hasUserBoosted: false,
+                      permissionsCount: 0,
+                      meTooCount: 0,
+                      hasUserMeTooed: false,
+                      isAnonymous: false,
+                    },
+                  });
+                }
               }
             }}
           >
-            <Text style={{ fontSize: 20 }}>🏆</Text>
+            <Text style={{ fontSize: 20 }}>{isDreamCompleted ? '⭐' : '🏆'}</Text>
             <Text
               style={{
                 color: '#FFFFFF',
@@ -331,7 +376,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
                 fontWeight: '600',
               }}
             >
-              Share your victory?
+              {isDreamCompleted ? 'Share your journey?' : 'Share your victory?'}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity

@@ -228,6 +228,15 @@ export interface UpdateMilestoneResponse {
   message: string;
   milestone: any;
   isComplete?: boolean;
+  dreamCompleted?: boolean; // NEW: true if this milestone completion finished the dream
+  dreamStats?: {
+    // NEW: optional, useful for Journey Recap
+    totalMilestones: number;
+    completedMilestones: number;
+    completionPercentage: number;
+    dreamStartDate: string;
+    dreamCompletedDate?: string; // Only present if dreamCompleted = true
+  };
 }
 
 export async function updateRecents(
@@ -893,5 +902,42 @@ export async function fetchInspirationVictories(
       victories: [],
       pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
     };
+  }
+}
+
+export async function createJourneyRecap(
+  data: import("../types/community").CreateJourneyRecapRequest,
+  userId: string,
+): Promise<import("../types/community").CreateJourneyRecapResponse> {
+  try {
+    const url = `${API_BASE_URL}/journey-recaps?user_id=${encodeURIComponent(userId)}`;
+    console.log("[createJourneyRecap] Creating journey recap at:", url);
+    console.log("[createJourneyRecap] Payload:", data);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    console.log("[createJourneyRecap] Response status:", response.status);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log("[createJourneyRecap] Success:", result);
+    return result as import("../types/community").CreateJourneyRecapResponse;
+  } catch (error: any) {
+    console.error("[createJourneyRecap] Error:", error.message);
+    throw error;
   }
 }

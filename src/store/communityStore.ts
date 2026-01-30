@@ -8,6 +8,7 @@ import {
 } from '../types/community';
 import {
   createVictory,
+  createJourneyRecap,
   giveCourageBoost,
   getUserCommunityStats,
   givePermissionSlip,
@@ -29,6 +30,12 @@ interface CommunityState {
     evidenceSnippet: string,
     isAnonymous: boolean,
     impact?: ImpactLevel
+  ) => Promise<string>;
+  createJourneyRecapCard: (
+    dreamId: string,
+    journeyStory: string,
+    keyMoment: string,
+    isAnonymous: boolean
   ) => Promise<string>;
   boostVictory: (victoryId: string) => Promise<void>;
   toggleMeToo: (victoryId: string) => Promise<{ newCount: number; added: boolean }>;
@@ -69,6 +76,36 @@ export const useCommunityStore = create<CommunityState>((set) => ({
       return response.victoryId;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create victory';
+      set({ error: errorMessage });
+      throw error;
+    }
+  },
+
+  createJourneyRecapCard: async (
+    dreamId: string,
+    journeyStory: string,
+    keyMoment: string,
+    isAnonymous: boolean
+  ) => {
+    try {
+      const userId = useAuthStore.getState().user?.uid;
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+      const response = await createJourneyRecap(
+        {
+          dreamId,
+          journeyStory,
+          keyMoment: keyMoment || undefined,
+          isAnonymous,
+        },
+        userId
+      );
+
+      set({ error: null });
+      return response.journeyRecapId;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create journey recap';
       set({ error: errorMessage });
       throw error;
     }
