@@ -1,15 +1,60 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, ScrollView, StyleSheet, Animated, PanResponder, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Color, getThemeColors } from '../constants/GlobalStyles';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
 
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const DRAG_THRESHOLD = 100; // Distance to drag before closing
+
 export const StreakStatsScreen = ({ onNavigate }: { onNavigate?: (screen: string) => void }) => {
   const { userData } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
+
+  const translateY = useRef(new Animated.Value(0)).current;
+  const lastGestureDy = useRef(0);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only respond to downward drags
+        return gestureState.dy > 5;
+      },
+      onPanResponderGrant: () => {
+        lastGestureDy.current = 0;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          lastGestureDy.current = gestureState.dy;
+          translateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > DRAG_THRESHOLD || gestureState.vy > 0.5) {
+          // Close the modal
+          Animated.timing(translateY, {
+            toValue: SCREEN_HEIGHT,
+            duration: 250,
+            useNativeDriver: true,
+          }).start(() => {
+            onNavigate?.('Home');
+          });
+        } else {
+          // Snap back to original position
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            tension: 50,
+            friction: 8,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
   const streakData = userData?.streak;
 
@@ -30,18 +75,29 @@ export const StreakStatsScreen = ({ onNavigate }: { onNavigate?: (screen: string
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
-      <ScrollView style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => onNavigate?.('Home')}>
-            <Text style={[styles.backButton, { color: themeColors.text_secondary }]}>← Back</Text>
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: themeColors.text_primary }]}>
-            Your Streak Stats
-          </Text>
-        </View>
+    <View style={[styles.modalContainer, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
+      <Animated.View
+        style={[
+          styles.animatedContent,
+          {
+            transform: [{ translateY }],
+          }
+        ]}
+      >
+        <SafeAreaView style={[styles.contentContainer, { backgroundColor: themeColors.bg_primary }]}>
+          {/* Drag Handle */}
+          <View {...panResponder.panHandlers} style={styles.dragHandleContainer}>
+            <View style={styles.dragHandle} />
+          </View>
 
+          {/* Header - Also draggable */}
+          <View {...panResponder.panHandlers} style={styles.header}>
+            <Text style={[styles.headerTitle, { color: themeColors.text_primary }]}>
+              Your Streak Stats
+            </Text>
+          </View>
+
+          <ScrollView style={styles.container}>
         {/* Current Streak Card */}
         <LinearGradient
           colors={['#FF6B35', '#FF9068']}
@@ -118,23 +174,45 @@ export const StreakStatsScreen = ({ onNavigate }: { onNavigate?: (screen: string
             {getMotivationalMessage(streakData.current_streak)}
           </Text>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+        </SafeAreaView>
+      </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+  },
+  animatedContent: {
+    flex: 1,
+    marginTop: 50,
+  },
+  contentContainer: {
+    flex: 1,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  dragHandleContainer: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  dragHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#CCCCCC',
+    borderRadius: 2,
+  },
   container: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 20,
   },
   header: {
-    marginBottom: 24,
-  },
-  backButton: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
+    paddingHorizontal: 20,
+    paddingBottom: 12,
   },
   headerTitle: {
     fontSize: 28,
