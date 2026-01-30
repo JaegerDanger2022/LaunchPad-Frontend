@@ -109,15 +109,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
             setIsDreamCompleted(true);
             setDreamStats(response.dreamStats);
 
-            // Show dream completion toast
-            const Toast = require('react-native-toast-message').default;
-            Toast.show({
-              type: 'success',
-              text1: '🎉 Dream Complete!',
-              text2: 'Share your journey with the community',
-              visibilityTime: 4000,
-            });
-
+            // Trigger dream complete animation in MilestoneScreen
             onDreamComplete?.();
           }
           // Fallback to old isComplete flag if dreamCompleted not present
@@ -255,6 +247,18 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
           onComplete={() => {
             console.log("[OneTimeGoal] Success animation completed");
             setShowSuccessAnimation(false);
+
+            // Show journey complete toast if dream is complete
+            if (isDreamCompleted) {
+              const Toast = require('react-native-toast-message').default;
+              Toast.show({
+                type: 'success',
+                text1: '🎉 Dream Complete!',
+                text2: 'Share your journey with the community',
+                visibilityTime: 4000,
+              });
+            }
+
             // Show share button after animation completes
             setTimeout(() => {
               console.log("[OneTimeGoal] Showing share button");
