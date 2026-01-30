@@ -176,7 +176,7 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
         </Animated.View>
       </View>
 
-      {/* Sticky Header (appears on scroll) */}
+      {/* Sticky Header (appears on scroll) - with opaque background */}
       <Animated.View
         style={{
           position: 'absolute',
@@ -184,13 +184,23 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
           left: 0,
           right: 0,
           height: headerHeight,
-          backgroundColor,
-          opacity: headerOpacity,
           zIndex: 100,
           justifyContent: 'center',
           paddingHorizontal: 20,
           paddingTop: 40,
+          opacity: headerOpacity,
         }}>
+        {/* Solid background that covers the parallax image */}
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor,
+          }}
+        />
         <Text
           style={[
             {
@@ -214,7 +224,7 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
             listener: handleScroll,
           }
         )}
-        contentContainerStyle={[{ paddingTop: parallaxHeight }, contentContainerStyle]}>
+        contentContainerStyle={[{ paddingTop: parallaxHeight + 20 }, contentContainerStyle]}>
         {/* Content starts after the header */}
         {children}
       </Animated.ScrollView>

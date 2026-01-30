@@ -160,7 +160,6 @@ const EvidenceBoardScreen = ({
         headerHeight={90}
         contentContainerStyle={{
           paddingHorizontal: 12,
-          paddingTop: 20,
           paddingBottom: 120,
         }}
         showsVerticalScrollIndicator={false}>
