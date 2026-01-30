@@ -1,8 +1,9 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Alert } from "react-native";
+import React, { useState, useRef } from "react";
+import { View, Text, TouchableOpacity, Alert, Animated } from "react-native";
 import { Color, getThemeColors } from "../../constants/GlobalStyles";
 import { useThemeStore } from "../../store/themeStore";
 import { useAuthStore } from "../../store/authStore";
+import { useAppStore } from "../../store/appStore";
 import { updateMilestoneStatus, updateStreak } from "../../config/api";
 import { FireworksAnimationOverlay } from "../animations/FireworksAnimationOverlay";
 import { SuccessAnimationOverlay } from "../animations/SuccessAnimationOverlay";
@@ -17,6 +18,7 @@ interface RepeatableGoalProps {
   milestoneStatus?: string;
   milestone?: any;
   onDreamComplete?: () => void;
+  onNavigate?: (screen: string, params?: any) => void;
 }
 
 export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
@@ -27,16 +29,20 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
   milestoneStatus,
   milestone,
   onDreamComplete,
+  onNavigate,
 }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
-  const { user } = useAuthStore();
+  const { user, userData } = useAuthStore();
+  const { dismissShareButton, isShareButtonDismissed } = useAppStore();
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [showStreakToast, setShowStreakToast] = useState(false);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [showAchievementModal, setShowAchievementModal] = useState(false);
   const [achievementType, setAchievementType] = useState<'3_day' | '7_day' | '30_day' | null>(null);
+  const [showShareButton, setShowShareButton] = useState(false);
+  const shareButtonOpacity = useRef(new Animated.Value(0)).current;
 
   const handlePress = async () => {
     // console.log("=== RepeatableGoal Button Pressed ===");
@@ -147,6 +153,7 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
     <View
       style={{
         flex: 1,
+        position: 'relative',
         paddingHorizontal: 24,
         paddingTop: 30,
         alignItems: "center",
@@ -240,7 +247,20 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
       {showSuccessAnimation && (
         <SuccessAnimationOverlay
           visible={showSuccessAnimation}
-          onComplete={() => setShowSuccessAnimation(false)}
+          onComplete={() => {
+            setShowSuccessAnimation(false);
+            // Show share button after animation completes (only if not previously dismissed)
+            if (milestoneId && !isShareButtonDismissed(milestoneId)) {
+              setTimeout(() => {
+                setShowShareButton(true);
+                Animated.timing(shareButtonOpacity, {
+                  toValue: 1,
+                  duration: 300,
+                  useNativeDriver: true,
+                }).start();
+              }, 500);
+            }
+          }}
           duration={2000}
         />
       )}
@@ -263,6 +283,104 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
           streakCount={currentStreak}
           onClose={() => setShowAchievementModal(false)}
         />
+      )}
+
+      {/* Share Victory Button - Floating at bottom */}
+      {showShareButton && (
+        <Animated.View
+          style={{
+            position: 'absolute',
+            bottom: 20,
+            left: 24,
+            right: 24,
+            opacity: shareButtonOpacity,
+            alignItems: 'center',
+            gap: 12,
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#FF6B35',
+              paddingVertical: 16,
+              paddingHorizontal: 24,
+              borderRadius: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 6,
+              elevation: 8,
+            }}
+            onPress={() => {
+              if (onNavigate && milestone && milestoneId) {
+                // Hide the share button immediately when user clicks it
+                setShowShareButton(false);
+                // Mark as dismissed so it won't show again
+                dismissShareButton(milestoneId);
+                onNavigate('ShareVictory', {
+                  victory: {
+                    id: '',
+                    userId: user?.uid || '',
+                    userDisplayName: userData?.firstname || 'User',
+                    userLocation: userData?.communityProfile?.location,
+                    userAge: userData?.communityProfile?.age,
+                    milestoneId: milestoneId || '',
+                    milestoneTitle: milestone?.title || milestone?.name || '',
+                    dreamId: threadId || '',
+                    dreamTitle: milestone?.dreamTitle || '',
+                    dreamCategory: milestone?.dreamCategory || 'achievement_goals',
+                    evidenceSnippet: milestone?.evidence || '',
+                    confidenceBoost: milestone?.xp_points || 10,
+                    impactLevel: milestone?.impact || 'high',
+                    completedDate: new Date().toISOString(),
+                    createdAt: new Date().toISOString(),
+                    courageBoosts: 0,
+                    hasUserBoosted: false,
+                    permissionsCount: 0,
+                    meTooCount: 0,
+                    hasUserMeTooed: false,
+                    isAnonymous: false,
+                  },
+                });
+              }
+            }}
+          >
+            <Text style={{ fontSize: 20 }}>🏆</Text>
+            <Text
+              style={{
+                color: '#FFFFFF',
+                fontSize: 16,
+                fontWeight: '600',
+              }}
+            >
+              Share your victory?
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 16,
+            }}
+            onPress={() => {
+              setShowShareButton(false);
+              // Mark as dismissed so it won't show again
+              if (milestoneId) {
+                dismissShareButton(milestoneId);
+              }
+            }}
+          >
+            <Text
+              style={{
+                color: themeColors.text_secondary,
+                fontSize: 14,
+              }}
+            >
+              Maybe later
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
       )}
     </View>
   );

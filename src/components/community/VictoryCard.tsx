@@ -31,7 +31,7 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
   const categoryBackgroundColor = CATEGORY_COLORS_LIGHT[victory.dreamCategory];
 
   const userInfo = victory.isAnonymous
-    ? "A woman"
+    ? "Someone"
     : `${victory.userDisplayName}${victory.userAge ? ", " + victory.userAge : ""}${victory.userLocation ? ", " + victory.userLocation : ""}`;
 
   const formattedDate = formatDate(victory.completedDate);

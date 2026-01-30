@@ -108,6 +108,16 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
             console.log("Dream stats:", response.dreamStats);
             setIsDreamCompleted(true);
             setDreamStats(response.dreamStats);
+
+            // Show dream completion toast
+            const Toast = require('react-native-toast-message').default;
+            Toast.show({
+              type: 'success',
+              text1: '🎉 Dream Complete!',
+              text2: 'Share your journey with the community',
+              visibilityTime: 4000,
+            });
+
             onDreamComplete?.();
           }
           // Fallback to old isComplete flag if dreamCompleted not present

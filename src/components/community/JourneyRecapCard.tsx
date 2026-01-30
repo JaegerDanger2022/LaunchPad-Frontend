@@ -1,14 +1,14 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { JourneyRecap } from '../../types/community';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { JourneyRecap } from "../../types/community";
 import {
   CATEGORY_COLORS,
   CATEGORY_COLORS_LIGHT,
-} from '../../constants/communityColors';
-import { CategoryBadge } from './CategoryBadge';
-import { CourageBoostButton } from './CourageBoostButton';
-import { MeTooButton } from './MeTooButton';
-import { formatDate } from '../../utils/communityUtils';
+} from "../../constants/communityColors";
+import { CategoryBadge } from "./CategoryBadge";
+import { CourageBoostButton } from "./CourageBoostButton";
+import { MeTooButton } from "./MeTooButton";
+import { formatDate } from "../../utils/communityUtils";
 
 interface JourneyRecapCardProps {
   journeyRecap: JourneyRecap;
@@ -28,11 +28,12 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
   onPress,
 }) => {
   const categoryColor = CATEGORY_COLORS[journeyRecap.dreamCategory];
-  const categoryBackgroundColor = CATEGORY_COLORS_LIGHT[journeyRecap.dreamCategory];
+  const categoryBackgroundColor =
+    CATEGORY_COLORS_LIGHT[journeyRecap.dreamCategory];
 
   const userInfo = journeyRecap.isAnonymous
-    ? 'A woman'
-    : `${journeyRecap.userDisplayName}${journeyRecap.userAge ? ', ' + journeyRecap.userAge : ''}${journeyRecap.userLocation ? ', ' + journeyRecap.userLocation : ''}`;
+    ? "Someone"
+    : `${journeyRecap.userDisplayName}${journeyRecap.userAge ? ", " + journeyRecap.userAge : ""}${journeyRecap.userLocation ? ", " + journeyRecap.userLocation : ""}`;
 
   const formattedDate = formatDate(journeyRecap.completedDate);
 
@@ -40,15 +41,13 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
     <TouchableOpacity
       style={[styles.card, { borderColor: categoryColor }]}
       onPress={onPress}
-      activeOpacity={0.9}
-    >
+      activeOpacity={0.9}>
       {/* Header with star and category */}
       <View
         style={[
           styles.cardHeader,
           { backgroundColor: categoryBackgroundColor },
-        ]}
-      >
+        ]}>
         <View style={styles.headerLeft}>
           <Text style={[styles.star, { color: categoryColor }]}>⭐</Text>
           <Text style={styles.headerTitle}>JOURNEY COMPLETE</Text>
@@ -60,7 +59,7 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
       <View style={styles.cardContent}>
         {/* Dream Title */}
         <Text style={styles.dreamTitle}>
-          {(journeyRecap.dreamTitle || 'DREAM').toUpperCase()}
+          {(journeyRecap.dreamTitle || "DREAM").toUpperCase()}
         </Text>
 
         {/* Journey Stats */}
@@ -120,8 +119,7 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
           <TouchableOpacity
             style={styles.permissionButton}
             onPress={() => onPermission(journeyRecap.id)}
-            activeOpacity={0.7}
-          >
+            activeOpacity={0.7}>
             <Text style={styles.permissionIcon}>💬</Text>
             <Text style={styles.permissionText}>Give Permission</Text>
           </TouchableOpacity>
@@ -132,12 +130,13 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
           <TouchableOpacity
             style={styles.viewPermissionsButton}
             onPress={() => onViewPermissions(journeyRecap.id)}
-            activeOpacity={0.7}
-          >
+            activeOpacity={0.7}>
             <Text style={styles.permissionIcon}>💬</Text>
             <Text style={styles.viewPermissionsText}>
-              {journeyRecap.permissionsCount}{' '}
-              {journeyRecap.permissionsCount === 1 ? 'Permission' : 'Permissions'}
+              {journeyRecap.permissionsCount}{" "}
+              {journeyRecap.permissionsCount === 1
+                ? "Permission"
+                : "Permissions"}
             </Text>
           </TouchableOpacity>
         )}
@@ -148,13 +147,13 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 16,
     borderWidth: 2,
     marginHorizontal: 16,
     marginVertical: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
@@ -163,13 +162,13 @@ const styles = StyleSheet.create({
   cardHeader: {
     paddingHorizontal: 16,
     paddingVertical: 14,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   star: {
@@ -177,9 +176,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 1.2,
-    color: '#111827',
+    color: "#111827",
   },
   cardContent: {
     paddingHorizontal: 16,
@@ -188,38 +187,38 @@ const styles = StyleSheet.create({
   },
   dreamTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111827',
+    fontWeight: "bold",
+    color: "#111827",
     letterSpacing: 0.6,
     lineHeight: 26,
   },
   statsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 12,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#F9FAFB",
     borderRadius: 8,
   },
   statItem: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statValue: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: "700",
+    color: "#111827",
   },
   statLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
     marginTop: 4,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   statDivider: {
     width: 1,
     height: 40,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: "#E5E7EB",
   },
   storySection: {
     marginVertical: 8,
@@ -227,88 +226,88 @@ const styles = StyleSheet.create({
   },
   storyText: {
     fontSize: 15,
-    fontStyle: 'italic',
-    color: '#374151',
+    fontStyle: "italic",
+    color: "#374151",
     lineHeight: 22,
   },
   keyMomentSection: {
     paddingVertical: 12,
     paddingHorizontal: 12,
-    backgroundColor: '#FEF3C7',
+    backgroundColor: "#FEF3C7",
     borderRadius: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#F59E0B',
+    borderLeftColor: "#F59E0B",
   },
   keyMomentLabel: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#92400E',
+    fontWeight: "600",
+    color: "#92400E",
     marginBottom: 4,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   keyMomentText: {
     fontSize: 14,
-    fontStyle: 'italic',
-    color: '#78350F',
+    fontStyle: "italic",
+    color: "#78350F",
     lineHeight: 20,
   },
   metaRow: {
     marginTop: 8,
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
   },
   dateText: {
     fontSize: 11,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
   },
   userInfo: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
     marginTop: 4,
   },
   cardFooter: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    flexDirection: 'row',
-    alignItems: 'center',
+    borderTopColor: "#F3F4F6",
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   permissionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
-    backgroundColor: '#FFFFFF',
+    borderColor: "#D1D5DB",
+    backgroundColor: "#FFFFFF",
   },
   permissionIcon: {
     fontSize: 16,
   },
   permissionText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#374151',
+    fontWeight: "600",
+    color: "#374151",
   },
   viewPermissionsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: '#F0F5FF',
+    backgroundColor: "#F0F5FF",
   },
   viewPermissionsText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#2D5BFF',
+    fontWeight: "600",
+    color: "#2D5BFF",
   },
 });

@@ -59,8 +59,9 @@ const MilestoneScreen = ({
   onNavigate: (screen: string, params?: any) => void;
   milestoneId?: string;
 }) => {
-  const completedSteps = useAppStore((state) => state.completedSteps);
-  const setCompletedSteps = useAppStore((state) => state.setCompletedSteps);
+  const getMilestoneCompletions = useAppStore((state) => state.getMilestoneCompletions);
+  const setMilestoneCompletions = useAppStore((state) => state.setMilestoneCompletions);
+  const completedSteps = milestoneId ? getMilestoneCompletions(milestoneId) : 0;
   const { userData } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
@@ -209,8 +210,8 @@ const MilestoneScreen = ({
   };
 
   const handlePress = () => {
-    if (completedSteps < 3) {
-      setCompletedSteps(completedSteps + 1);
+    if (completedSteps < 3 && milestoneId) {
+      setMilestoneCompletions(milestoneId, completedSteps + 1);
     }
   };
 
@@ -411,6 +412,7 @@ const MilestoneScreen = ({
             milestoneStatus={milestone?.status}
             milestone={milestone}
             onDreamComplete={() => setShowDreamCompleteAnimation(true)}
+            onNavigate={onNavigate}
           />
         ) : (
           <OneTimeGoal

@@ -122,7 +122,7 @@ const AllDreamsScreenWrapper = withFadeAnimation(AllDreamsScreenBase);
 
 const DreamPageWrapper = ({ navigation }: any) => (
   <DreamPage onNavigate={(screen, params) => {
-    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community') {
+    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Settings') {
       navigation.goBack();
       // Navigate to the tab after closing the modal
       setTimeout(() => {
