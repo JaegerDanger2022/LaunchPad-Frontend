@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ParallaxHeader } from '../components/ParallaxHeader';
 import { useCommunityStore } from '../store/communityStore';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
@@ -411,13 +413,32 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
   const styles = createStyles(themeColors);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Victory Wall</Text>
-        <Text style={styles.headerSubtitle}>
-          Proof of action, not perfection
-        </Text>
-      </View>
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
+      <ParallaxHeader
+        backgroundColor={themeColors.bg_secondary}
+        backgroundImage={require('../assets/images/hero-bg.png')}
+        title="🏆 Victory Wall"
+        subtitle={`Proof of action, not perfection • ${victories.length} victories`}
+        titleStyle={{
+          fontSize: 28,
+          fontWeight: 'bold',
+          color: '#FFFFFF',
+        }}
+        subtitleStyle={{
+          fontSize: 14,
+          color: 'rgba(255, 255, 255, 0.9)',
+        }}
+        parallaxHeight={200}
+        headerHeight={80}
+        contentContainerStyle={{
+          paddingBottom: 100,
+        }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}>
 
       {/* Filters */}
       <View style={styles.filterContainer}>
@@ -495,33 +516,25 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
       </View>
 
       {/* Feed */}
-      <FlatList
-        data={victories}
-        renderItem={({ item }) => (
-          <VictoryCardComponent
-            victory={item}
-            onBoost={handleBoost}
-            onMeToo={item.userId !== user?.uid ? handleMeToo : undefined}
-            onPermission={item.userId !== user?.uid ? handlePermissionClick : undefined}
-            onViewPermissions={handleViewPermissions}
-          />
-        )}
-        keyExtractor={(item) => item.id}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        ListEmptyComponent={!loading ? renderEmpty : null}
-        ListFooterComponent={renderFooter}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#2D5BFF"
-          />
-        }
-        contentContainerStyle={
-          victories.length === 0 ? styles.emptyContainer : undefined
-        }
-      />
+      {victories.length === 0 && !loading ? (
+        renderEmpty()
+      ) : (
+        <>
+          {victories.map((item) => (
+            <VictoryCardComponent
+              key={item.id}
+              victory={item}
+              onBoost={handleBoost}
+              onMeToo={item.userId !== user?.uid ? handleMeToo : undefined}
+              onPermission={item.userId !== user?.uid ? handlePermissionClick : undefined}
+              onViewPermissions={handleViewPermissions}
+            />
+          ))}
+          {renderFooter()}
+        </>
+      )}
+
+      </ParallaxHeader>
 
       {/* Permission Slip Modal */}
       {selectedVictoryForPermission && (
@@ -548,7 +561,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
       />
 
       <BottomNavbar onNavigate={onNavigate} activeTab="community" />
-    </View>
+    </SafeAreaView>
   );
 };
 

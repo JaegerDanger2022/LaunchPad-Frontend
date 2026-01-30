@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AvatarHeaderScrollView } from "react-native-sticky-parallax-header";
+import { ParallaxHeader } from "../components/ParallaxHeader";
 import {
   Color,
   getThemeColors,
@@ -142,7 +142,7 @@ const EvidenceBoardScreen = ({
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }} edges={['left', 'right']}>
-      <AvatarHeaderScrollView
+      <ParallaxHeader
         backgroundColor={themeColors.bg_primary}
         backgroundImage={require("../assets/images/hero-bg.png")}
         title="✨ Evidence Board"
@@ -158,7 +158,6 @@ const EvidenceBoardScreen = ({
         }}
         parallaxHeight={220}
         headerHeight={90}
-        hasBorderRadius
         contentContainerStyle={{
           paddingHorizontal: 12,
           paddingTop: 20,
@@ -641,7 +640,7 @@ const EvidenceBoardScreen = ({
               </View>
             </>
           )}
-      </AvatarHeaderScrollView>
+      </ParallaxHeader>
 
       {/* Bottom Navigation */}
       <BottomNavbar onNavigate={onNavigate} activeTab="evidence" />
