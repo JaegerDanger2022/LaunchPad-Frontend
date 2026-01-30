@@ -23,7 +23,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   // Calculate user stats
   const dreamCount = userData?.dreams?.length || 0;
   const currentStreak = userData?.streak?.current_streak || 0;
-  const couragePoints = userData?.couragePoints || 0;
+  // const couragePoints = userData?.couragePoints || 0; // Muted - may be re-enabled later
 
   // Count completed milestones
   const completedMilestones =
@@ -133,7 +133,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   Day Streak
                 </Text>
               </View>
-              <View style={styles.statItem}>
+              {/* Muted: User-level courage points - may be re-enabled later */}
+              {/* <View style={styles.statItem}>
                 <Text
                   style={[
                     styles.statValue,
@@ -148,7 +149,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   ]}>
                   Courage Points
                 </Text>
-              </View>
+              </View> */}
               <View style={styles.statItem}>
                 <Text
                   style={[
@@ -178,7 +179,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     styles.statLabel,
                     { color: themeColors.text_secondary },
                   ]}>
-                  Completed
+                  Milestones Completed
                 </Text>
               </View>
             </View>

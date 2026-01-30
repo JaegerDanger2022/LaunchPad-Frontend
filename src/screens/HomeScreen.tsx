@@ -9,6 +9,7 @@ import {
   StatusBar,
   TouchableOpacity,
   RefreshControl,
+  ScrollView,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -48,11 +49,13 @@ const HomeScreen = ({
   const [inspirationVictories, setInspirationVictories] = useState<VictoryCardType[]>([]);
   const [inspirationLoading, setInspirationLoading] = useState(true);
   const [recentVictoriesLoading, setRecentVictoriesLoading] = useState(true);
+  const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const communityFadeAnim = useRef(new Animated.Value(0)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
   const bottomEffectAnim = useRef(new Animated.Value(0)).current;
+  const communityCarouselRef = useRef<ScrollView>(null);
   const { width } = useWindowDimensions();
 
   // Get user data from auth store
@@ -85,8 +88,8 @@ const HomeScreen = ({
   const loadRecentVictories = async () => {
     setRecentVictoriesLoading(true);
     try {
-      const response = await fetchVictories({ page: 1, limit: 3 });
-      setRecentVictories(response.victories.slice(0, 2)); // Show only 2
+      const response = await fetchVictories({ page: 1, limit: 10 });
+      setRecentVictories(response.victories.slice(0, 10)); // Show 10 recent wins
     } catch (error) {
       console.error("Failed to load recent victories:", error);
       setRecentVictories([]);
@@ -147,6 +150,32 @@ const HomeScreen = ({
       useNativeDriver: true,
     }).start();
   }, [communityFadeAnim]);
+
+  // Autoplay carousel for Community Wins
+  useEffect(() => {
+    if (recentVictories.length <= 1) return; // No autoplay if 1 or fewer cards
+
+    const cardWidth = width - 34;
+    const cardSpacing = 12;
+
+    const autoplayInterval = setInterval(() => {
+      setCurrentCarouselIndex((prevIndex) => {
+        const nextIndex = (prevIndex + 1) % recentVictories.length;
+
+        // Scroll to next card - account for card width + spacing
+        if (communityCarouselRef.current) {
+          communityCarouselRef.current.scrollTo({
+            x: nextIndex * (cardWidth + cardSpacing),
+            animated: true,
+          });
+        }
+
+        return nextIndex;
+      });
+    }, 4000); // Change card every 4 seconds
+
+    return () => clearInterval(autoplayInterval);
+  }, [recentVictories.length, width]);
 
   // Pull to refresh handler
   const handleRefresh = async () => {
@@ -581,14 +610,18 @@ const HomeScreen = ({
                 <CommunityWinCardSkeleton />
               ) : recentVictories.length > 0 ? (
                 <Animated.ScrollView
+                  ref={communityCarouselRef}
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{
+                    paddingLeft: 17,
                     paddingRight: 17,
                   }}
-                  snapToInterval={width - 34}
-                  decelerationRate="fast">
-                  {recentVictories.map((victory) => (
+                  snapToInterval={width - 34 + 12}
+                  decelerationRate="fast"
+                  pagingEnabled={false}
+                  style={{ marginLeft: -17 }}>
+                  {recentVictories.map((victory, index) => (
                   <LinearGradient
                     key={victory.id}
                     colors={[themeColors.bg_secondary, themeColors.bg_secondary]}
@@ -603,7 +636,7 @@ const HomeScreen = ({
                       borderWidth: 1,
                       borderColor: themeColors.border,
                       overflow: "hidden",
-                      marginRight: 12,
+                      marginRight: index < recentVictories.length - 1 ? 12 : 0,
                       width: width - 34,
                     }}>
                     {/* Avatar and User Info Row */}
