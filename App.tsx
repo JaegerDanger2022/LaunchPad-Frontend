@@ -392,17 +392,9 @@ export default function App() {
     initializeAuth();
   }, []);
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Color.colorSnow }}>
-        <ActivityIndicator size="large" color={Color.colorOrangered} />
-      </View>
-    );
-  }
-
   return (
     <NavigationContainer>
-      {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
+      {(loading || isAuthenticated) ? <AppNavigator /> : <AuthNavigator />}
       <StatusBar style={theme === 'light' ? 'dark' : 'light'} backgroundColor={theme === 'light' ? Color.colorSnow : '#050938'} />
       <Toast />
     </NavigationContainer>

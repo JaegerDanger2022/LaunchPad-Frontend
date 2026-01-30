@@ -387,9 +387,7 @@ const HomeScreen = ({
               }}>
               {activeTab === "recents" ? (
                 /* Goal Cards Carousel, Skeletons, or No Recents */
-                (loading || isRefreshing) && dreamCardsData.length === 0 ? (
-                  <SkeletonDreamCardsCarousel />
-                ) : isRefreshing && dreamCardsData.length > 0 ? (
+                loading || isRefreshing ? (
                   <SkeletonDreamCardsCarousel />
                 ) : dreamCardsData.length > 0 ? (
                   <Animated.ScrollView
@@ -424,7 +422,7 @@ const HomeScreen = ({
                 )
               ) : (
                 /* Inspiration Tab - Saved Victories */
-                inspirationLoading || isRefreshing ? (
+                loading || inspirationLoading || isRefreshing ? (
                   <VictoryCardSkeleton />
                 ) : inspirationVictories.length > 0 ? (
                   <Animated.ScrollView
@@ -579,7 +577,7 @@ const HomeScreen = ({
               </View>
 
               {/* Victory Cards Carousel or Skeletons */}
-              {recentVictoriesLoading || isRefreshing ? (
+              {loading || recentVictoriesLoading || isRefreshing ? (
                 <CommunityWinCardSkeleton />
               ) : recentVictories.length > 0 ? (
                 <Animated.ScrollView

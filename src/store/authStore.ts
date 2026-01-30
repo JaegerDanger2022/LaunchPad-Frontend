@@ -59,7 +59,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           // Store user token securely
           const token = await user.getIdToken();
           await SecureStore.setItemAsync('userToken', token);
-          set({ user, isAuthenticated: true, loading: false });
+          set({ user, isAuthenticated: true });
 
           // Identify user in RevenueCat
           try {
@@ -73,7 +73,9 @@ export const useAuthStore = create<AuthState>((set) => ({
           console.log('Auth state changed - loading user data');
           const userData = await fetchUserData(user.uid);
           if (userData) {
-            set({ userData });
+            set({ userData, loading: false });
+          } else {
+            set({ loading: false });
           }
         } else {
           await SecureStore.deleteItemAsync('userToken').catch(() => {});
@@ -174,7 +176,9 @@ export const useAuthStore = create<AuthState>((set) => ({
           // Don't block login flow on RevenueCat error
         }
 
-        set({ user: userCredential.user, isAuthenticated: true, loading: false });
+        // Load user data from MongoDB
+        const userData = await fetchUserData(userCredential.user.uid);
+        set({ user: userCredential.user, userData, isAuthenticated: true, loading: false });
       } else {
         throw new Error('No ID token from Google Sign-In');
       }
