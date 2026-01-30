@@ -17,11 +17,15 @@ import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { AvatarIcon } from "../components/icons/SVGIcons";
 import { GoalCard, type GoalCardData } from "../components/GoalCard";
 import { HeroCard } from "../components/cards/HeroCard";
+import { HeroCardSkeleton } from "../components/cards/HeroCardSkeleton";
 import { TopNavbar } from "../components/TopNavbar";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { TabBar, type TabType } from "../components/TabBar";
 import { EmptyDreamsState } from "../components/EmptyDreamsState";
 import { SkeletonDreamCards } from "../components/SkeletonDreamCards";
+import { SkeletonDreamCardsCarousel } from "../components/SkeletonDreamCardsCarousel";
+import { VictoryCardSkeleton } from "../components/community/VictoryCardSkeleton";
+import { CommunityWinCardSkeleton } from "../components/community/CommunityWinCardSkeleton";
 import { NoRecentsState } from "../components/NoRecentsState";
 import { StreakBadge } from "../components/streak/StreakBadge";
 import { VictoryCard } from "../components/community/VictoryCard";
@@ -43,6 +47,7 @@ const HomeScreen = ({
   const [recentVictories, setRecentVictories] = useState<VictoryCardType[]>([]);
   const [inspirationVictories, setInspirationVictories] = useState<VictoryCardType[]>([]);
   const [inspirationLoading, setInspirationLoading] = useState(false);
+  const [recentVictoriesLoading, setRecentVictoriesLoading] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const communityFadeAnim = useRef(new Animated.Value(0)).current;
@@ -78,12 +83,15 @@ const HomeScreen = ({
 
   // Load recent community victories
   const loadRecentVictories = async () => {
+    setRecentVictoriesLoading(true);
     try {
       const response = await fetchVictories({ page: 1, limit: 3 });
       setRecentVictories(response.victories.slice(0, 2)); // Show only 2
     } catch (error) {
       console.error("Failed to load recent victories:", error);
       setRecentVictories([]);
+    } finally {
+      setRecentVictoriesLoading(false);
     }
   };
 
@@ -311,62 +319,66 @@ const HomeScreen = ({
             </View>
           )}
 
-          {/* Hero Card Section - Only show if up_next exists */}
-          {(() => {
-            // console.log('[HomeScreen] up_next:', userData?.up_next);
-            if (userData?.up_next) {
-              console.log(
-                "[HomeScreen] Showing HeroCard for milestone:",
-                userData.up_next.milestone_title,
-              );
+          {/* Hero Card Section - Show skeleton during refresh or actual card */}
+          {isRefreshing && userData?.up_next ? (
+            <HeroCardSkeleton />
+          ) : (
+            (() => {
+              // console.log('[HomeScreen] up_next:', userData?.up_next);
+              if (userData?.up_next) {
+                console.log(
+                  "[HomeScreen] Showing HeroCard for milestone:",
+                  userData.up_next.milestone_title,
+                );
 
-              // Find the actual milestone object to check dependencies
-              let rawMilestone: any = null;
-              if (userData?.dreams) {
-                for (const dream of userData.dreams) {
-                  if (dream.roadmap?.milestones) {
-                    const found = dream.roadmap.milestones.find(
-                      (m: any) => m.id === userData.up_next!.milestone_id,
-                    );
-                    if (found) {
-                      rawMilestone = found;
-                      break;
+                // Find the actual milestone object to check dependencies
+                let rawMilestone: any = null;
+                if (userData?.dreams) {
+                  for (const dream of userData.dreams) {
+                    if (dream.roadmap?.milestones) {
+                      const found = dream.roadmap.milestones.find(
+                        (m: any) => m.id === userData.up_next!.milestone_id,
+                      );
+                      if (found) {
+                        rawMilestone = found;
+                        break;
+                      }
                     }
                   }
                 }
+
+                const dependenciesMet = areDependenciesCompleted(
+                  rawMilestone,
+                  userData?.dreams,
+                );
+
+                return (
+                  <HeroCard
+                    heroOpacity={heroOpacity}
+                    heroScale={heroScale}
+                    badge="Up next"
+                    title={userData.up_next.milestone_title}
+                    timeMinutes={parseTimeToMinutes(
+                      userData.up_next.time_estimate,
+                    )}
+                    xpPoints={userData.up_next.xp_points}
+                    challengeType={userData.up_next.challenge_type}
+                    isLocked={!dependenciesMet}
+                    onPress={() => {
+                      if (dependenciesMet) {
+                        onNavigate("Milestone", {
+                          milestoneId: userData.up_next!.milestone_id,
+                        });
+                      }
+                    }}
+                  />
+                );
+              } else {
+                // console.log("[HomeScreen] up_next is null - no HeroCard shown");
+                return null;
               }
-
-              const dependenciesMet = areDependenciesCompleted(
-                rawMilestone,
-                userData?.dreams,
-              );
-
-              return (
-                <HeroCard
-                  heroOpacity={heroOpacity}
-                  heroScale={heroScale}
-                  badge="Up next"
-                  title={userData.up_next.milestone_title}
-                  timeMinutes={parseTimeToMinutes(
-                    userData.up_next.time_estimate,
-                  )}
-                  xpPoints={userData.up_next.xp_points}
-                  challengeType={userData.up_next.challenge_type}
-                  isLocked={!dependenciesMet}
-                  onPress={() => {
-                    if (dependenciesMet) {
-                      onNavigate("Milestone", {
-                        milestoneId: userData.up_next!.milestone_id,
-                      });
-                    }
-                  }}
-                />
-              );
-            } else {
-              // console.log("[HomeScreen] up_next is null - no HeroCard shown");
-              return null;
-            }
-          })()}
+            })()
+          )}
 
           {/* Recents and Favorites Section */}
           <View
@@ -385,12 +397,27 @@ const HomeScreen = ({
                 transform: [{ translateY: slideAnim }],
               }}>
               {activeTab === "recents" ? (
-                /* Goal Cards Grid - 2 columns or No Recents */
-                dreamCardsData.length > 0 ? (
-                  <FlatList
-                    data={dreamCardsData}
-                    renderItem={({ item }) => (
-                      <View style={{ width: columnWidth }}>
+                /* Goal Cards Carousel, Skeletons, or No Recents */
+                (loading || isRefreshing) && dreamCardsData.length === 0 ? (
+                  <SkeletonDreamCardsCarousel />
+                ) : isRefreshing && dreamCardsData.length > 0 ? (
+                  <SkeletonDreamCardsCarousel />
+                ) : dreamCardsData.length > 0 ? (
+                  <Animated.ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{
+                      paddingTop: 20,
+                    }}
+                    snapToInterval={columnWidth + 14}
+                    decelerationRate="fast">
+                    {dreamCardsData.map((item, index) => (
+                      <View
+                        key={index}
+                        style={{
+                          width: columnWidth,
+                          marginRight: index < dreamCardsData.length - 1 ? 14 : 0,
+                        }}>
                         <GoalCard
                           data={item}
                           onPress={() => {
@@ -401,34 +428,17 @@ const HomeScreen = ({
                           }}
                         />
                       </View>
-                    )}
-                    keyExtractor={(_, index) => index.toString()}
-                    numColumns={2}
-                    columnWrapperStyle={{ gap: 14 }}
-                    scrollEnabled={false}
-                    nestedScrollEnabled={false}
-                  />
+                    ))}
+                  </Animated.ScrollView>
                 ) : (
                   <NoRecentsState />
                 )
               ) : (
                 /* Inspiration Tab - Saved Victories */
-                inspirationLoading ? (
-                  <View
-                    style={{
-                      alignItems: "center",
-                      justifyContent: "center",
-                      paddingVertical: 60,
-                    }}>
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        color: themeColors.text_secondary,
-                        fontFamily: "InstrumentSans-Regular",
-                      }}>
-                      Loading inspiration...
-                    </Text>
-                  </View>
+                (inspirationLoading || isRefreshing) && inspirationVictories.length === 0 ? (
+                  <VictoryCardSkeleton />
+                ) : isRefreshing && inspirationVictories.length > 0 ? (
+                  <VictoryCardSkeleton />
                 ) : inspirationVictories.length > 0 ? (
                   <Animated.ScrollView
                     horizontal
@@ -533,7 +543,7 @@ const HomeScreen = ({
           </View>
 
           {/* Community Wins Section */}
-          {recentVictories.length > 0 && (
+          {((recentVictoriesLoading || isRefreshing) && recentVictories.length === 0) || recentVictories.length > 0 ? (
             <Animated.View
               style={{
                 flexDirection: "column",
@@ -582,16 +592,21 @@ const HomeScreen = ({
                 </TouchableOpacity>
               </View>
 
-              {/* Victory Cards Carousel */}
-              <Animated.ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{
-                  paddingRight: 17,
-                }}
-                snapToInterval={width - 34}
-                decelerationRate="fast">
-                {recentVictories.map((victory) => (
+              {/* Victory Cards Carousel or Skeletons */}
+              {(recentVictoriesLoading || isRefreshing) && recentVictories.length === 0 ? (
+                <CommunityWinCardSkeleton />
+              ) : isRefreshing && recentVictories.length > 0 ? (
+                <CommunityWinCardSkeleton />
+              ) : (
+                <Animated.ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    paddingRight: 17,
+                  }}
+                  snapToInterval={width - 34}
+                  decelerationRate="fast">
+                  {recentVictories.map((victory) => (
                   <LinearGradient
                     key={victory.id}
                     colors={[themeColors.bg_secondary, themeColors.bg_secondary]}
@@ -737,9 +752,10 @@ const HomeScreen = ({
                     </View>
                   </LinearGradient>
                 ))}
-              </Animated.ScrollView>
+                </Animated.ScrollView>
+              )}
             </Animated.View>
-          )}
+          ) : null}
         </View>
       </Animated.ScrollView>
     </SafeAreaView>

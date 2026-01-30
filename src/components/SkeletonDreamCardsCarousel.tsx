@@ -1,12 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Animated } from 'react-native';
-import { useWindowDimensions } from 'react-native';
+import { View, Animated, useWindowDimensions } from 'react-native';
 import { useThemeStore } from '../store/themeStore';
 import { getThemeColors } from '../constants/GlobalStyles';
 
-export const SkeletonDreamCards: React.FC = () => {
+export const SkeletonDreamCardsCarousel: React.FC = () => {
   const { width } = useWindowDimensions();
-  const columnWidth = (width - 34 - 14) / 2;
+  const cardWidth = (width - 34 - 14) / 2; // Same as GoalCard column width
   const shimmerAnim = useRef(new Animated.Value(0)).current;
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
@@ -17,12 +16,12 @@ export const SkeletonDreamCards: React.FC = () => {
         Animated.timing(shimmerAnim, {
           toValue: 1,
           duration: 1000,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
         Animated.timing(shimmerAnim, {
           toValue: 0,
           duration: 1000,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
       ])
     ).start();
@@ -30,7 +29,7 @@ export const SkeletonDreamCards: React.FC = () => {
 
   const opacity = shimmerAnim.interpolate({
     inputRange: [0, 0.5, 1],
-    outputRange: [0.6, 0.9, 0.6],
+    outputRange: [0.3, 0.7, 0.3],
   });
 
   // Theme-aware skeleton colors - matches Community Wins skeleton
@@ -38,21 +37,22 @@ export const SkeletonDreamCards: React.FC = () => {
   const skeletonColor = theme === 'dark' ? '#d1d1d1' : '#D0D0D0';
 
   const SkeletonCard = () => (
-    <Animated.View
+    <View
       style={{
-        width: columnWidth,
+        width: cardWidth,
         height: 228,
         borderRadius: 10,
         backgroundColor: skeletonBgColor,
-        opacity,
         overflow: 'hidden',
+        marginRight: 14,
       }}>
       {/* Image skeleton */}
-      <View
+      <Animated.View
         style={{
           width: '100%',
           height: 120,
           backgroundColor: skeletonColor,
+          opacity,
         }}
       />
       {/* Bottom section skeleton */}
@@ -65,48 +65,37 @@ export const SkeletonDreamCards: React.FC = () => {
           justifyContent: 'space-between',
         }}>
         {/* Title skeleton */}
-        <View
+        <Animated.View
           style={{
             height: 20,
             backgroundColor: skeletonColor,
             borderRadius: 4,
             width: '70%',
+            opacity,
           }}
         />
         {/* Progress skeleton */}
-        <View
+        <Animated.View
           style={{
             height: 30,
             backgroundColor: skeletonColor,
             borderRadius: 15,
             width: 100,
+            opacity,
           }}
         />
       </View>
-    </Animated.View>
+    </View>
   );
 
   return (
     <View
       style={{
-        flex: 1,
-        paddingHorizontal: 17,
+        flexDirection: 'row',
         paddingTop: 20,
-        paddingBottom: 20,
       }}>
-      {/* Grid of skeleton cards - 2 columns */}
-      <View style={{ flexDirection: 'row', gap: 14, marginBottom: 14 }}>
-        <SkeletonCard />
-        <SkeletonCard />
-      </View>
-      <View style={{ flexDirection: 'row', gap: 14, marginBottom: 14 }}>
-        <SkeletonCard />
-        <SkeletonCard />
-      </View>
-      <View style={{ flexDirection: 'row', gap: 14 }}>
-        <SkeletonCard />
-        <SkeletonCard />
-      </View>
+      <SkeletonCard />
+      <SkeletonCard />
     </View>
   );
 };
