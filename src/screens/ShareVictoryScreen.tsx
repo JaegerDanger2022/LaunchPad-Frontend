@@ -84,15 +84,10 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
       // Award courage points locally
       updateCouragePoints(5);
 
-      Toast.show({
-        type: "success",
-        text1: "Victory Shared! 🎉",
-        text2: "+5 courage points earned",
-        visibilityTime: 3000,
-      });
-
       setIsSaving(false);
-      onNavigate("Home");
+
+      // Navigate to Evidence Board after posting to avoid seeing lingering toasts
+      onNavigate("EvidenceBoard");
     } catch (error) {
       console.error("Failed to share victory:", error);
       Toast.show({

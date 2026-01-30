@@ -82,15 +82,10 @@ const ShareJourneyRecapScreen: React.FC<ShareJourneyRecapScreenProps> = ({
       // Award courage points locally (+10 for journey vs +5 for victory)
       updateCouragePoints(10);
 
-      Toast.show({
-        type: 'success',
-        text1: 'Journey Shared! 🎉',
-        text2: '+10 courage points earned',
-        visibilityTime: 3000,
-      });
-
       setIsSaving(false);
-      onNavigate('Home');
+
+      // Navigate to Evidence Board after posting to avoid seeing lingering toasts
+      onNavigate('EvidenceBoard');
     } catch (error: any) {
       console.error('Failed to share journey:', error);
 

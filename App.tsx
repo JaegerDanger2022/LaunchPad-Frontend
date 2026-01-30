@@ -187,6 +187,11 @@ const ShareVictoryScreenWrapper = ({ navigation, route }: any) => (
     onNavigate={(screen) => {
       if (screen === 'Home') {
         navigation.goBack();
+      } else if (screen === 'EvidenceBoard') {
+        // Navigate to Evidence Board tab
+        navigation.navigate('HomeTabs', {
+          screen: 'EvidenceBoard',
+        });
       } else {
         navigation.navigate(screen as keyof RootStackParamList);
       }
@@ -200,6 +205,11 @@ const ShareJourneyRecapScreenWrapper = ({ navigation, route }: any) => (
     onNavigate={(screen) => {
       if (screen === 'Home') {
         navigation.goBack();
+      } else if (screen === 'EvidenceBoard') {
+        // Navigate to Evidence Board tab
+        navigation.navigate('HomeTabs', {
+          screen: 'EvidenceBoard',
+        });
       } else {
         navigation.navigate(screen as keyof RootStackParamList);
       }
