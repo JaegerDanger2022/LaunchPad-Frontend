@@ -256,17 +256,6 @@ const HomeScreen = ({
     }));
   }, [userData?.dreams, userData?.recents]);
 
-  // If still loading user data, show skeleton
-  if (loading) {
-    return (
-      <SafeAreaView
-        style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
-        <SkeletonDreamCards />
-        <BottomNavbar />
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
       {/* <TopNavbar name="Ready to win, Kyla-Marie?" /> */}
@@ -435,9 +424,7 @@ const HomeScreen = ({
                 )
               ) : (
                 /* Inspiration Tab - Saved Victories */
-                (inspirationLoading || isRefreshing) && inspirationVictories.length === 0 ? (
-                  <VictoryCardSkeleton />
-                ) : isRefreshing && inspirationVictories.length > 0 ? (
+                inspirationLoading || isRefreshing ? (
                   <VictoryCardSkeleton />
                 ) : inspirationVictories.length > 0 ? (
                   <Animated.ScrollView
@@ -542,9 +529,8 @@ const HomeScreen = ({
             </Animated.View>
           </View>
 
-          {/* Community Wins Section */}
-          {((recentVictoriesLoading || isRefreshing) && recentVictories.length === 0) || recentVictories.length > 0 ? (
-            <Animated.View
+          {/* Community Wins Section - Always show, with skeleton on load */}
+          <Animated.View
               style={{
                 flexDirection: "column",
                 marginHorizontal: 17,
@@ -593,11 +579,9 @@ const HomeScreen = ({
               </View>
 
               {/* Victory Cards Carousel or Skeletons */}
-              {(recentVictoriesLoading || isRefreshing) && recentVictories.length === 0 ? (
+              {recentVictoriesLoading || isRefreshing ? (
                 <CommunityWinCardSkeleton />
-              ) : isRefreshing && recentVictories.length > 0 ? (
-                <CommunityWinCardSkeleton />
-              ) : (
+              ) : recentVictories.length > 0 ? (
                 <Animated.ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -753,9 +737,20 @@ const HomeScreen = ({
                   </LinearGradient>
                 ))}
                 </Animated.ScrollView>
+              ) : (
+                <View style={{ paddingVertical: 20 }}>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: themeColors.text_secondary,
+                      fontFamily: "InstrumentSans-Regular",
+                      textAlign: "center",
+                    }}>
+                    No community wins yet
+                  </Text>
+                </View>
               )}
             </Animated.View>
-          ) : null}
         </View>
       </Animated.ScrollView>
     </SafeAreaView>
