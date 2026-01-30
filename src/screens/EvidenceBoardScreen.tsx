@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AvatarHeaderScrollView } from "react-native-sticky-parallax-header";
 import {
   Color,
   getThemeColors,
@@ -130,43 +131,40 @@ const EvidenceBoardScreen = ({
   // For Journey Recap Modal - use activeDream if available
   const recapDream = activeDream;
 
+  // Calculate total stats across all dreams
+  const totalStats = useMemo(() => {
+    const totalActions = displayDreams.reduce((sum, dream) => sum + dream.proofPoints.filter(p => p.completed).length, 0);
+    const totalCourage = displayDreams.reduce((sum, dream) => sum + dream.couragePoints, 0);
+    const completedDreams = displayDreams.filter(d => d.isComplete).length;
+
+    return { totalActions, totalCourage, completedDreams };
+  }, [displayDreams]);
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
-      <LinearGradient
-        colors={[themeColors.bg_primary, themeColors.bg_primary]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{ flex: 1 }}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 24, paddingBottom: 120 }}>
-          {/* Header */}
-          <View style={{ marginBottom: 32 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginBottom: 12,
-              }}>
-              <Text style={{ fontSize: 32, marginRight: 12 }}>✨</Text>
-              <Text
-                style={{
-                  fontSize: 32,
-                  fontWeight: "bold",
-                  color: EvidenceBoardColors.text.primary,
-                }}>
-                Evidence Board
-              </Text>
-            </View>
-            <Text
-              style={{
-                fontSize: 16,
-                color: EvidenceBoardColors.text.light,
-                lineHeight: 24,
-              }}>
-              Your proof that dreams become reality, one small action at a time.
-            </Text>
-          </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }} edges={['left', 'right']}>
+      <AvatarHeaderScrollView
+        backgroundColor={themeColors.bg_primary}
+        backgroundImage={require("../assets/images/hero-bg.png")}
+        title="✨ Evidence Board"
+        subtitle={`${totalStats.totalActions} Actions • ${totalStats.totalCourage} Courage Points • ${displayDreams.length} Dreams`}
+        titleStyle={{
+          fontSize: 28,
+          fontWeight: "bold",
+          color: Color.colorWhite,
+        }}
+        subtitleStyle={{
+          fontSize: 14,
+          color: "rgba(255, 255, 255, 0.9)",
+        }}
+        parallaxHeight={220}
+        headerHeight={90}
+        hasBorderRadius
+        contentContainerStyle={{
+          paddingHorizontal: 12,
+          paddingTop: 20,
+          paddingBottom: 120,
+        }}
+        showsVerticalScrollIndicator={false}>
 
           {displayDreams.length === 0 ? (
             <View
@@ -643,8 +641,7 @@ const EvidenceBoardScreen = ({
               </View>
             </>
           )}
-        </ScrollView>
-      </LinearGradient>
+      </AvatarHeaderScrollView>
 
       {/* Bottom Navigation */}
       <BottomNavbar onNavigate={onNavigate} activeTab="evidence" />
