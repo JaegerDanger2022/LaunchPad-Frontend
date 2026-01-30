@@ -1,11 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated } from 'react-native';
 import { useWindowDimensions } from 'react-native';
+import { useThemeStore } from '../store/themeStore';
 
 export const SkeletonDreamCards: React.FC = () => {
   const { width } = useWindowDimensions();
   const columnWidth = (width - 34 - 14) / 2;
   const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const { theme } = useThemeStore();
 
   useEffect(() => {
     Animated.loop(
@@ -29,13 +31,17 @@ export const SkeletonDreamCards: React.FC = () => {
     outputRange: [0.6, 0.9, 0.6],
   });
 
+  // Theme-aware skeleton colors
+  const skeletonBgColor = theme === 'dark' ? '#2A2A2A' : '#E0E0E0';
+  const skeletonColor = theme === 'dark' ? '#d1d1d1' : '#D0D0D0';
+
   const SkeletonCard = () => (
     <Animated.View
       style={{
         width: columnWidth,
         height: 228,
         borderRadius: 10,
-        backgroundColor: '#E0E0E0',
+        backgroundColor: skeletonBgColor,
         opacity,
         overflow: 'hidden',
       }}>
@@ -44,14 +50,14 @@ export const SkeletonDreamCards: React.FC = () => {
         style={{
           width: '100%',
           height: 120,
-          backgroundColor: '#D0D0D0',
+          backgroundColor: skeletonColor,
         }}
       />
       {/* Bottom section skeleton */}
       <View
         style={{
           flex: 1,
-          backgroundColor: '#E0E0E0',
+          backgroundColor: skeletonBgColor,
           paddingHorizontal: 15,
           paddingVertical: 15,
           justifyContent: 'space-between',
@@ -60,7 +66,7 @@ export const SkeletonDreamCards: React.FC = () => {
         <View
           style={{
             height: 20,
-            backgroundColor: '#D0D0D0',
+            backgroundColor: skeletonColor,
             borderRadius: 4,
             width: '70%',
           }}
@@ -69,7 +75,7 @@ export const SkeletonDreamCards: React.FC = () => {
         <View
           style={{
             height: 30,
-            backgroundColor: '#D0D0D0',
+            backgroundColor: skeletonColor,
             borderRadius: 15,
             width: 100,
           }}

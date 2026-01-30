@@ -1,9 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useThemeStore } from '../../store/themeStore';
+import { getThemeColors } from '../../constants/GlobalStyles';
 
 export const VictoryCardSkeleton: React.FC = () => {
   const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const { theme } = useThemeStore();
+  const themeColors = getThemeColors(theme);
 
   useEffect(() => {
     const shimmer = Animated.loop(
@@ -30,41 +34,44 @@ export const VictoryCardSkeleton: React.FC = () => {
     outputRange: [0.3, 0.7],
   });
 
+  // Theme-aware skeleton colors
+  const skeletonColor = theme === 'dark' ? '#d1d1d1' : '#D0D0D0';
+
   return (
     <View style={styles.card}>
       <LinearGradient
-        colors={['#F5F5F5', '#E0E0E0', '#F5F5F5']}
+        colors={[themeColors.bg_secondary, themeColors.bg_secondary]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.gradient}>
         {/* Header Section */}
         <View style={styles.header}>
-          <Animated.View style={[styles.badge, { opacity }]} />
+          <Animated.View style={[styles.badge, { opacity, backgroundColor: skeletonColor }]} />
           <View style={styles.headerRight}>
-            <Animated.View style={[styles.categoryBadge, { opacity }]} />
+            <Animated.View style={[styles.categoryBadge, { opacity, backgroundColor: skeletonColor }]} />
           </View>
         </View>
 
         {/* Title */}
-        <Animated.View style={[styles.title, { opacity }]} />
-        <Animated.View style={[styles.titleShort, { opacity }]} />
+        <Animated.View style={[styles.title, { opacity, backgroundColor: skeletonColor }]} />
+        <Animated.View style={[styles.titleShort, { opacity, backgroundColor: skeletonColor }]} />
 
         {/* Quote */}
-        <Animated.View style={[styles.quote, { opacity }]} />
+        <Animated.View style={[styles.quote, { opacity, backgroundColor: skeletonColor }]} />
 
         {/* Confidence */}
-        <Animated.View style={[styles.confidence, { opacity }]} />
+        <Animated.View style={[styles.confidence, { opacity, backgroundColor: skeletonColor }]} />
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Animated.View style={[styles.author, { opacity }]} />
-          <Animated.View style={[styles.date, { opacity }]} />
+          <Animated.View style={[styles.author, { opacity, backgroundColor: skeletonColor }]} />
+          <Animated.View style={[styles.date, { opacity, backgroundColor: skeletonColor }]} />
         </View>
 
         {/* Actions */}
         <View style={styles.actions}>
-          <Animated.View style={[styles.actionButton, { opacity }]} />
-          <Animated.View style={[styles.actionButton, { opacity }]} />
+          <Animated.View style={[styles.actionButton, { opacity, backgroundColor: skeletonColor }]} />
+          <Animated.View style={[styles.actionButton, { opacity, backgroundColor: skeletonColor }]} />
         </View>
       </LinearGradient>
     </View>
