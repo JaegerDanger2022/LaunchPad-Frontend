@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,16 +7,18 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ParallaxHeader } from '../components/ParallaxHeader';
 import { useCommunityStore } from '../store/communityStore';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
-import { getThemeColors } from '../constants/GlobalStyles';
+import { getThemeColors, Color } from '../constants/GlobalStyles';
 import { useFocusEffect } from '@react-navigation/native';
 import { VictoryCard as VictoryCardComponent } from '../components/community/VictoryCard';
-import { VictoryCard, DreamCategory, PermissionSlip, PermissionType } from '../types/community';
+import { JourneyRecapCard } from '../components/community/JourneyRecapCard';
+import { VictoryCard, DreamCategory, PermissionSlip, PermissionType, CommunityFeedItem } from '../types/community';
 import { CATEGORY_LABELS } from '../constants/communityColors';
 import { fetchVictories } from '../config/api';
 import Toast from 'react-native-toast-message';
@@ -24,6 +26,7 @@ import { BottomNavbar } from '../components/BottomNavbar';
 import { PermissionSlipModal } from '../components/community/PermissionSlipModal';
 import { PermissionSlipList } from '../components/community/PermissionSlipList';
 import { VictoryCardSkeleton } from '../components/community/VictoryCardSkeleton';
+import { ChevronUp } from 'lucide-react-native';
 
 const CATEGORY_OPTIONS: Array<{ label: string; value: DreamCategory | 'all' }> =
   [
@@ -70,8 +73,8 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
     clearError,
   } = useCommunityStore();
 
-  // LOCAL component state for streaming pagination
-  const [victories, setVictories] = useState<VictoryCard[]>([]);
+  // LOCAL component state for streaming pagination (mixed feed)
+  const [feedItems, setFeedItems] = useState<CommunityFeedItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -85,8 +88,11 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
   const [showPermissionsList, setShowPermissionsList] = useState(false);
   const [permissionsToView, setPermissionsToView] = useState<PermissionSlip[]>([]);
 
-  // Fetch victories from backend (streaming)
-  const loadVictories = async (page: number, reset: boolean = false) => {
+  // Scroll ref for scroll-to-top button
+  const scrollRef = useRef<ScrollView>(null);
+
+  // Fetch feed from backend (streaming) - includes victories and journey recaps
+  const loadFeed = async (page: number, reset: boolean = false) => {
     if (loading) return;
 
     try {
@@ -99,15 +105,15 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
         timeframe: filters.timeframe !== 'all' ? filters.timeframe : undefined,
       });
 
-      setVictories(prev => reset ? response.victories : [...prev, ...response.victories]);
+      setFeedItems(prev => reset ? response.feed : [...prev, ...response.feed]);
       setCurrentPage(response.pagination.page);
       setTotalPages(response.pagination.totalPages);
       setLoading(false);
     } catch (error) {
-      console.error('Error loading victories:', error);
+      console.error('Error loading feed:', error);
       Toast.show({
         type: 'error',
-        text1: 'Failed to load victories',
+        text1: 'Failed to load feed',
         text2: 'Please try again',
         visibilityTime: 3000,
       });
@@ -118,7 +124,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
   // Load initial feed on mount
   useFocusEffect(
     React.useCallback(() => {
-      loadVictories(1, true);
+      loadFeed(1, true);
     }, [filters])
   );
 
@@ -138,14 +144,14 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
   // Pull to refresh
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadVictories(1, true);
+    await loadFeed(1, true);
     setRefreshing(false);
   };
 
   // Load more on scroll (pagination)
   const handleLoadMore = () => {
     if (currentPage < totalPages && !loading) {
-      loadVictories(currentPage + 1, false);
+      loadFeed(currentPage + 1, false);
     }
   };
 
@@ -413,21 +419,32 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
 
   const styles = createStyles(themeColors);
 
+  // Scroll to top handler
+  const scrollToTop = () => {
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <ParallaxHeader
+        ref={scrollRef}
         backgroundColor={themeColors.bg_secondary}
         backgroundImage={require('../assets/images/hero-bg.png')}
         title="🏆 Victory Wall"
-        subtitle={`Proof of action, not perfection • ${victories.length} victories`}
+        subtitle={`Proof of action, not perfection • ${feedItems.length} ${feedItems.length === 1 ? 'post' : 'posts'}`}
         titleStyle={{
           fontSize: 28,
           fontWeight: 'bold',
-          color: '#FFFFFF',
+          color: theme === 'dark' ? '#FFFFFF' : Color.colorBlack,
         }}
         subtitleStyle={{
           fontSize: 14,
-          color: 'rgba(255, 255, 255, 0.9)',
+          color: theme === 'dark' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.7)',
+        }}
+        stickyHeaderTitleStyle={{
+          fontSize: 20,
+          fontWeight: 'bold',
+          color: themeColors.text_primary,
         }}
         parallaxHeight={200}
         headerHeight={80}
@@ -450,33 +467,41 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
               style={styles.filterButton}
               onPress={() => setShowCategoryMenu(!showCategoryMenu)}
             >
-              <Text style={styles.filterButtonText}>
+              <Text style={styles.filterButtonText} numberOfLines={1}>
                 {currentCategoryLabel} ▼
               </Text>
             </TouchableOpacity>
             {showCategoryMenu && (
               <View style={styles.dropdown}>
-                {CATEGORY_OPTIONS.map((option) => (
-                  <TouchableOpacity
-                    key={option.value}
-                    style={styles.dropdownItem}
-                    onPress={() => handleCategoryChange(option.value)}
-                  >
-                    <Text
-                      style={[
-                        styles.dropdownItemText,
-                        filters.categories.length === 0 &&
-                        option.value === 'all' &&
-                        styles.dropdownItemActive,
-                        filters.categories.includes(
-                          option.value as DreamCategory
-                        ) && styles.dropdownItemActive,
-                      ]}
+                <ScrollView
+                  style={styles.dropdownScroll}
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled={true}
+                >
+                  {CATEGORY_OPTIONS.map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={styles.dropdownItem}
+                      onPress={() => handleCategoryChange(option.value)}
                     >
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      <Text
+                        style={[
+                          styles.dropdownItemText,
+                          filters.categories.length === 0 &&
+                          option.value === 'all' &&
+                          styles.dropdownItemActive,
+                          filters.categories.includes(
+                            option.value as DreamCategory
+                          ) && styles.dropdownItemActive,
+                        ]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               </View>
             )}
           </View>
@@ -487,29 +512,37 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
               style={styles.filterButton}
               onPress={() => setShowTimeMenu(!showTimeMenu)}
             >
-              <Text style={styles.filterButtonText}>
+              <Text style={styles.filterButtonText} numberOfLines={1}>
                 {currentTimeLabel} ▼
               </Text>
             </TouchableOpacity>
             {showTimeMenu && (
               <View style={styles.dropdown}>
-                {TIME_OPTIONS.map((option) => (
-                  <TouchableOpacity
-                    key={option.value}
-                    style={styles.dropdownItem}
-                    onPress={() => handleTimeChange(option.value)}
-                  >
-                    <Text
-                      style={[
-                        styles.dropdownItemText,
-                        filters.timeframe === option.value &&
-                        styles.dropdownItemActive,
-                      ]}
+                <ScrollView
+                  style={styles.dropdownScroll}
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled={true}
+                >
+                  {TIME_OPTIONS.map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={styles.dropdownItem}
+                      onPress={() => handleTimeChange(option.value)}
                     >
-                      {option.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      <Text
+                        style={[
+                          styles.dropdownItemText,
+                          filters.timeframe === option.value &&
+                          styles.dropdownItemActive,
+                        ]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
               </View>
             )}
           </View>
@@ -517,18 +550,18 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
       </View>
 
       {/* Feed */}
-      {(loading || refreshing) && victories.length === 0 ? (
+      {(loading || refreshing) && feedItems.length === 0 ? (
         // Show skeleton loaders on initial load or refresh with no data
         <>
           <VictoryCardSkeleton />
           <VictoryCardSkeleton />
           <VictoryCardSkeleton />
         </>
-      ) : victories.length === 0 && !loading && !refreshing ? (
+      ) : feedItems.length === 0 && !loading && !refreshing ? (
         renderEmpty()
       ) : (
         <>
-          {refreshing && victories.length > 0 ? (
+          {refreshing && feedItems.length > 0 ? (
             // Show skeleton loaders while refreshing with existing data
             <>
               <VictoryCardSkeleton />
@@ -536,22 +569,64 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
               <VictoryCardSkeleton />
             </>
           ) : (
-            victories.map((item) => (
-              <VictoryCardComponent
-                key={item.id}
-                victory={item}
-                onBoost={handleBoost}
-                onMeToo={item.userId !== user?.uid ? handleMeToo : undefined}
-                onPermission={item.userId !== user?.uid ? handlePermissionClick : undefined}
-                onViewPermissions={handleViewPermissions}
-              />
-            ))
+            feedItems.map((item) => {
+              if (item.type === 'journey_recap') {
+                // Render Journey Recap Card
+                return (
+                  <JourneyRecapCard
+                    key={item.id}
+                    journeyRecap={item}
+                    onBoost={handleBoost}
+                    onMeToo={item.userId !== user?.uid ? handleMeToo : undefined}
+                    onPermission={item.userId !== user?.uid ? handlePermissionClick : undefined}
+                    onViewPermissions={handleViewPermissions}
+                  />
+                );
+              } else {
+                // Render Victory Card
+                return (
+                  <VictoryCardComponent
+                    key={item.id}
+                    victory={item}
+                    onBoost={handleBoost}
+                    onMeToo={item.userId !== user?.uid ? handleMeToo : undefined}
+                    onPermission={item.userId !== user?.uid ? handlePermissionClick : undefined}
+                    onViewPermissions={handleViewPermissions}
+                  />
+                );
+              }
+            })
           )}
           {renderFooter()}
         </>
       )}
 
       </ParallaxHeader>
+
+      {/* Scroll to Top Button */}
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 100,
+          right: 20,
+          width: 48,
+          height: 48,
+          borderRadius: 12,
+          backgroundColor: 'rgba(255, 255, 255, 0.2)',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <TouchableOpacity
+          onPress={scrollToTop}
+          style={{
+            width: 48,
+            height: 48,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <ChevronUp size={24} color={themeColors.text_primary} strokeWidth={2.5} />
+        </TouchableOpacity>
+      </View>
 
       {/* Permission Slip Modal */}
       {selectedVictoryForPermission && (
@@ -626,11 +701,14 @@ const createStyles = (themeColors: any) => StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: themeColors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   filterButtonText: {
     fontSize: 12,
     fontWeight: '500',
     color: themeColors.text_primary,
+    flex: 1,
   },
   dropdown: {
     position: 'absolute',
@@ -648,16 +726,22 @@ const createStyles = (themeColors: any) => StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
+    overflow: 'hidden',
+  },
+  dropdownScroll: {
+    maxHeight: 200,
   },
   dropdownItem: {
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: themeColors.border,
+    width: '100%',
   },
   dropdownItemText: {
     fontSize: 12,
     color: themeColors.text_secondary,
+    width: '100%',
   },
   dropdownItemActive: {
     fontWeight: '600',
