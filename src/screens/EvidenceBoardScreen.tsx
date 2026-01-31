@@ -10,7 +10,7 @@ import {
   Easing,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ParallaxHeader } from "../components/ParallaxHeader";
 import {
   Color,
@@ -38,6 +38,11 @@ const EvidenceBoardScreen = ({
 }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
+  const insets = useSafeAreaInsets();
+
+  // Bottom navbar height + safe area
+  const bottomNavbarHeight = 60; // Approximate navbar height
+  const bottomPadding = bottomNavbarHeight + Math.max(insets.bottom, 8) + 20;
   const { width } = useWindowDimensions();
   const { userData } = useAuthStore();
 
@@ -160,7 +165,7 @@ const EvidenceBoardScreen = ({
         headerHeight={90}
         contentContainerStyle={{
           paddingHorizontal: 12,
-          paddingBottom: 120,
+          paddingBottom: bottomPadding,
         }}
         showsVerticalScrollIndicator={false}>
 

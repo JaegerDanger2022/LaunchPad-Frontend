@@ -208,6 +208,8 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
         onPress={handlePress}
         disabled={isLoading || isCompleted}
         activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={isCompleted ? "Goal completed" : "Mark goal as complete"}
         style={{
           width: "100%",
           height: 60,

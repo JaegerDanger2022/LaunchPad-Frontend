@@ -9,7 +9,7 @@ import {
   RefreshControl,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ParallaxHeader } from '../components/ParallaxHeader';
 import { useCommunityStore } from '../store/communityStore';
 import { useAuthStore } from '../store/authStore';
@@ -57,6 +57,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
   // Get theme
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
+  const insets = useSafeAreaInsets();
 
   // Get current user
   const { user } = useAuthStore();
@@ -182,11 +183,11 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
   // Boost handler with optimistic update
   const handleBoost = async (victoryId: string) => {
     // Optimistic UI update
-    setVictories(prev =>
-      prev.map(v =>
-        v.id === victoryId
-          ? { ...v, courageBoosts: v.courageBoosts + 1, hasUserBoosted: true }
-          : v
+    setFeedItems(prev =>
+      prev.map(item =>
+        item.id === victoryId
+          ? { ...item, courageBoosts: item.courageBoosts + 1, hasUserBoosted: true }
+          : item
       )
     );
 
@@ -200,11 +201,11 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
       });
     } catch (err) {
       // Rollback optimistic update on error
-      setVictories(prev =>
-        prev.map(v =>
-          v.id === victoryId
-            ? { ...v, courageBoosts: v.courageBoosts - 1, hasUserBoosted: false }
-            : v
+      setFeedItems(prev =>
+        prev.map(item =>
+          item.id === victoryId
+            ? { ...item, courageBoosts: item.courageBoosts - 1, hasUserBoosted: false }
+            : item
         )
       );
 
@@ -245,22 +246,22 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
 
   // Me Too handler with optimistic update
   const handleMeToo = async (victoryId: string) => {
-    const victory = victories.find(v => v.id === victoryId);
-    if (!victory) return;
+    const feedItem = feedItems.find(item => item.id === victoryId);
+    if (!feedItem) return;
 
-    const previousState = victory.hasUserMeTooed;
-    const previousCount = victory.meTooCount;
+    const previousState = feedItem.hasUserMeTooed;
+    const previousCount = feedItem.meTooCount;
 
     // Optimistic UI update
-    setVictories(prev =>
-      prev.map(v =>
-        v.id === victoryId
+    setFeedItems(prev =>
+      prev.map(item =>
+        item.id === victoryId
           ? {
-              ...v,
-              meTooCount: previousState ? v.meTooCount - 1 : v.meTooCount + 1,
+              ...item,
+              meTooCount: previousState ? item.meTooCount - 1 : item.meTooCount + 1,
               hasUserMeTooed: !previousState,
             }
-          : v
+          : item
       )
     );
 
@@ -268,11 +269,11 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
       const result = await toggleMeToo(victoryId);
 
       // Update with actual count from server
-      setVictories(prev =>
-        prev.map(v =>
-          v.id === victoryId
-            ? { ...v, meTooCount: result.newCount, hasUserMeTooed: result.added }
-            : v
+      setFeedItems(prev =>
+        prev.map(item =>
+          item.id === victoryId
+            ? { ...item, meTooCount: result.newCount, hasUserMeTooed: result.added }
+            : item
         )
       );
 
@@ -284,11 +285,11 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
       });
     } catch (err) {
       // Rollback optimistic update on error
-      setVictories(prev =>
-        prev.map(v =>
-          v.id === victoryId
-            ? { ...v, meTooCount: previousCount, hasUserMeTooed: previousState }
-            : v
+      setFeedItems(prev =>
+        prev.map(item =>
+          item.id === victoryId
+            ? { ...item, meTooCount: previousCount, hasUserMeTooed: previousState }
+            : item
         )
       );
       Toast.show({
@@ -302,9 +303,9 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
 
   // Permission slip handlers
   const handlePermissionClick = (victoryId: string) => {
-    const victory = victories.find(v => v.id === victoryId);
-    if (victory) {
-      setSelectedVictoryForPermission(victory);
+    const feedItem = feedItems.find(item => item.id === victoryId);
+    if (feedItem && feedItem.type === 'victory') {
+      setSelectedVictoryForPermission(feedItem);
       setShowPermissionModal(true);
     }
   };
@@ -316,11 +317,11 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
       const permissionText = await givePermission(selectedVictoryForPermission.id, permissionType);
 
       // Update local state - increment permission count
-      setVictories(prev =>
-        prev.map(v =>
-          v.id === selectedVictoryForPermission.id
-            ? { ...v, permissionsCount: v.permissionsCount + 1 }
-            : v
+      setFeedItems(prev =>
+        prev.map(item =>
+          item.id === selectedVictoryForPermission.id
+            ? { ...item, permissionsCount: item.permissionsCount + 1 }
+            : item
         )
       );
 
@@ -419,6 +420,10 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
 
   const styles = createStyles(themeColors);
 
+  // Bottom navbar height + safe area
+  const bottomNavbarHeight = 60; // Approximate navbar height
+  const bottomPadding = bottomNavbarHeight + Math.max(insets.bottom, 8) + 20;
+
   // Scroll to top handler
   const scrollToTop = () => {
     scrollRef.current?.scrollTo({ y: 0, animated: true });
@@ -449,7 +454,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
         parallaxHeight={200}
         headerHeight={80}
         contentContainerStyle={{
-          paddingBottom: 100,
+          paddingBottom: bottomPadding,
         }}
         showsVerticalScrollIndicator={false}
         refreshControl={

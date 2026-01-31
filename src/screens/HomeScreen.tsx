@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { AvatarIcon } from "../components/icons/SVGIcons";
 import { GoalCard, type GoalCardData } from "../components/GoalCard";
@@ -36,6 +36,7 @@ import { areDependenciesCompleted } from "../utils/dependencyChecker";
 import { fetchVictories, fetchInspirationVictories } from "../config/api";
 import { VictoryCard as VictoryCardType, CommunityFeedItem } from "../types/community";
 import { formatDate } from "../utils/communityUtils";
+import { DebugOverlay } from "../components/DebugOverlay";
 
 const HomeScreen = ({
   onNavigate,
@@ -62,9 +63,14 @@ const HomeScreen = ({
   const { userData, addToRecents, user, loadUserData, loading } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
+  const insets = useSafeAreaInsets();
 
   // Calculate column width (2 columns with 17px margins on each side and 14px gap)
   const columnWidth = (width - 34 - 14) / 2;
+
+  // Bottom navbar height + safe area
+  const bottomNavbarHeight = 60; // Approximate navbar height
+  const bottomPadding = bottomNavbarHeight + Math.max(insets.bottom, 8) + 20;
 
   useEffect(() => {
     // Update status bar based on theme
@@ -293,11 +299,12 @@ const HomeScreen = ({
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
       {/* <TopNavbar name="Ready to win, Kyla-Marie?" /> */}
       <BottomNavbar onNavigate={onNavigate} activeTab="home" />
+      <DebugOverlay />
       <Animated.ScrollView
         onScroll={handleScroll}
         scrollEventThrottle={16}
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: bottomPadding }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl

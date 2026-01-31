@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Platform, StyleSheet } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HomeIcon, DreamsIcon, EvidenceIcon } from "./icons/SVGIcons";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { useThemeStore } from "../store/themeStore";
@@ -13,6 +14,7 @@ interface BottomNavbarProps {
 export const BottomNavbar: React.FC<BottomNavbarProps> = ({ onNavigate, activeTab = "home" }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
+  const insets = useSafeAreaInsets();
 
   const tabs = [
     { id: "home", icon: HomeIcon, label: "Home", screen: "Home" },
@@ -33,6 +35,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({ onNavigate, activeTa
           borderTopColor: theme === 'dark'
             ? 'rgba(84, 84, 88, 0.3)' // iOS dark separator
             : 'rgba(0, 0, 0, 0.1)', // iOS light separator
+          paddingBottom: Math.max(insets.bottom, Platform.OS === 'ios' ? 8 : 8),
         }
       ]}>
       {tabs.map((tab) => {
@@ -78,7 +81,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    paddingBottom: Platform.OS === 'ios' ? 20 : 8, // Account for iPhone home indicator
     paddingTop: 8,
     paddingHorizontal: 8,
     borderTopWidth: 0.5,

@@ -45,7 +45,11 @@ const formatDateShort = (dateString: string) => {
   });
 };
 
-const truncateWithEllipsis = (text: string, maxWidth: number, fontSize: number) => {
+const truncateWithEllipsis = (
+  text: string,
+  maxWidth: number,
+  fontSize: number,
+) => {
   // Estimate character width based on font size
   const charWidth = fontSize * 0.55;
   const maxChars = Math.floor(maxWidth / charWidth);
@@ -162,7 +166,7 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
         </SvgText>
 
         {/* VIEW EVIDENCE link */}
-        {point.completed && (
+        {/* {point.completed && (
           <SvgText
             x="100"
             y="85"
@@ -172,7 +176,7 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
             fontFamily="sans-serif">
             <TSpan>VIEW EVIDENCE →</TSpan>
           </SvgText>
-        )}
+        )} */}
       </Svg>
     </View>
   );

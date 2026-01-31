@@ -104,7 +104,7 @@ export const HeroCard: React.FC<HeroCardProps> = ({
       <View
         style={{
           width: "100%",
-          height: 184,
+          height: 140,
           borderTopLeftRadius: 35,
           borderTopRightRadius: 35,
           backgroundColor: cardColor,

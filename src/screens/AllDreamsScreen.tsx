@@ -8,7 +8,7 @@ import {
   StatusBar,
   TouchableOpacity,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Plus } from "lucide-react-native";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { GoalCard, type GoalCardData } from "../components/GoalCard";
@@ -31,9 +31,14 @@ const AllDreamsScreen = ({
   const { userData, addToRecents } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
+  const insets = useSafeAreaInsets();
 
   // Calculate column width (2 columns with 17px margins on each side and 14px gap)
   const columnWidth = (width - 34 - 14) / 2;
+
+  // Bottom navbar height + safe area
+  const bottomNavbarHeight = 60; // Approximate navbar height
+  const bottomPadding = bottomNavbarHeight + Math.max(insets.bottom, 8) + 20;
 
   useEffect(() => {
     // Update status bar based on theme
@@ -188,7 +193,7 @@ const AllDreamsScreen = ({
         {/* Dreams Grid */}
         <Animated.ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: 100 }}
+          contentContainerStyle={{ paddingBottom: bottomPadding }}
           showsVerticalScrollIndicator={false}>
           <Animated.View
             style={{

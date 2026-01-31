@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, ScrollView, StyleSheet, Alert } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { ProfileHeader } from "../components/settings/ProfileHeader";
 import { SettingRow } from "../components/settings/SettingRow";
@@ -20,6 +20,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const { user, userData, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const themeColors = getThemeColors(theme);
+  const insets = useSafeAreaInsets();
+
+  // Bottom navbar height + safe area
+  const bottomNavbarHeight = 60; // Approximate navbar height
+  const bottomPadding = bottomNavbarHeight + Math.max(insets.bottom, 8) + 20;
 
   // Calculate user stats
   const dreamCount = userData?.dreams?.length || 0;
@@ -91,7 +96,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPadding }]}
         showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
         {userData && (
