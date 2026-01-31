@@ -50,10 +50,15 @@
       "predictiveBackGestureEnabled": false,
       "useNextNotificationsApi": true,
       "permissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ]
     },
-    "web": {
+    "web": {},
+    "extra": {
+      "eas": {
+        "projectId": "71eeb241-6659-4467-a82c-138f823c2c1d"
+      }
     }
   }
 }
