@@ -20,6 +20,12 @@
           "color": "#FF6B35",
           "sounds": []
         }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "We need microphone access to record voice messages about your dreams"
+        }
       ]
     ],
     "notification": {
@@ -30,7 +36,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.packslight.app",
-      "googleServicesFile": "./GoogleService-Info.plist"
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "We need microphone access to record voice messages about your dreams"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -41,7 +50,10 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "googleServicesFile": "./google-services.json",
-      "useNextNotificationsApi": true
+      "useNextNotificationsApi": true,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

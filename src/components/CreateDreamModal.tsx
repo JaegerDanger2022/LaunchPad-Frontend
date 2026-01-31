@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { X } from 'lucide-react-native';
@@ -16,6 +17,9 @@ import * as Haptics from 'expo-haptics';
 import { Color } from '../constants/GlobalStyles';
 import { createDream } from '../config/api';
 import { useAuthStore } from '../store/authStore';
+import { useVoiceStore } from '../store/voiceStore';
+import { VoiceModeToggle } from './voice/VoiceModeToggle';
+import { VoiceRecordingUI } from './voice/VoiceRecordingUI';
 
 interface CreateDreamModalProps {
   visible: boolean;
@@ -32,7 +36,78 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
 }) => {
   const [dreamInput, setDreamInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [inputMode, setInputMode] = useState<'text' | 'voice'>('text');
   const { user, loadUserData } = useAuthStore();
+
+  // Voice store
+  const {
+    isConnected,
+    isConnecting,
+    isRecording,
+    isPlayingResponse,
+    conversationHistory,
+    connectionError,
+    workflowThreadId,
+    extractedDreamRequest,
+    connect,
+    disconnect,
+    startRecording,
+    stopRecording,
+    reset,
+  } = useVoiceStore();
+
+  // Handle voice mode connection
+  useEffect(() => {
+    if (visible && inputMode === 'voice' && user?.uid) {
+      connect(user.uid).catch((error) => {
+        console.error('[CreateDreamModal] Connection failed:', error);
+
+        // Check if it's a permission error
+        if (error.message?.includes('permission')) {
+          Alert.alert(
+            'Microphone Permission Required',
+            'Please enable microphone access in your device settings to use voice mode.',
+            [
+              { text: 'Cancel', style: 'cancel', onPress: () => setInputMode('text') },
+              { text: 'Open Settings', onPress: () => Linking.openSettings() },
+            ]
+          );
+        } else {
+          Alert.alert(
+            'Connection Failed',
+            'Failed to connect to voice service. Please try again or use text mode.',
+            [{ text: 'OK', onPress: () => setInputMode('text') }]
+          );
+        }
+      });
+    }
+
+    return () => {
+      if (inputMode === 'voice') {
+        disconnect();
+      }
+    };
+  }, [visible, inputMode, user?.uid, connect, disconnect]);
+
+  // Handle workflow completion from voice
+  useEffect(() => {
+    if (workflowThreadId && extractedDreamRequest && user?.uid) {
+      console.log('[CreateDreamModal] Voice workflow completed:', workflowThreadId);
+
+      // Close modal
+      onClose();
+
+      // Show loading screen
+      onDreamCreating?.();
+
+      // Reload user data to get the new dream
+      loadUserData(user.uid).then(() => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        onDreamCreated?.();
+        reset();
+      });
+    }
+  }, [workflowThreadId, extractedDreamRequest, user?.uid, onClose, onDreamCreating, onDreamCreated, loadUserData, reset]);
 
   const handleCreateDream = async () => {
     if (!dreamInput.trim()) {
@@ -84,6 +159,24 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
     }
   };
 
+  const handleModeChange = (mode: 'text' | 'voice') => {
+    setInputMode(mode);
+    if (mode === 'text') {
+      disconnect();
+      reset();
+    }
+  };
+
+  const handleClose = () => {
+    if (inputMode === 'voice') {
+      disconnect();
+      reset();
+    }
+    setDreamInput('');
+    setInputMode('text');
+    onClose();
+  };
+
   return (
     <Modal
       visible={visible}
@@ -110,6 +203,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
               paddingTop: 24,
               paddingBottom: 32,
               minHeight: 300,
+              maxHeight: '80%',
               shadowColor: '#000',
               shadowOffset: { width: 0, height: -4 },
               shadowOpacity: 0.1,
@@ -118,7 +212,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
             }}>
             {/* Close Button */}
             <TouchableOpacity
-              onPress={onClose}
+              onPress={handleClose}
               style={{ alignSelf: 'flex-end', marginBottom: 16 }}>
               <X size={24} color={Color.colorBlack} />
             </TouchableOpacity>
@@ -143,14 +237,25 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                 color: '#A0A0A0',
                 fontFamily: 'InstrumentSans-Regular',
                 textAlign: 'center',
-                marginBottom: 24,
+                marginBottom: 16,
                 lineHeight: 20,
               }}>
               Describe what you want to achieve. Be as specific as possible.
             </Text>
 
-            {/* Input Field */}
-            <TextInput
+            {/* Mode Toggle */}
+            <View style={{ marginBottom: 24 }}>
+              <VoiceModeToggle
+                mode={inputMode}
+                onModeChange={handleModeChange}
+                disabled={loading || isRecording || isPlayingResponse}
+              />
+            </View>
+
+            {/* Text Input Mode */}
+            {inputMode === 'text' ? (
+              <>
+                <TextInput
               style={{
                 backgroundColor: Color.colorWhite,
                 borderWidth: 1,
@@ -171,10 +276,10 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
               editable={!loading}
               value={dreamInput}
               onChangeText={setDreamInput}
-            />
+                />
 
-            {/* Create Button */}
-            <TouchableOpacity
+                {/* Create Button */}
+                <TouchableOpacity
               onPress={handleCreateDream}
               disabled={loading || !dreamInput.trim()}
               activeOpacity={0.8}
@@ -207,30 +312,47 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                   </Text>
                 )}
               </LinearGradient>
-            </TouchableOpacity>
+                </TouchableOpacity>
+              </>
+            ) : (
+              /* Voice Input Mode */
+              <VoiceRecordingUI
+                isConnected={isConnected}
+                isConnecting={isConnecting}
+                isRecording={isRecording}
+                isPlayingResponse={isPlayingResponse}
+                conversationHistory={conversationHistory}
+                connectionError={connectionError}
+                onRecordStart={startRecording}
+                onRecordEnd={stopRecording}
+                onCancel={handleClose}
+              />
+            )}
 
-            {/* Cancel Button */}
-            <TouchableOpacity
-              onPress={onClose}
-              disabled={loading}
-              activeOpacity={0.7}>
-              <View
-                style={{
-                  paddingVertical: 12,
-                  alignItems: 'center',
-                  opacity: loading ? 0.6 : 1,
-                }}>
-                <Text
+            {/* Cancel Button - Only show in text mode */}
+            {inputMode === 'text' && (
+              <TouchableOpacity
+                onPress={handleClose}
+                disabled={loading}
+                activeOpacity={0.7}>
+                <View
                   style={{
-                    fontSize: 16,
-                    color: '#A0A0A0',
-                    fontFamily: 'InstrumentSans-Regular',
-                    fontWeight: '500',
+                    paddingVertical: 12,
+                    alignItems: 'center',
+                    opacity: loading ? 0.6 : 1,
                   }}>
-                  Cancel
-                </Text>
-              </View>
-            </TouchableOpacity>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: '#A0A0A0',
+                      fontFamily: 'InstrumentSans-Regular',
+                      fontWeight: '500',
+                    }}>
+                    Cancel
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
           </View>
         </KeyboardAvoidingView>
       </View>
