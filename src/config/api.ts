@@ -540,7 +540,7 @@ export interface FetchVictoriesParams {
 
 export async function fetchVictories(
   params: FetchVictoriesParams,
-): Promise<VictoriesResponse> {
+): Promise<import("../types/community").CommunityFeedResponse> {
   try {
     const url = new URL(`${API_BASE_URL}/victories`);
 
@@ -573,12 +573,21 @@ export async function fetchVictories(
     }
 
     const result = await response.json();
-    console.log(
-      "[fetchVictories] Success, got",
-      result.victories.length,
-      "victories",
-    );
-    return result as VictoriesResponse;
+
+    // Handle both old format (victories array) and new format (feed array)
+    // For backwards compatibility with backend that hasn't been updated yet
+    if (result.feed) {
+      // New format: mixed feed with victories and journey recaps
+      console.log("[fetchVictories] Success, got", result.feed.length, "feed items");
+      return result as import("../types/community").CommunityFeedResponse;
+    } else {
+      // Old format: only victories - convert to new format
+      console.log("[fetchVictories] Success, got", result.victories.length, "victories (old format)");
+      return {
+        feed: result.victories.map((v: any) => ({ ...v, type: 'victory_card' as const })),
+        pagination: result.pagination,
+      };
+    }
   } catch (error: any) {
     console.error("[fetchVictories] Error:", error.message);
     throw error;
@@ -905,6 +914,149 @@ export async function fetchInspirationVictories(
   }
 }
 
+// Journey Recap Interaction APIs
+
+export async function boostJourneyRecap(
+  journeyRecapId: string,
+  giverUserId: string
+): Promise<import("../types/community").CourageBoostResponse> {
+  try {
+    const url = `${API_BASE_URL}/journey-recaps/${journeyRecapId}/boost?giver_user_id=${encodeURIComponent(giverUserId)}`;
+    console.log("[boostJourneyRecap] Boosting at:", url);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    console.log("[boostJourneyRecap] Response status:", response.status);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log("[boostJourneyRecap] Success:", result);
+    return result as import("../types/community").CourageBoostResponse;
+  } catch (error: any) {
+    console.error("[boostJourneyRecap] Error:", error.message);
+    throw error;
+  }
+}
+
+export async function giveJourneyRecapPermission(
+  journeyRecapId: string,
+  giverUserId: string,
+  data: import("../types/community").GivePermissionRequest
+): Promise<import("../types/community").GivePermissionResponse> {
+  try {
+    const url = `${API_BASE_URL}/journey-recaps/${journeyRecapId}/permission?giver_user_id=${encodeURIComponent(giverUserId)}`;
+    console.log("[giveJourneyRecapPermission] Giving permission at:", url);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    console.log("[giveJourneyRecapPermission] Response status:", response.status);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log("[giveJourneyRecapPermission] Success:", result);
+    return result as import("../types/community").GivePermissionResponse;
+  } catch (error: any) {
+    console.error("[giveJourneyRecapPermission] Error:", error.message);
+    throw error;
+  }
+}
+
+export async function toggleJourneyRecapMeToo(
+  journeyRecapId: string,
+  userId: string
+): Promise<import("../types/community").MeTooResponse> {
+  try {
+    const url = `${API_BASE_URL}/journey-recaps/${journeyRecapId}/metoo?user_id=${encodeURIComponent(userId)}`;
+    console.log("[toggleJourneyRecapMeToo] Toggling at:", url);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    console.log("[toggleJourneyRecapMeToo] Response status:", response.status);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log("[toggleJourneyRecapMeToo] Success:", result);
+    return result as import("../types/community").MeTooResponse;
+  } catch (error: any) {
+    console.error("[toggleJourneyRecapMeToo] Error:", error.message);
+    throw error;
+  }
+}
+
+export async function getJourneyRecapPermissions(
+  journeyRecapId: string
+): Promise<import("../types/community").GetPermissionsResponse> {
+  try {
+    const url = `${API_BASE_URL}/journey-recaps/${journeyRecapId}/permissions`;
+    console.log("[getJourneyRecapPermissions] Fetching from:", url);
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    console.log("[getJourneyRecapPermissions] Response status:", response.status);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log("[getJourneyRecapPermissions] Success:", result);
+    return result as import("../types/community").GetPermissionsResponse;
+  } catch (error: any) {
+    console.error("[getJourneyRecapPermissions] Error:", error.message);
+    throw error;
+  }
+}
+
 export async function createJourneyRecap(
   data: import("../types/community").CreateJourneyRecapRequest,
   userId: string,
@@ -952,6 +1104,133 @@ export async function createJourneyRecap(
     return result as import("../types/community").CreateJourneyRecapResponse;
   } catch (error: any) {
     console.error("[createJourneyRecap] Error:", error.message);
+    throw error;
+  }
+}
+
+// ============================================================================
+// NOTIFICATION ENDPOINTS
+// ============================================================================
+
+/**
+ * Save user's push token to backend
+ */
+export async function savePushToken(
+  userId: string,
+  pushToken: string
+): Promise<void> {
+  try {
+    console.log(`[savePushToken] Saving push token for user: ${userId}`);
+
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/push-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ pushToken }),
+    });
+
+    console.log(`[savePushToken] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log('[savePushToken] Success:', result);
+  } catch (error: any) {
+    console.error('[savePushToken] Error:', error.message);
+    // Don't throw - allow app to continue even if token save fails
+  }
+}
+
+/**
+ * Update user's last activity timestamp
+ */
+export async function updateLastActivity(userId: string): Promise<void> {
+  try {
+    console.log(`[updateLastActivity] Updating last activity for user: ${userId}`);
+
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/activity`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        last_activity: new Date().toISOString(),
+      }),
+    });
+
+    console.log(`[updateLastActivity] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log('[updateLastActivity] Success:', result);
+  } catch (error: any) {
+    console.error('[updateLastActivity] Error:', error.message);
+    // Don't throw - allow app to continue
+  }
+}
+
+/**
+ * Update user's notification preferences
+ */
+export async function updateNotificationPreferences(
+  userId: string,
+  preferences: {
+    dailyCheckIn: boolean;
+    comebackAlert: boolean;
+    preferredTime: string;
+  }
+): Promise<void> {
+  try {
+    console.log(`[updateNotificationPreferences] Updating preferences for user: ${userId}`);
+
+    const response = await fetch(
+      `${API_BASE_URL}/users/${userId}/notification-preferences`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(preferences),
+      }
+    );
+
+    console.log(`[updateNotificationPreferences] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log('[updateNotificationPreferences] Success:', result);
+  } catch (error: any) {
+    console.error('[updateNotificationPreferences] Error:', error.message);
     throw error;
   }
 }

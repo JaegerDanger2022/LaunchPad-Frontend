@@ -38,6 +38,7 @@ export const CommunityWinCardSkeleton: React.FC = () => {
   // Theme-aware skeleton colors
   const skeletonColor = theme === "dark" ? "#d1d1d1" : "#D0D0D0";
 
+  
   return (
     <LinearGradient
       colors={[themeColors.bg_secondary, themeColors.bg_secondary]}

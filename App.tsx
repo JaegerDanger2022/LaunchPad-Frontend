@@ -21,6 +21,7 @@ import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
 import { ChangePasswordScreen } from './src/screens/auth/ChangePasswordScreen';
 import { useAuthStore } from './src/store/authStore';
 import { useThemeStore } from './src/store/themeStore';
+import { useNotificationStore } from './src/store/notificationStore';
 import { Color } from './src/constants/GlobalStyles';
 import Toast from 'react-native-toast-message';
 import { configureRevenueCat } from './src/config/revenuecat';
@@ -380,6 +381,7 @@ function AppNavigator() {
 export default function App() {
   const { isAuthenticated, loading, initializeAuth } = useAuthStore();
   const { theme } = useThemeStore();
+  const { initializeNotifications } = useNotificationStore();
 
   useEffect(() => {
     // Initialize RevenueCat SDK
@@ -391,6 +393,14 @@ export default function App() {
     // Initialize auth (will also identify user in RevenueCat if logged in)
     initializeAuth();
   }, []);
+
+  // Initialize notifications after user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && !loading) {
+      console.log('[App] User authenticated, initializing notifications...');
+      initializeNotifications();
+    }
+  }, [isAuthenticated, loading]);
 
   return (
     <NavigationContainer>

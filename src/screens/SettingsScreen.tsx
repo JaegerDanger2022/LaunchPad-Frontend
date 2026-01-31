@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { ProfileHeader } from "../components/settings/ProfileHeader";
 import { SettingRow } from "../components/settings/SettingRow";
+import { StatsRings } from "../components/settings/StatsRings";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { getThemeColors } from "../constants/GlobalStyles";
@@ -116,73 +117,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 borderColor: themeColors.border,
               },
             ]}>
-            <View style={styles.statsGrid}>
-              <View style={styles.statItem}>
-                <Text
-                  style={[
-                    styles.statValue,
-                    { color: themeColors.text_primary },
-                  ]}>
-                  {currentStreak}
-                </Text>
-                <Text
-                  style={[
-                    styles.statLabel,
-                    { color: themeColors.text_secondary },
-                  ]}>
-                  Day Streak
-                </Text>
-              </View>
-              {/* Muted: User-level courage points - may be re-enabled later */}
-              {/* <View style={styles.statItem}>
-                <Text
-                  style={[
-                    styles.statValue,
-                    { color: themeColors.text_primary },
-                  ]}>
-                  {couragePoints}
-                </Text>
-                <Text
-                  style={[
-                    styles.statLabel,
-                    { color: themeColors.text_secondary },
-                  ]}>
-                  Courage Points
-                </Text>
-              </View> */}
-              <View style={styles.statItem}>
-                <Text
-                  style={[
-                    styles.statValue,
-                    { color: themeColors.text_primary },
-                  ]}>
-                  {dreamCount}
-                </Text>
-                <Text
-                  style={[
-                    styles.statLabel,
-                    { color: themeColors.text_secondary },
-                  ]}>
-                  Dreams
-                </Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text
-                  style={[
-                    styles.statValue,
-                    { color: themeColors.text_primary },
-                  ]}>
-                  {completedMilestones}
-                </Text>
-                <Text
-                  style={[
-                    styles.statLabel,
-                    { color: themeColors.text_secondary },
-                  ]}>
-                  Milestones Completed
-                </Text>
-              </View>
-            </View>
+            <StatsRings
+              currentStreak={currentStreak}
+              dreamCount={dreamCount}
+              completedMilestones={completedMilestones}
+            />
           </View>
         </View>
 
@@ -315,25 +254,5 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     overflow: "hidden",
-  },
-  statsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    padding: 20,
-  },
-  statItem: {
-    width: "50%",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  statValue: {
-    fontSize: 32,
-    fontWeight: "700",
-    fontFamily: "InstrumentSans-Bold",
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 14,
-    fontFamily: "InstrumentSans-Regular",
   },
 });

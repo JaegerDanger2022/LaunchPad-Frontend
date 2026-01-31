@@ -15,6 +15,7 @@ export const StreakStatsScreen = ({ onNavigate }: { onNavigate?: (screen: string
   const themeColors = getThemeColors(theme);
 
   const translateY = useRef(new Animated.Value(0)).current;
+  const backdropOpacity = useRef(new Animated.Value(1)).current;
   const lastGestureDy = useRef(0);
 
   const panResponder = useRef(
@@ -35,12 +36,19 @@ export const StreakStatsScreen = ({ onNavigate }: { onNavigate?: (screen: string
       },
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dy > DRAG_THRESHOLD || gestureState.vy > 0.5) {
-          // Close the modal
-          Animated.timing(translateY, {
-            toValue: SCREEN_HEIGHT,
-            duration: 250,
-            useNativeDriver: true,
-          }).start(() => {
+          // Close the modal - fade out backdrop and slide down content
+          Animated.parallel([
+            Animated.timing(translateY, {
+              toValue: SCREEN_HEIGHT,
+              duration: 250,
+              useNativeDriver: true,
+            }),
+            Animated.timing(backdropOpacity, {
+              toValue: 0,
+              duration: 250,
+              useNativeDriver: true,
+            }),
+          ]).start(() => {
             onNavigate?.('Home');
           });
         } else {
@@ -75,7 +83,16 @@ export const StreakStatsScreen = ({ onNavigate }: { onNavigate?: (screen: string
   }
 
   return (
-    <View style={[styles.modalContainer, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
+    <View style={styles.modalContainer}>
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            opacity: backdropOpacity,
+          }
+        ]}
+      />
       <Animated.View
         style={[
           styles.animatedContent,

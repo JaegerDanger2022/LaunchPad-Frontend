@@ -419,9 +419,21 @@ export const useAuthStore = create<AuthState>((set) => ({
       // Deep copy to avoid mutations
       const updatedUserData = JSON.parse(JSON.stringify(state.userData));
       updatedUserData.streak = streakData;
+      updatedUserData.last_activity = new Date().toISOString();
 
       return { userData: updatedUserData };
     });
+
+    // Update notification store with last activity
+    // Import is done dynamically to avoid circular dependencies
+    setTimeout(() => {
+      try {
+        const { useNotificationStore } = require('./notificationStore');
+        useNotificationStore.getState().updateLastActivity();
+      } catch (error) {
+        console.error('[AuthStore] Failed to update notification store:', error);
+      }
+    }, 0);
   },
 
   updateCouragePoints: (amount: number) => {

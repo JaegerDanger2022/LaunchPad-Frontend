@@ -74,8 +74,24 @@ export interface CourageBoost {
   createdAt: string;
 }
 
+// Union type for community feed items
+export type CommunityFeedItem =
+  | (VictoryCard & { type: 'victory_card' })
+  | (JourneyRecap & { type: 'journey_recap' });
+
 export interface VictoriesResponse {
   victories: VictoryCard[];
+  pagination: {
+    page: number;
+    limit: number;
+    totalPages: number;
+    totalCount: number;
+  };
+}
+
+// New response type for mixed feed
+export interface CommunityFeedResponse {
+  feed: CommunityFeedItem[];
   pagination: {
     page: number;
     limit: number;

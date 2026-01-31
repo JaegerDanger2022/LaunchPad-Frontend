@@ -22,6 +22,7 @@ interface ParallaxHeaderProps extends ScrollViewProps {
   headerHeight?: number;
   titleStyle?: StyleProp<TextStyle>;
   subtitleStyle?: StyleProp<TextStyle>;
+  stickyHeaderTitleStyle?: StyleProp<TextStyle>;
   onEndReached?: () => void;
   onEndReachedThreshold?: number;
   children: React.ReactNode;
@@ -36,6 +37,7 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
   headerHeight = 90,
   titleStyle,
   subtitleStyle,
+  stickyHeaderTitleStyle,
   onEndReached,
   onEndReachedThreshold = 0.5,
   children,
@@ -198,7 +200,7 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
               fontWeight: 'bold',
               color: '#FFFFFF',
             },
-            titleStyle,
+            stickyHeaderTitleStyle,
           ]}>
           {title}
         </Text>
