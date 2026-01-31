@@ -150,7 +150,13 @@ const MilestoneScreen = ({
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponderCapture: () => false,
+      onMoveShouldSetPanResponder: (_evt, gestureState) => {
+        // Only activate pan responder if dragging vertically more than horizontally
+        // and moving downward (dy > 0)
+        return Math.abs(gestureState.dy) > Math.abs(gestureState.dx) && gestureState.dy > 5;
+      },
+      onMoveShouldSetPanResponderCapture: () => false,
       onPanResponderMove: (_evt, gestureState) => {
         if (gestureState.dy > 0) {
           // Only allow downward drag
