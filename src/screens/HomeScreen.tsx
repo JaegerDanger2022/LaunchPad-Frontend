@@ -34,7 +34,7 @@ import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { areDependenciesCompleted } from "../utils/dependencyChecker";
 import { fetchVictories, fetchInspirationVictories } from "../config/api";
-import { VictoryCard as VictoryCardType } from "../types/community";
+import { VictoryCard as VictoryCardType, CommunityFeedItem } from "../types/community";
 import { formatDate } from "../utils/communityUtils";
 
 const HomeScreen = ({
@@ -45,8 +45,8 @@ const HomeScreen = ({
   const [activeTab, setActiveTab] = useState<TabType>("recents");
   const [isAtBottom, setIsAtBottom] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [recentVictories, setRecentVictories] = useState<VictoryCardType[]>([]);
-  const [inspirationVictories, setInspirationVictories] = useState<VictoryCardType[]>([]);
+  const [recentVictories, setRecentVictories] = useState<CommunityFeedItem[]>([]);
+  const [inspirationVictories, setInspirationVictories] = useState<CommunityFeedItem[]>([]);
   const [inspirationLoading, setInspirationLoading] = useState(true);
   const [recentVictoriesLoading, setRecentVictoriesLoading] = useState(true);
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
@@ -89,7 +89,9 @@ const HomeScreen = ({
     setRecentVictoriesLoading(true);
     try {
       const response = await fetchVictories({ page: 1, limit: 10 });
-      setRecentVictories(response.victories.slice(0, 10)); // Show 10 recent wins
+      // Filter to only show victory cards (not journey recaps) for recent wins section
+      const victoryCards = response.feed?.filter(item => item.type === 'victory_card').slice(0, 10) || [];
+      setRecentVictories(victoryCards);
     } catch (error) {
       console.error("Failed to load recent victories:", error);
       setRecentVictories([]);
@@ -105,7 +107,9 @@ const HomeScreen = ({
     setInspirationLoading(true);
     try {
       const response = await fetchInspirationVictories(user.uid);
-      setInspirationVictories(response.victories);
+      // Add type field to make it compatible with CommunityFeedItem
+      const victoryCards = response.victories.map(v => ({ ...v, type: 'victory_card' as const }));
+      setInspirationVictories(victoryCards);
     } catch (error) {
       console.error("Failed to load inspiration victories:", error);
       setInspirationVictories([]);
@@ -463,7 +467,12 @@ const HomeScreen = ({
                     snapToInterval={width - 20}
                     decelerationRate="fast"
                     style={{ marginLeft: -17 }}>
-                    {inspirationVictories.map((victory) => (
+                    {inspirationVictories.map((item) => {
+                      // Type guard - we've already added type field
+                      if (item.type !== 'victory_card') return null;
+                      const victory = item;
+
+                      return (
                       <View key={victory.id} style={{ width: width - 20 }}>
                         <VictoryCard
                           victory={victory}
@@ -473,7 +482,8 @@ const HomeScreen = ({
                           }}
                         />
                       </View>
-                    ))}
+                      );
+                    })}
                   </Animated.ScrollView>
                 ) : (
                   /* No Inspiration Yet Placeholder */
@@ -621,7 +631,12 @@ const HomeScreen = ({
                   decelerationRate="fast"
                   pagingEnabled={false}
                   style={{ marginLeft: -17 }}>
-                  {recentVictories.map((victory, index) => (
+                  {recentVictories.map((item, index) => {
+                    // Type guard - we've already filtered to only victory cards
+                    if (item.type !== 'victory_card') return null;
+                    const victory = item;
+
+                    return (
                   <LinearGradient
                     key={victory.id}
                     colors={[themeColors.bg_secondary, themeColors.bg_secondary]}
@@ -669,14 +684,6 @@ const HomeScreen = ({
                             fontSize: 16,
                           }}>
                           {victory.userDisplayName}
-                        </Text>
-                        <Text
-                          style={{
-                            color: "#A0A0A0",
-                            fontSize: 12,
-                            fontFamily: "InstrumentSans-Regular",
-                          }}>
-                          {victory.dreamTitle}
                         </Text>
                       </View>
                     </View>
@@ -766,7 +773,8 @@ const HomeScreen = ({
                       </Text>
                     </View>
                   </LinearGradient>
-                ))}
+                    );
+                  })}
                 </Animated.ScrollView>
               ) : (
                 <View style={{ paddingVertical: 20 }}>
