@@ -59,8 +59,11 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
   // Handle voice mode connection
   useEffect(() => {
     if (visible && inputMode === 'voice' && user?.uid) {
+      console.log('[CreateDreamModal] Attempting to connect to voice service for user:', user.uid);
       connect(user.uid).catch((error) => {
         console.error('[CreateDreamModal] Connection failed:', error);
+        console.error('[CreateDreamModal] Error message:', error.message);
+        console.error('[CreateDreamModal] Error stack:', error.stack);
 
         // Check if it's a permission error
         if (error.message?.includes('permission')) {
@@ -75,7 +78,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
         } else {
           Alert.alert(
             'Connection Failed',
-            'Failed to connect to voice service. Please try again or use text mode.',
+            `Failed to connect to voice service: ${error.message}\n\nPlease try again or use text mode.`,
             [{ text: 'OK', onPress: () => setInputMode('text') }]
           );
         }

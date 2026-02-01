@@ -18,7 +18,7 @@ class VoiceServiceClass {
    */
   private getWebSocketURL(): string {
     // Convert HTTP(S) to WS(S)
-    const wsUrl = API_BASE_URL.replace(/^https?:\/\//i, (match) =>
+    const wsUrl = API_BASE_URL.replace(/^https?:\/\//i, (match: string) =>
       match.toLowerCase().startsWith('https') ? 'wss://' : 'ws://'
     );
 
@@ -36,7 +36,7 @@ class VoiceServiceClass {
         this.callbacks = callbacks;
 
         const wsBaseUrl = this.getWebSocketURL();
-        const wsUrl = `${wsBaseUrl}/ws/${userId}`;
+        const wsUrl = `${wsBaseUrl}/voice/ws/${userId}`;
 
         console.log('[VoiceService] Connecting to:', wsUrl);
 
@@ -59,18 +59,26 @@ class VoiceServiceClass {
 
         this.ws.onerror = (error) => {
           console.error('[VoiceService] WebSocket error:', error);
-          const errorObj = new Error('WebSocket connection error');
+          console.error('[VoiceService] WebSocket URL was:', wsUrl);
+          console.error('[VoiceService] Error details:', JSON.stringify(error, null, 2));
+          const errorObj = new Error(`WebSocket connection error - attempted to connect to ${wsUrl}`);
           this.callbacks?.onError(errorObj);
           reject(errorObj);
         };
 
         this.ws.onclose = (event) => {
           console.log('[VoiceService] WebSocket closed:', event.code, event.reason);
+          console.log('[VoiceService] Close was clean:', event.wasClean);
+          console.log('[VoiceService] WebSocket URL was:', wsUrl);
           this.callbacks?.onConnectionChange(false);
 
           // Attempt reconnection if not intentional disconnect
           if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
             this.attemptReconnect();
+          } else if (event.code !== 1000) {
+            // Max reconnect attempts reached
+            const errorMsg = event.reason || `WebSocket closed with code ${event.code}`;
+            this.callbacks?.onError(new Error(errorMsg));
           }
         };
       } catch (error) {
