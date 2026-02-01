@@ -128,27 +128,32 @@ export class AudioRecordingService {
    */
   async playAudioResponse(base64Audio: string): Promise<void> {
     try {
-      console.log('[AudioRecording] Playing audio response...');
+      console.log('[AudioRecording] Playing audio response, size:', base64Audio.length);
 
       // Stop any existing playback
       await this.stopPlayback();
 
-      // Write base64 to temporary file using new File API
-      const file = new File(Paths.cache, `voice_response_${Date.now()}.m4a`);
+      // Gemini sends PCM audio - save as WAV for compatibility
+      const file = new File(Paths.cache, `voice_response_${Date.now()}.wav`);
 
       // Convert base64 to binary
       const binaryString = atob(base64Audio);
-      const bytes = new Uint8Array(binaryString.length);
+      const audioData = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
+        audioData[i] = binaryString.charCodeAt(i);
       }
+
+      // Write WAV file with header for 16-bit PCM, 24kHz, mono
+      const wavData = this.createWavFile(audioData, 24000, 1, 16);
 
       // Write to file
       await file.create();
       const writable = file.writableStream();
       const writer = writable.getWriter();
-      await writer.write(bytes);
+      await writer.write(wavData);
       await writer.close();
+
+      console.log('[AudioRecording] WAV file written:', file.uri);
 
       // Create sound instance
       const { sound } = await Audio.Sound.createAsync(
@@ -162,6 +167,59 @@ export class AudioRecordingService {
     } catch (error) {
       console.error('[AudioRecording] Failed to play audio:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Create a WAV file from raw PCM data
+   */
+  private createWavFile(
+    pcmData: Uint8Array,
+    sampleRate: number,
+    numChannels: number,
+    bitsPerSample: number
+  ): Uint8Array {
+    const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;
+    const blockAlign = (numChannels * bitsPerSample) / 8;
+    const dataSize = pcmData.length;
+    const headerSize = 44;
+    const fileSize = headerSize + dataSize - 8;
+
+    const buffer = new ArrayBuffer(headerSize + dataSize);
+    const view = new DataView(buffer);
+    const data = new Uint8Array(buffer);
+
+    // RIFF chunk descriptor
+    this.writeString(view, 0, 'RIFF');
+    view.setUint32(4, fileSize, true);
+    this.writeString(view, 8, 'WAVE');
+
+    // fmt sub-chunk
+    this.writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
+    view.setUint16(20, 1, true); // AudioFormat (1 for PCM)
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitsPerSample, true);
+
+    // data sub-chunk
+    this.writeString(view, 36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    // Write PCM data
+    data.set(pcmData, headerSize);
+
+    return new Uint8Array(buffer);
+  }
+
+  /**
+   * Helper to write ASCII string to DataView
+   */
+  private writeString(view: DataView, offset: number, string: string): void {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
     }
   }
 
