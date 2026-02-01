@@ -133,20 +133,20 @@ export class AudioRecordingService {
       // Stop any existing playback
       await this.stopPlayback();
 
-      // Gemini sends PCM audio - save as WAV for compatibility
+      // Gemini sends raw PCM audio (16-bit, 16kHz, mono) - need to wrap in WAV
       const file = new File(Paths.cache, `voice_response_${Date.now()}.wav`);
 
-      // Convert base64 to binary
+      // Convert base64 to binary PCM data
       const binaryString = atob(base64Audio);
-      const audioData = new Uint8Array(binaryString.length);
+      const pcmData = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
-        audioData[i] = binaryString.charCodeAt(i);
+        pcmData[i] = binaryString.charCodeAt(i);
       }
 
-      // Write WAV file with header for 16-bit PCM, 24kHz, mono
-      const wavData = this.createWavFile(audioData, 24000, 1, 16);
+      // Create WAV file from PCM data (Gemini uses 16kHz, 16-bit, mono per API docs)
+      const wavData = this.createWavFile(pcmData, 16000, 1, 16);
 
-      // Write to file
+      // Write WAV file
       await file.create();
       const writable = file.writableStream();
       const writer = writable.getWriter();
@@ -155,17 +155,30 @@ export class AudioRecordingService {
 
       console.log('[AudioRecording] WAV file written:', file.uri);
 
-      // Create sound instance
+      // Set audio mode for playback
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
+
+      // Create sound instance and play
       const { sound } = await Audio.Sound.createAsync(
         { uri: file.uri },
-        { shouldPlay: true },
+        { shouldPlay: true, volume: 1.0 },
         this._onPlaybackStatusUpdate
       );
 
       this.sound = sound;
-      console.log('[AudioRecording] Audio playback started');
+
+      // Explicitly start playback
+      const playbackStatus = await sound.playAsync();
+      console.log('[AudioRecording] Audio playback started, status:', playbackStatus);
     } catch (error) {
       console.error('[AudioRecording] Failed to play audio:', error);
+      console.error('[AudioRecording] Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
       throw error;
     }
   }
