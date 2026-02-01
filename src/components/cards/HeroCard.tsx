@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Animated } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 import LottieView from "lottie-react-native";
 import { Lock } from "lucide-react-native";
 import { ClockIcon, LightningIcon, ArrowRightIcon } from "../icons/SVGIcons";
@@ -134,45 +135,81 @@ export const HeroCard: React.FC<HeroCardProps> = ({
           width: 159,
           zIndex: 5,
         }}>
-        <LinearGradient
+        <View
           style={{
-            backgroundColor: "transparent",
             borderRadius: 35,
             height: 42,
             width: 100,
-            justifyContent: "center",
-            alignItems: "center",
+            overflow: "hidden",
+          }}>
+          <LinearGradient
+            style={{
+              backgroundColor: "transparent",
+              borderRadius: 35,
+              height: 42,
+              width: 100,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            locations={[0, 1]}
+            colors={generateGradientColors(cardColor)}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}>
+            <BlurView
+              intensity={30}
+              tint="light"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+            />
+            <Text
+              style={{
+                color: Color.colorWhite,
+                fontFamily: "InstrumentSans-Bold",
+                fontWeight: "700",
+                fontSize: 20,
+                textAlign: "center",
+                zIndex: 1,
+              }}>
+              {badge}
+            </Text>
+          </LinearGradient>
+        </View>
+      </View>
+
+      {/* Gradient Background with Frosted Glass Effect for Bottom Section */}
+      <View
+        style={{
+          width: "100%",
+          borderBottomLeftRadius: 35,
+          borderBottomRightRadius: 35,
+          overflow: "hidden",
+        }}>
+        <LinearGradient
+          style={{
+            width: "100%",
+            paddingHorizontal: 20,
+            paddingVertical: 15,
           }}
           locations={[0, 1]}
           colors={generateGradientColors(cardColor)}
           start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}>
-          <Text
+          end={{ x: 0, y: 1 }}>
+          <BlurView
+            intensity={40}
+            tint="light"
             style={{
-              color: Color.colorWhite,
-              fontFamily: "InstrumentSans-Bold",
-              fontWeight: "700",
-              fontSize: 20,
-              textAlign: "center",
-            }}>
-            {badge}
-          </Text>
-        </LinearGradient>
-      </View>
-
-      {/* Gradient Background for Bottom Section */}
-      <LinearGradient
-        style={{
-          width: "100%",
-          paddingHorizontal: 20,
-          paddingVertical: 15,
-          borderBottomLeftRadius: 35,
-          borderBottomRightRadius: 35,
-        }}
-        locations={[0, 1]}
-        colors={generateGradientColors(cardColor)}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}>
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          />
         {/* Task Title */}
         <Text
           style={{
@@ -310,7 +347,8 @@ export const HeroCard: React.FC<HeroCardProps> = ({
             <ArrowRightIcon size={20} color={cardColor} />
           </View>
         </TouchableOpacity>
-      </LinearGradient>
+        </LinearGradient>
+      </View>
 
       {/* Locked Overlay */}
       {isLocked && (

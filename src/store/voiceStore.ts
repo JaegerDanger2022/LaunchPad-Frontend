@@ -60,19 +60,25 @@ export const useVoiceStore = create<VoiceStore>((set, get) => ({
       // Connect to WebSocket
       await VoiceService.connect(userId, {
         onAudioResponse: async (base64Audio: string) => {
-          console.log('[VoiceStore] Received audio response');
-          set({ isPlayingResponse: true });
+          console.log('[VoiceStore] Received audio response, skipping playback (Expo Go limitation)');
 
+          // Skip audio playback in Expo Go - rely on text responses instead
+          // Audio playback requires native build due to WAV file creation
+          set({ isPlayingResponse: false });
+
+          // Uncomment below for development builds with native code:
+          /*
+          set({ isPlayingResponse: true });
           try {
             await audioRecorder.playAudioResponse(base64Audio);
           } catch (error) {
             console.error('[VoiceStore] Error playing audio:', error);
           } finally {
-            // Small delay to ensure playback completes
             setTimeout(() => {
               set({ isPlayingResponse: false });
             }, 500);
           }
+          */
         },
 
         onTextResponse: (text: string) => {

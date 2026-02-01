@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView, StyleSheet, Alert } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { BlurView } from "expo-blur";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { ProfileHeader } from "../components/settings/ProfileHeader";
 import { SettingRow } from "../components/settings/SettingRow";
@@ -118,15 +119,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             style={[
               styles.card,
               {
-                backgroundColor: themeColors.bg_secondary,
-                borderColor: themeColors.border,
+                borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
               },
             ]}>
-            <StatsRings
-              currentStreak={currentStreak}
-              dreamCount={dreamCount}
-              completedMilestones={completedMilestones}
-            />
+            <BlurView
+              intensity={60}
+              tint={theme === "dark" ? "dark" : "light"}
+              style={{
+                backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+              }}>
+              <StatsRings
+                currentStreak={currentStreak}
+                dreamCount={dreamCount}
+                completedMilestones={completedMilestones}
+              />
+            </BlurView>
           </View>
         </View>
 
@@ -140,25 +147,31 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             style={[
               styles.card,
               {
-                backgroundColor: themeColors.bg_secondary,
-                borderColor: themeColors.border,
+                borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
               },
             ]}>
-            <SettingRow
-              icon="🎨"
-              label="Theme"
-              value={theme === "light" ? "Light" : "Dark"}
-              isSwitch
-              switchValue={theme === "dark"}
-              onSwitchChange={(value) => {
-                toggleTheme();
-                Toast.show({
-                  type: "success",
-                  text1: `${value ? "Dark" : "Light"} Mode Enabled`,
-                  visibilityTime: 1500,
-                });
-              }}
-            />
+            <BlurView
+              intensity={60}
+              tint={theme === "dark" ? "dark" : "light"}
+              style={{
+                backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+              }}>
+              <SettingRow
+                icon="🎨"
+                label="Theme"
+                value={theme === "light" ? "Light" : "Dark"}
+                isSwitch
+                switchValue={theme === "dark"}
+                onSwitchChange={(value) => {
+                  toggleTheme();
+                  Toast.show({
+                    type: "success",
+                    text1: `${value ? "Dark" : "Light"} Mode Enabled`,
+                    visibilityTime: 1500,
+                  });
+                }}
+              />
+            </BlurView>
           </View>
         </View>
 
@@ -172,29 +185,35 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             style={[
               styles.card,
               {
-                backgroundColor: themeColors.bg_secondary,
-                borderColor: themeColors.border,
+                borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
               },
             ]}>
-            <SettingRow icon="ℹ️" label="App Version" value="0.10" />
-            <SettingRow
-              icon="📄"
-              label="Terms of Service"
-              showArrow
-              onPress={() => handleOpenLink("Terms of Service")}
-            />
-            <SettingRow
-              icon="🔒"
-              label="Privacy Policy"
-              showArrow
-              onPress={() => handleOpenLink("Privacy Policy")}
-            />
-            <SettingRow
-              icon="❓"
-              label="Help & Support"
-              showArrow
-              onPress={() => handleOpenLink("Help & Support")}
-            />
+            <BlurView
+              intensity={60}
+              tint={theme === "dark" ? "dark" : "light"}
+              style={{
+                backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+              }}>
+              <SettingRow icon="ℹ️" label="App Version" value="0.10" />
+              <SettingRow
+                icon="📄"
+                label="Terms of Service"
+                showArrow
+                onPress={() => handleOpenLink("Terms of Service")}
+              />
+              <SettingRow
+                icon="🔒"
+                label="Privacy Policy"
+                showArrow
+                onPress={() => handleOpenLink("Privacy Policy")}
+              />
+              <SettingRow
+                icon="❓"
+                label="Help & Support"
+                showArrow
+                onPress={() => handleOpenLink("Help & Support")}
+              />
+            </BlurView>
           </View>
         </View>
 
@@ -208,22 +227,28 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             style={[
               styles.card,
               {
-                backgroundColor: themeColors.bg_secondary,
-                borderColor: themeColors.border,
+                borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
               },
             ]}>
-            <SettingRow
-              icon="🔑"
-              label="Change Password"
-              showArrow
-              onPress={handleChangePassword}
-            />
-            <SettingRow
-              icon="🚪"
-              label="Logout"
-              showArrow
-              onPress={handleLogout}
-            />
+            <BlurView
+              intensity={60}
+              tint={theme === "dark" ? "dark" : "light"}
+              style={{
+                backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+              }}>
+              <SettingRow
+                icon="🔑"
+                label="Change Password"
+                showArrow
+                onPress={handleChangePassword}
+              />
+              <SettingRow
+                icon="🚪"
+                label="Logout"
+                showArrow
+                onPress={handleLogout}
+              />
+            </BlurView>
           </View>
         </View>
 

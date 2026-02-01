@@ -1,7 +1,8 @@
 import Purchases, { LOG_LEVEL, PurchasesPackage } from "react-native-purchases";
+import Constants from "expo-constants";
 
 // RevenueCat Configuration
-const REVENUECAT_API_KEY = process.env.REVENUECAT_API_KEY || "";
+const REVENUECAT_API_KEY = Constants.expoConfig?.extra?.REVENUECAT_API_KEY || process.env.EXPO_PUBLIC_REVENUECAT_API_KEY || "";
 
 /**
  * Initialize RevenueCat SDK
