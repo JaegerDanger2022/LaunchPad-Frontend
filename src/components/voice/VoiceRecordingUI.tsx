@@ -197,7 +197,7 @@ export const VoiceRecordingUI: React.FC<VoiceRecordingUIProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    height: 400,
     paddingVertical: 16,
   },
   header: {
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   conversationScrollView: {
-    flex: 1,
+    maxHeight: 200,
     marginBottom: 16,
   },
   conversationContent: {
