@@ -14,6 +14,10 @@ interface VoiceStore {
   isRecording: boolean;
   isPlayingResponse: boolean;
 
+  // Audio buffering
+  audioChunks: string[];
+  isReceivingAudio: boolean;
+
   // Conversation state
   conversationHistory: ConversationMessage[];
   currentTranscript: string;
@@ -33,6 +37,39 @@ interface VoiceStore {
 // Audio recording service instance
 const audioRecorder = new AudioRecordingService();
 
+/**
+ * Concatenate multiple base64 audio chunks into a single base64 string
+ */
+function concatenateBase64AudioChunks(chunks: string[]): string {
+  console.log('[VoiceStore] Concatenating', chunks.length, 'audio chunks');
+
+  // Decode all chunks to binary
+  const binaryChunks = chunks.map((chunk) => {
+    const binaryString = atob(chunk);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
+  });
+
+  // Calculate total length
+  const totalLength = binaryChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  console.log('[VoiceStore] Total audio size:', totalLength, 'bytes');
+
+  // Combine into single array
+  const combined = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const chunk of binaryChunks) {
+    combined.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  // Convert back to base64
+  const binaryString = String.fromCharCode(...combined);
+  return btoa(binaryString);
+}
+
 export const useVoiceStore = create<VoiceStore>((set, get) => ({
   // Initial state
   isConnected: false,
@@ -40,6 +77,8 @@ export const useVoiceStore = create<VoiceStore>((set, get) => ({
   connectionError: null,
   isRecording: false,
   isPlayingResponse: false,
+  audioChunks: [],
+  isReceivingAudio: false,
   conversationHistory: [],
   currentTranscript: '',
   workflowThreadId: null,
@@ -59,32 +98,42 @@ export const useVoiceStore = create<VoiceStore>((set, get) => ({
 
       // Connect to WebSocket
       await VoiceService.connect(userId, {
-        onAudioResponse: async (base64Audio: string) => {
-          console.log('[VoiceStore] Received audio response, skipping playback (Expo Go limitation)');
+        onAudioResponse: (base64Audio: string) => {
+          console.log('[VoiceStore] Received audio chunk, size:', base64Audio.length);
+          const { audioChunks } = get();
 
-          // Skip audio playback in Expo Go - rely on text responses instead
-          // Audio playback requires native build due to WAV file creation
-          set({ isPlayingResponse: false });
-
-          // Uncomment below for development builds with native code:
-          /*
-          set({ isPlayingResponse: true });
-          try {
-            await audioRecorder.playAudioResponse(base64Audio);
-          } catch (error) {
-            console.error('[VoiceStore] Error playing audio:', error);
-          } finally {
-            setTimeout(() => {
-              set({ isPlayingResponse: false });
-            }, 500);
-          }
-          */
+          // Buffer the audio chunk
+          set({
+            audioChunks: [...audioChunks, base64Audio],
+            isReceivingAudio: true,
+          });
         },
 
-        onTextResponse: (text: string) => {
+        onTextResponse: async (text: string) => {
           console.log('[VoiceStore] Received text response:', text);
-          const { conversationHistory } = get();
+          const { conversationHistory, audioChunks } = get();
 
+          // Text response signals end of audio - play all buffered chunks
+          if (audioChunks.length > 0) {
+            console.log('[VoiceStore] Playing buffered audio chunks:', audioChunks.length);
+            set({ isPlayingResponse: true });
+
+            try {
+              // Concatenate all audio chunks
+              const combinedAudio = concatenateBase64AudioChunks(audioChunks);
+              await audioRecorder.playAudioResponse(combinedAudio);
+            } catch (error) {
+              console.error('[VoiceStore] Error playing combined audio:', error);
+            } finally {
+              set({
+                isPlayingResponse: false,
+                audioChunks: [],
+                isReceivingAudio: false,
+              });
+            }
+          }
+
+          // Add text to conversation history
           set({
             conversationHistory: [
               ...conversationHistory,
