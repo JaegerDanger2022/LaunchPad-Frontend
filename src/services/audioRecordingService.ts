@@ -16,6 +16,18 @@ export class AudioRecordingService {
     try {
       console.log('[AudioRecording] Starting recording...');
 
+      // Configure audio mode for recording
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
+
+      // Small delay to let Android prepare
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // Create new recording instance
       this.recording = new Audio.Recording();
 
@@ -49,6 +61,7 @@ export class AudioRecordingService {
       console.log('[AudioRecording] Recording started');
     } catch (error) {
       console.error('[AudioRecording] Failed to start recording:', error);
+      this.recording = null;
       throw error;
     }
   }
