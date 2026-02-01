@@ -14,10 +14,6 @@ interface VoiceStore {
   isRecording: boolean;
   isPlayingResponse: boolean;
 
-  // Audio buffering
-  audioChunks: string[];
-  isReceivingAudio: boolean;
-
   // Conversation state
   conversationHistory: ConversationMessage[];
   currentTranscript: string;
@@ -37,39 +33,6 @@ interface VoiceStore {
 // Audio recording service instance
 const audioRecorder = new AudioRecordingService();
 
-/**
- * Concatenate multiple base64 audio chunks into a single base64 string
- */
-function concatenateBase64AudioChunks(chunks: string[]): string {
-  console.log('[VoiceStore] Concatenating', chunks.length, 'audio chunks');
-
-  // Decode all chunks to binary
-  const binaryChunks = chunks.map((chunk) => {
-    const binaryString = atob(chunk);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes;
-  });
-
-  // Calculate total length
-  const totalLength = binaryChunks.reduce((sum, chunk) => sum + chunk.length, 0);
-  console.log('[VoiceStore] Total audio size:', totalLength, 'bytes');
-
-  // Combine into single array
-  const combined = new Uint8Array(totalLength);
-  let offset = 0;
-  for (const chunk of binaryChunks) {
-    combined.set(chunk, offset);
-    offset += chunk.length;
-  }
-
-  // Convert back to base64
-  const binaryString = String.fromCharCode(...combined);
-  return btoa(binaryString);
-}
-
 export const useVoiceStore = create<VoiceStore>((set, get) => ({
   // Initial state
   isConnected: false,
@@ -77,8 +40,6 @@ export const useVoiceStore = create<VoiceStore>((set, get) => ({
   connectionError: null,
   isRecording: false,
   isPlayingResponse: false,
-  audioChunks: [],
-  isReceivingAudio: false,
   conversationHistory: [],
   currentTranscript: '',
   workflowThreadId: null,
@@ -98,15 +59,18 @@ export const useVoiceStore = create<VoiceStore>((set, get) => ({
 
       // Connect to WebSocket
       await VoiceService.connect(userId, {
-        onAudioResponse: (base64Audio: string) => {
-          console.log('[VoiceStore] Received audio chunk, size:', base64Audio.length);
-          const { audioChunks } = get();
+        onAudioResponse: async (base64Audio: string) => {
+          console.log('[VoiceStore] Received complete audio response');
+          set({ isPlayingResponse: true });
 
-          // Buffer the audio chunk
-          set({
-            audioChunks: [...audioChunks, base64Audio],
-            isReceivingAudio: true,
-          });
+          try {
+            // Eleven Labs sends complete MP3 - play directly
+            await audioRecorder.playAudioResponse(base64Audio);
+          } catch (error) {
+            console.error('[VoiceStore] Error playing audio:', error);
+          } finally {
+            set({ isPlayingResponse: false });
+          }
         },
 
         onTextResponse: (text: string) => {
@@ -127,29 +91,9 @@ export const useVoiceStore = create<VoiceStore>((set, get) => ({
           });
         },
 
-        onTurnComplete: async () => {
-          console.log('[VoiceStore] Turn complete - playing buffered audio');
-          const { audioChunks } = get();
-
-          // Turn complete signals end of audio - play all buffered chunks
-          if (audioChunks.length > 0) {
-            console.log('[VoiceStore] Playing buffered audio chunks:', audioChunks.length);
-            set({ isPlayingResponse: true });
-
-            try {
-              // Concatenate all audio chunks
-              const combinedAudio = concatenateBase64AudioChunks(audioChunks);
-              await audioRecorder.playAudioResponse(combinedAudio);
-            } catch (error) {
-              console.error('[VoiceStore] Error playing combined audio:', error);
-            } finally {
-              set({
-                isPlayingResponse: false,
-                audioChunks: [],
-                isReceivingAudio: false,
-              });
-            }
-          }
+        onTurnComplete: () => {
+          console.log('[VoiceStore] Turn complete');
+          // No buffering needed - audio already played
         },
 
         onWorkflowComplete: (threadId: string, userRequest: string) => {

@@ -133,27 +133,24 @@ export class AudioRecordingService {
       // Stop any existing playback
       await this.stopPlayback();
 
-      // Gemini sends raw PCM audio (16-bit, 16kHz, mono) - need to wrap in WAV
-      const file = new File(Paths.cache, `voice_response_${Date.now()}.wav`);
+      // Eleven Labs sends complete MP3 audio - play directly
+      const file = new File(Paths.cache, `voice_response_${Date.now()}.mp3`);
 
-      // Convert base64 to binary PCM data
+      // Convert base64 to binary
       const binaryString = atob(base64Audio);
-      const pcmData = new Uint8Array(binaryString.length);
+      const audioData = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
-        pcmData[i] = binaryString.charCodeAt(i);
+        audioData[i] = binaryString.charCodeAt(i);
       }
 
-      // Create WAV file from PCM data (Gemini outputs 24kHz, 16-bit, mono per API docs)
-      const wavData = this.createWavFile(pcmData, 24000, 1, 16);
-
-      // Write WAV file
+      // Write MP3 file
       await file.create();
       const writable = file.writableStream();
       const writer = writable.getWriter();
-      await writer.write(wavData);
+      await writer.write(audioData);
       await writer.close();
 
-      console.log('[AudioRecording] WAV file written:', file.uri);
+      console.log('[AudioRecording] MP3 file written:', file.uri);
 
       // Set audio mode for playback
       await Audio.setAudioModeAsync({
