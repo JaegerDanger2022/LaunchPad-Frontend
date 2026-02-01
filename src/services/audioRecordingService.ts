@@ -43,11 +43,34 @@ export class AudioRecordingService {
       console.log('[AudioRecording] Creating recording instance...');
       this.recording = new Audio.Recording();
 
-      // Configure recording options - simplified for reliability
+      // Configure recording options for Gemini Live API
+      // Gemini expects 16kHz, 16-bit, mono, linear PCM
       console.log('[AudioRecording] Preparing to record...');
-      await this.recording.prepareToRecordAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
+      await this.recording.prepareToRecordAsync({
+        android: {
+          extension: '.wav',
+          outputFormat: Audio.AndroidOutputFormat.DEFAULT,
+          audioEncoder: Audio.AndroidAudioEncoder.DEFAULT,
+          sampleRate: 16000,
+          numberOfChannels: 1,
+          bitRate: 256000,
+        },
+        ios: {
+          extension: '.wav',
+          outputFormat: Audio.IOSOutputFormat.LINEARPCM,
+          audioQuality: Audio.IOSAudioQuality.HIGH,
+          sampleRate: 16000,
+          numberOfChannels: 1,
+          bitRate: 256000,
+          linearPCMBitDepth: 16,
+          linearPCMIsBigEndian: false,
+          linearPCMIsFloat: false,
+        },
+        web: {
+          mimeType: 'audio/wav',
+          bitsPerSecond: 256000,
+        },
+      });
 
       // Start recording
       console.log('[AudioRecording] Starting recording...');
