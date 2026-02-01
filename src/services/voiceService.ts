@@ -136,6 +136,11 @@ class VoiceServiceClass {
           }
           break;
 
+        case 'turn_complete':
+          console.log('[VoiceService] Turn complete');
+          this.callbacks?.onTurnComplete?.();
+          break;
+
         case 'workflow_complete':
           if (message.thread_id && message.user_request) {
             console.log('[VoiceService] Workflow complete:', message.thread_id);

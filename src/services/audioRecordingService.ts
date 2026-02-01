@@ -143,8 +143,8 @@ export class AudioRecordingService {
         pcmData[i] = binaryString.charCodeAt(i);
       }
 
-      // Create WAV file from PCM data (Gemini uses 16kHz, 16-bit, mono per API docs)
-      const wavData = this.createWavFile(pcmData, 16000, 1, 16);
+      // Create WAV file from PCM data (Gemini outputs 24kHz, 16-bit, mono per API docs)
+      const wavData = this.createWavFile(pcmData, 24000, 1, 16);
 
       // Write WAV file
       await file.create();

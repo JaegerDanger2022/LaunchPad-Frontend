@@ -11,13 +11,14 @@ export interface ConversationMessage {
 export interface VoiceCallbacks {
   onAudioResponse: (base64Audio: string) => void;
   onTextResponse: (text: string) => void;
+  onTurnComplete?: () => void;
   onWorkflowComplete: (threadId: string, userRequest: string) => void;
   onConnectionChange: (connected: boolean) => void;
   onError: (error: Error) => void;
 }
 
 export interface WebSocketMessage {
-  type: 'audio' | 'text' | 'workflow_complete' | 'end_audio' | 'error';
+  type: 'audio' | 'text' | 'turn_complete' | 'workflow_complete' | 'end_audio' | 'error';
   data?: string;
   text?: string;
   thread_id?: string;

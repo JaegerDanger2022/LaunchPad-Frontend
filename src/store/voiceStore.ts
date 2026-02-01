@@ -109,11 +109,29 @@ export const useVoiceStore = create<VoiceStore>((set, get) => ({
           });
         },
 
-        onTextResponse: async (text: string) => {
+        onTextResponse: (text: string) => {
           console.log('[VoiceStore] Received text response:', text);
-          const { conversationHistory, audioChunks } = get();
+          const { conversationHistory } = get();
 
-          // Text response signals end of audio - play all buffered chunks
+          // Add text to conversation history
+          set({
+            conversationHistory: [
+              ...conversationHistory,
+              {
+                role: 'assistant',
+                text,
+                timestamp: new Date(),
+              },
+            ],
+            currentTranscript: '',
+          });
+        },
+
+        onTurnComplete: async () => {
+          console.log('[VoiceStore] Turn complete - playing buffered audio');
+          const { audioChunks } = get();
+
+          // Turn complete signals end of audio - play all buffered chunks
           if (audioChunks.length > 0) {
             console.log('[VoiceStore] Playing buffered audio chunks:', audioChunks.length);
             set({ isPlayingResponse: true });
@@ -132,19 +150,6 @@ export const useVoiceStore = create<VoiceStore>((set, get) => ({
               });
             }
           }
-
-          // Add text to conversation history
-          set({
-            conversationHistory: [
-              ...conversationHistory,
-              {
-                role: 'assistant',
-                text,
-                timestamp: new Date(),
-              },
-            ],
-            currentTranscript: '',
-          });
         },
 
         onWorkflowComplete: (threadId: string, userRequest: string) => {
