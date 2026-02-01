@@ -16,7 +16,18 @@ export class AudioRecordingService {
     try {
       console.log('[AudioRecording] Starting recording...');
 
+      // Stop any existing recording first
+      if (this.recording) {
+        try {
+          await this.recording.stopAndUnloadAsync();
+        } catch (e) {
+          console.log('[AudioRecording] Cleaned up previous recording');
+        }
+        this.recording = null;
+      }
+
       // Configure audio mode for recording
+      console.log('[AudioRecording] Setting audio mode...');
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
@@ -25,42 +36,26 @@ export class AudioRecordingService {
         playThroughEarpieceAndroid: false,
       });
 
-      // Small delay to let Android prepare
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Small delay to ensure audio mode is set
+      await new Promise(resolve => setTimeout(resolve, 150));
 
       // Create new recording instance
+      console.log('[AudioRecording] Creating recording instance...');
       this.recording = new Audio.Recording();
 
-      // Configure recording options
-      await this.recording.prepareToRecordAsync({
-        ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
-        android: {
-          extension: '.m4a',
-          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-          audioEncoder: Audio.AndroidAudioEncoder.AAC,
-          sampleRate: 16000,
-          numberOfChannels: 1,
-          bitRate: 128000,
-        },
-        ios: {
-          extension: '.m4a',
-          outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
-          audioQuality: Audio.IOSAudioQuality.HIGH,
-          sampleRate: 16000,
-          numberOfChannels: 1,
-          bitRate: 128000,
-        },
-        web: {
-          mimeType: 'audio/webm',
-          bitsPerSecond: 128000,
-        },
-      });
+      // Configure recording options - simplified for reliability
+      console.log('[AudioRecording] Preparing to record...');
+      await this.recording.prepareToRecordAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
 
       // Start recording
+      console.log('[AudioRecording] Starting recording...');
       await this.recording.startAsync();
-      console.log('[AudioRecording] Recording started');
+      console.log('[AudioRecording] Recording started successfully');
     } catch (error) {
       console.error('[AudioRecording] Failed to start recording:', error);
+      console.error('[AudioRecording] Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
       this.recording = null;
       throw error;
     }
