@@ -1,5 +1,5 @@
 import { Audio } from 'expo-av';
-import * as FileSystem from 'expo-file-system';
+import { Paths, File } from 'expo-file-system';
 
 /**
  * Service for managing audio recording and playback
@@ -85,10 +85,10 @@ export class AudioRecordingService {
 
       console.log('[AudioRecording] Recording stopped, URI:', uri);
 
-      // Convert to base64
-      const base64 = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      // Convert to base64 using new File API
+      const file = new File(uri);
+      const arrayBuffer = await file.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
 
       console.log('[AudioRecording] Audio converted to base64, length:', base64.length);
 
@@ -110,15 +110,26 @@ export class AudioRecordingService {
       // Stop any existing playback
       await this.stopPlayback();
 
-      // Write base64 to temporary file
-      const fileUri = `${FileSystem.cacheDirectory}voice_response_${Date.now()}.m4a`;
-      await FileSystem.writeAsStringAsync(fileUri, base64Audio, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      // Write base64 to temporary file using new File API
+      const file = new File(Paths.cache, `voice_response_${Date.now()}.m4a`);
+
+      // Convert base64 to binary
+      const binaryString = atob(base64Audio);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      // Write to file
+      await file.create();
+      const writable = file.writableStream();
+      const writer = writable.getWriter();
+      await writer.write(bytes);
+      await writer.close();
 
       // Create sound instance
       const { sound } = await Audio.Sound.createAsync(
-        { uri: fileUri },
+        { uri: file.uri },
         { shouldPlay: true },
         this._onPlaybackStatusUpdate
       );
