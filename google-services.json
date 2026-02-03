@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "74552017471",
-    "project_id": "ghanai-462210",
-    "storage_bucket": "ghanai-462210.firebasestorage.app"
+    "project_number": "191645644567",
+    "project_id": "dream-to-do-70d09",
+    "storage_bucket": "dream-to-do-70d09.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:74552017471:android:5a08a82e134d2249332e8a",
+        "mobilesdk_app_id": "1:191645644567:android:0cdadbec4dcc64c44be952",
         "android_client_info": {
           "package_name": "com.launchpad.app"
         }
       },
       "oauth_client": [
         {
-          "client_id": "74552017471-scs8fgeld4esrnq8dr66l6qpj90mej2c.apps.googleusercontent.com",
+          "client_id": "191645644567-vr3nnmpn79jdrd770jt3m7mjq2hqpu3n.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAIdKqj4MvaLXPb0GM9J7-fsVWi9hivUk8"
+          "current_key": "AIzaSyBVng__vmcG_RH1Pffb3swHBjMU0hqmorE"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "74552017471-gmtr62hmog92h3i1fmfecfo8chbg2lrp.apps.googleusercontent.com",
+              "client_id": "191645644567-vr3nnmpn79jdrd770jt3m7mjq2hqpu3n.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

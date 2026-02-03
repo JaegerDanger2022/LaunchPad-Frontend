@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
+import RevenueCatUI from 'react-native-purchases-ui';
 import { Color } from '../constants/GlobalStyles';
 import { useAuthStore } from '../store/authStore';
 
@@ -10,7 +10,6 @@ interface PaywallScreenProps {
 }
 
 export const PaywallScreen: React.FC<PaywallScreenProps> = ({ onClose }) => {
-  const [isLoading, setIsLoading] = React.useState(true);
   const refreshPremiumStatus = useAuthStore((state) => state.refreshPremiumStatus);
 
   const handlePurchaseStarted = () => {
@@ -45,8 +44,9 @@ export const PaywallScreen: React.FC<PaywallScreenProps> = ({ onClose }) => {
     console.error('[Paywall] Restore error:', error);
   };
 
-  const handleDismiss = () => {
+  const handleDismiss = async () => {
     console.log('[Paywall] Dismissed');
+    await refreshPremiumStatus();
     onClose();
   };
 
@@ -71,10 +71,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Color.colorWhite,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

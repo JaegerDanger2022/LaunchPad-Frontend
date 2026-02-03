@@ -1,13 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useThemeStore } from '../../store/themeStore';
-import { getThemeColors } from '../../constants/GlobalStyles';
+import { BlurView } from 'expo-blur';
 
 export const VictoryCardSkeleton: React.FC = () => {
   const shimmerAnim = useRef(new Animated.Value(0)).current;
-  const { theme } = useThemeStore();
-  const themeColors = getThemeColors(theme);
 
   useEffect(() => {
     const shimmer = Animated.loop(
@@ -31,140 +27,139 @@ export const VictoryCardSkeleton: React.FC = () => {
 
   const opacity = shimmerAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.3, 0.7],
+    outputRange: [0.25, 0.55],
   });
 
-  // Theme-aware skeleton colors
-  const skeletonColor = theme === 'dark' ? '#d1d1d1' : '#D0D0D0';
+  const skeletonColor = 'rgba(255, 255, 255, 0.18)';
 
   return (
-    <View style={styles.card}>
-      <LinearGradient
-        colors={[themeColors.bg_secondary, themeColors.bg_secondary]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.gradient}>
-        {/* Header Section */}
-        <View style={styles.header}>
-          <Animated.View style={[styles.badge, { opacity, backgroundColor: skeletonColor }]} />
-          <View style={styles.headerRight}>
-            <Animated.View style={[styles.categoryBadge, { opacity, backgroundColor: skeletonColor }]} />
-          </View>
+    <View style={styles.cardWrapper}>
+      {/* Accent strip placeholder */}
+      <View style={styles.accentStrip} />
+
+      <BlurView intensity={40} tint="dark" style={styles.glassBody}>
+        {/* Top row: badge + category pill */}
+        <View style={styles.topRow}>
+          <Animated.View style={[styles.badgePill, { opacity, backgroundColor: skeletonColor }]} />
+          <Animated.View style={[styles.categoryPill, { opacity, backgroundColor: skeletonColor }]} />
         </View>
 
-        {/* Title */}
-        <Animated.View style={[styles.title, { opacity, backgroundColor: skeletonColor }]} />
-        <Animated.View style={[styles.titleShort, { opacity, backgroundColor: skeletonColor }]} />
+        {/* Title lines */}
+        <Animated.View style={[styles.titleLine, { opacity, backgroundColor: skeletonColor }]} />
+        <Animated.View style={[styles.titleLineShort, { opacity, backgroundColor: skeletonColor }]} />
 
-        {/* Quote */}
-        <Animated.View style={[styles.quote, { opacity, backgroundColor: skeletonColor }]} />
+        {/* Quote lines */}
+        <Animated.View style={[styles.quoteLine, { opacity, backgroundColor: skeletonColor }]} />
+        <Animated.View style={[styles.quoteLineShort, { opacity, backgroundColor: skeletonColor }]} />
 
-        {/* Confidence */}
-        <Animated.View style={[styles.confidence, { opacity, backgroundColor: skeletonColor }]} />
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Animated.View style={[styles.author, { opacity, backgroundColor: skeletonColor }]} />
-          <Animated.View style={[styles.date, { opacity, backgroundColor: skeletonColor }]} />
+        {/* Meta row */}
+        <View style={styles.metaRow}>
+          <Animated.View style={[styles.metaChip, { opacity, backgroundColor: skeletonColor }]} />
+          <Animated.View style={[styles.metaChipShort, { opacity, backgroundColor: skeletonColor }]} />
         </View>
 
-        {/* Actions */}
-        <View style={styles.actions}>
-          <Animated.View style={[styles.actionButton, { opacity, backgroundColor: skeletonColor }]} />
-          <Animated.View style={[styles.actionButton, { opacity, backgroundColor: skeletonColor }]} />
+        {/* Divider */}
+        <View style={styles.divider} />
+
+        {/* Action pills */}
+        <View style={styles.actionRow}>
+          <Animated.View style={[styles.actionPill, { opacity, backgroundColor: skeletonColor }]} />
+          <Animated.View style={[styles.actionPill, { opacity, backgroundColor: skeletonColor }]} />
+          <Animated.View style={[styles.actionPillShort, { opacity, backgroundColor: skeletonColor }]} />
         </View>
-      </LinearGradient>
+      </BlurView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
+  cardWrapper: {
     marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 16,
+    marginVertical: 10,
+    borderRadius: 20,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    shadowColor: 'rgba(255, 255, 255, 0.08)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  gradient: {
-    padding: 20,
-    borderRadius: 16,
+  accentStrip: {
+    height: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  badge: {
-    width: 80,
-    height: 24,
-    backgroundColor: '#D0D0D0',
-    borderRadius: 12,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  categoryBadge: {
-    width: 100,
-    height: 24,
-    backgroundColor: '#D0D0D0',
-    borderRadius: 12,
-  },
-  title: {
-    width: '90%',
-    height: 24,
-    backgroundColor: '#D0D0D0',
-    borderRadius: 4,
-    marginBottom: 8,
-  },
-  titleShort: {
-    width: '60%',
-    height: 24,
-    backgroundColor: '#D0D0D0',
-    borderRadius: 4,
-    marginBottom: 16,
-  },
-  quote: {
-    width: '80%',
-    height: 16,
-    backgroundColor: '#D0D0D0',
-    borderRadius: 4,
-    marginBottom: 16,
-  },
-  confidence: {
-    width: 120,
-    height: 20,
-    backgroundColor: '#D0D0D0',
-    borderRadius: 4,
-    marginBottom: 16,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  author: {
-    width: 80,
-    height: 16,
-    backgroundColor: '#D0D0D0',
-    borderRadius: 4,
-  },
-  date: {
-    width: 60,
-    height: 16,
-    backgroundColor: '#D0D0D0',
-    borderRadius: 4,
-  },
-  actions: {
-    flexDirection: 'row',
+  glassBody: {
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    padding: 18,
     gap: 12,
   },
-  actionButton: {
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  badgePill: {
+    width: 100,
+    height: 28,
+    borderRadius: 14,
+  },
+  categoryPill: {
+    width: 80,
+    height: 24,
+    borderRadius: 12,
+  },
+  titleLine: {
+    width: '85%',
+    height: 22,
+    borderRadius: 6,
+  },
+  titleLineShort: {
+    width: '55%',
+    height: 22,
+    borderRadius: 6,
+  },
+  quoteLine: {
+    width: '95%',
+    height: 16,
+    borderRadius: 4,
+  },
+  quoteLineShort: {
+    width: '65%',
+    height: 16,
+    borderRadius: 4,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  metaChip: {
+    width: 90,
+    height: 16,
+    borderRadius: 4,
+  },
+  metaChipShort: {
     width: 60,
-    height: 36,
-    backgroundColor: '#D0D0D0',
-    borderRadius: 18,
+    height: 16,
+    borderRadius: 4,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  actionPill: {
+    width: 72,
+    height: 30,
+    borderRadius: 14,
+  },
+  actionPillShort: {
+    width: 56,
+    height: 30,
+    borderRadius: 14,
   },
 });

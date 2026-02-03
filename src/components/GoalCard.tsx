@@ -18,6 +18,7 @@ export interface GoalCardData {
   bgImage: any;
   bgColor: string;
   progressColor: string;
+  progress: number; // 0–100
   threadId?: string;
   status?: string;
 }
@@ -49,51 +50,66 @@ export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
             height: 140,
           }}
         />
-        <LinearGradient
+        <View
           style={{
-            flex: 1,
-            paddingHorizontal: 15,
-            paddingVertical: 15,
+            height: 88,
             borderBottomLeftRadius: 10,
             borderBottomRightRadius: 10,
-            justifyContent: "space-between",
-            backgroundColor: theme === "light" ? `${data.bgColor}40` : hexToRgba(data.bgColor, 0.2),
             borderTopWidth: 1,
             borderTopColor: theme === "light" ? "rgba(255, 255, 255, 0.6)" : "rgba(255, 255, 255, 0.15)",
             borderLeftWidth: 0.5,
             borderLeftColor: theme === "light" ? "rgba(255, 255, 255, 0.3)" : "rgba(255, 255, 255, 0.1)",
             borderRightWidth: 0.5,
             borderRightColor: theme === "light" ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.05)",
-          }}
-          colors={theme === "light" ? [`${data.bgColor}60`, `${data.bgColor}40`] : [hexToRgba(data.bgColor, 0.3), hexToRgba(data.bgColor, 0.15)]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}>
-          <Text
+            overflow: "hidden",
+          }}>
+          {/* Gradient as absolute background fill */}
+          <LinearGradient
+            colors={theme === "light" ? [`${data.bgColor}60`, `${data.bgColor}40`] : [hexToRgba(data.bgColor, 0.3), hexToRgba(data.bgColor, 0.15)]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
             style={{
-              fontFamily: "InriaSans-Bold",
-              fontSize: 15,
-              color: Color.colorWhite,
-              fontWeight: "700",
-            }}>
-            {data.title}
-          </Text>
+              position: "absolute",
+              inset: 0,
+              backgroundColor: theme === "light" ? `${data.bgColor}40` : hexToRgba(data.bgColor, 0.2),
+            }}
+          />
+          {/* Content layer on top */}
           <View
             style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 8,
+              flex: 1,
+              paddingHorizontal: 15,
+              paddingVertical: 12,
+              justifyContent: "space-between",
             }}>
             <Text
               style={{
-                fontFamily: "InriaSans-Regular",
-                fontSize: 16,
+                fontFamily: "InriaSans-Bold",
+                fontSize: 15,
                 color: Color.colorWhite,
+                fontWeight: "700",
               }}>
-              Progress
+              {data.title}
             </Text>
-            <ProgressRingIcon size={30} color={data.progressColor} />
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+              }}>
+              <ProgressRingIcon size={30} color={data.progressColor} progress={data.progress} />
+              <Text
+                style={{
+                  fontFamily: "InriaSans-Bold",
+                  fontSize: 14,
+                  color: Color.colorWhite,
+                  fontWeight: "700",
+                }}>
+                {Math.round(data.progress)}%
+              </Text>
+            </View>
           </View>
-        </LinearGradient>
+        </View>
       </View>
     </TouchableOpacity>
   );

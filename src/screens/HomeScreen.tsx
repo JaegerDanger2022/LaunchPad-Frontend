@@ -300,16 +300,31 @@ const HomeScreen = ({
       )
       .filter((dream: any) => dream !== undefined);
 
-    return recentDreams.map((dream: any) => ({
-      title: dream.dream || "",
-      bgImage: dream.dream_image_bytes
-        ? { uri: convertBinaryToImage(dream.dream_image_bytes) }
-        : require("../assets/images/goal-podcast.png"),
-      bgColor: dream.dream_card_bg || Color.colorBurlywood,
-      progressColor: "#6B9BD1",
-      threadId: dream.thread_id,
-      status: dream.status,
-    }));
+    return recentDreams.map((dream: any) => {
+      // Compute progress: prefer full milestones array, fall back to summary metadata
+      let progress = 0;
+      const milestones = dream.roadmap?.milestones;
+      if (milestones && milestones.length > 0) {
+        const completed = milestones.filter((m: any) => m.status === "completed").length;
+        progress = (completed / milestones.length) * 100;
+      } else if (dream._metadata) {
+        const total = dream._metadata.milestones_count || 0;
+        const completed = dream._metadata.completed_milestones_count || 0;
+        progress = total > 0 ? (completed / total) * 100 : 0;
+      }
+
+      return {
+        title: dream.dream || "",
+        bgImage: dream.dream_image_bytes
+          ? { uri: convertBinaryToImage(dream.dream_image_bytes) }
+          : require("../assets/images/goal-podcast.png"),
+        bgColor: dream.dream_card_bg || Color.colorBurlywood,
+        progressColor: "#6B9BD1",
+        progress,
+        threadId: dream.thread_id,
+        status: dream.status,
+      };
+    });
   }, [userData?.dreams, userData?.recents]);
 
   return (

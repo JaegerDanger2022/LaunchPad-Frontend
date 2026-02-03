@@ -1,10 +1,9 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import { JourneyRecap } from "../../types/community";
-import {
-  CATEGORY_COLORS,
-  CATEGORY_COLORS_LIGHT,
-} from "../../constants/communityColors";
+import { CATEGORY_COLORS } from "../../constants/communityColors";
 import { CategoryBadge } from "./CategoryBadge";
 import { CourageBoostButton } from "./CourageBoostButton";
 import { MeTooButton } from "./MeTooButton";
@@ -28,8 +27,6 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
   onPress,
 }) => {
   const categoryColor = CATEGORY_COLORS[journeyRecap.dreamCategory];
-  const categoryBackgroundColor =
-    CATEGORY_COLORS_LIGHT[journeyRecap.dreamCategory];
 
   const userInfo = journeyRecap.isAnonymous
     ? "Someone"
@@ -39,279 +36,284 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={[styles.card, { borderColor: categoryColor }]}
+      style={styles.cardWrapper}
       onPress={onPress}
-      activeOpacity={0.9}>
-      {/* Header with star and category */}
-      <View
-        style={[
-          styles.cardHeader,
-          { backgroundColor: categoryBackgroundColor },
-        ]}>
-        <View style={styles.headerLeft}>
-          <Text style={[styles.star, { color: categoryColor }]}>⭐</Text>
-          <Text style={styles.headerTitle}>JOURNEY COMPLETE</Text>
-        </View>
-        <CategoryBadge category={journeyRecap.dreamCategory} size="small" />
-      </View>
+      activeOpacity={0.85}>
+      {/* Colored accent strip — gradient fade for journey cards */}
+      <LinearGradient
+        colors={[categoryColor, categoryColor + "00"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.accentStrip}
+      />
 
-      {/* Card Content */}
-      <View style={styles.cardContent}>
-        {/* Dream Title */}
+      {/* Frosted glass body */}
+      <BlurView intensity={40} tint="dark" style={styles.glassBody}>
+        {/* Top row: star badge + category tag */}
+        <View style={styles.topRow}>
+          <View style={[styles.journeyBadge, { borderColor: categoryColor + "66" }]}>
+            <Text style={[styles.star, { color: categoryColor }]}>⭐</Text>
+            <Text style={styles.journeyLabel}>JOURNEY COMPLETE</Text>
+          </View>
+          <CategoryBadge category={journeyRecap.dreamCategory} size="small" />
+        </View>
+
+        {/* Dream title */}
         <Text style={styles.dreamTitle}>
           {(journeyRecap.dreamTitle || "DREAM").toUpperCase()}
         </Text>
 
-        {/* Journey Stats */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
+        {/* Stats row — milestones + days in glass pills */}
+        <View style={styles.statsRow}>
+          <View style={styles.statPill}>
             <Text style={styles.statValue}>{journeyRecap.totalMilestones}</Text>
             <Text style={styles.statLabel}>Milestones</Text>
           </View>
           <View style={styles.statDivider} />
-          <View style={styles.statItem}>
+          <View style={styles.statPill}>
             <Text style={styles.statValue}>
-              {journeyRecap.durationDays === 0 ? '<1' : journeyRecap.durationDays}
+              {journeyRecap.durationDays === 0 ? "<1" : journeyRecap.durationDays}
             </Text>
             <Text style={styles.statLabel}>
-              {journeyRecap.durationDays === 1 ? 'Day' : 'Days'}
+              {journeyRecap.durationDays === 1 ? "Day" : "Days"}
             </Text>
           </View>
         </View>
 
-        {/* Journey Story */}
-        <View style={styles.storySection}>
-          <Text style={styles.storyText}>"{journeyRecap.journeyStory}"</Text>
-        </View>
+        {/* Journey story quote */}
+        <Text style={styles.storyText}>"{journeyRecap.journeyStory}"</Text>
 
-        {/* Key Moment (if provided) */}
+        {/* Key moment highlight */}
         {journeyRecap.keyMoment && (
-          <View style={styles.keyMomentSection}>
-            <Text style={styles.keyMomentLabel}>Most memorable moment:</Text>
+          <View style={[styles.keyMomentSection, { borderLeftColor: categoryColor }]}>
+            <Text style={styles.keyMomentLabel}>Most memorable moment</Text>
             <Text style={styles.keyMomentText}>"{journeyRecap.keyMoment}"</Text>
           </View>
         )}
 
-        {/* Date and User */}
+        {/* Meta: date + author */}
         <View style={styles.metaRow}>
           <Text style={styles.dateText}>{formattedDate}</Text>
+          <Text style={styles.metaDot}>•</Text>
+          <Text style={styles.userInfo}>{userInfo}</Text>
         </View>
-        <Text style={styles.userInfo}>— {userInfo}</Text>
-      </View>
 
-      {/* Footer with Interactions */}
-      <View style={styles.cardFooter}>
-        <CourageBoostButton
-          boostCount={journeyRecap.courageBoosts}
-          hasUserBoosted={journeyRecap.hasUserBoosted}
-          onPress={() => onBoost(journeyRecap.id)}
-          size="medium"
-        />
+        {/* Divider */}
+        <View style={styles.divider} />
 
-        {/* Me Too Button */}
-        {onMeToo && (
-          <MeTooButton
-            meTooCount={journeyRecap.meTooCount}
-            hasUserMeTooed={journeyRecap.hasUserMeTooed}
-            onPress={() => onMeToo(journeyRecap.id)}
+        {/* Action footer */}
+        <View style={styles.actionRow}>
+          <CourageBoostButton
+            boostCount={journeyRecap.courageBoosts}
+            hasUserBoosted={journeyRecap.hasUserBoosted}
+            onPress={() => onBoost(journeyRecap.id)}
             size="medium"
           />
-        )}
 
-        {/* Permission Button */}
-        {onPermission && (
-          <TouchableOpacity
-            style={styles.permissionButton}
-            onPress={() => onPermission(journeyRecap.id)}
-            activeOpacity={0.7}>
-            <Text style={styles.permissionIcon}>💬</Text>
-            <Text style={styles.permissionText}>Give Permission</Text>
-          </TouchableOpacity>
-        )}
+          {onMeToo && (
+            <MeTooButton
+              meTooCount={journeyRecap.meTooCount}
+              hasUserMeTooed={journeyRecap.hasUserMeTooed}
+              onPress={() => onMeToo(journeyRecap.id)}
+              size="medium"
+            />
+          )}
 
-        {/* View Permissions */}
-        {journeyRecap.permissionsCount > 0 && onViewPermissions && (
-          <TouchableOpacity
-            style={styles.viewPermissionsButton}
-            onPress={() => onViewPermissions(journeyRecap.id)}
-            activeOpacity={0.7}>
-            <Text style={styles.permissionIcon}>💬</Text>
-            <Text style={styles.viewPermissionsText}>
-              {journeyRecap.permissionsCount}{" "}
-              {journeyRecap.permissionsCount === 1
-                ? "Permission"
-                : "Permissions"}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
+          {onPermission && (
+            <TouchableOpacity
+              style={styles.ghostButton}
+              onPress={() => onPermission(journeyRecap.id)}
+              activeOpacity={0.6}>
+              <Text style={styles.ghostIcon}>💬</Text>
+              <Text style={styles.ghostText}>Permission</Text>
+            </TouchableOpacity>
+          )}
+
+          {journeyRecap.permissionsCount > 0 && onViewPermissions && (
+            <TouchableOpacity
+              style={[styles.ghostButton, styles.ghostButtonAccent]}
+              onPress={() => onViewPermissions(journeyRecap.id)}
+              activeOpacity={0.6}>
+              <Text style={styles.ghostIcon}>💬</Text>
+              <Text style={[styles.ghostText, { color: categoryColor }]}>
+                {journeyRecap.permissionsCount}{" "}
+                {journeyRecap.permissionsCount === 1 ? "Permission" : "Permissions"}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </BlurView>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    borderWidth: 2,
+  cardWrapper: {
     marginHorizontal: 16,
-    marginVertical: 12,
+    marginVertical: 10,
+    borderRadius: 20,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+    shadowColor: "rgba(255, 255, 255, 0.08)",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
     elevation: 4,
   },
-  cardHeader: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+  accentStrip: {
+    height: 3,
+  },
+  glassBody: {
+    backgroundColor: "rgba(255, 255, 255, 0.07)",
+    padding: 18,
+    gap: 10,
+  },
+  // Top row
+  topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  headerLeft: {
+  journeyBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
   },
   star: {
-    fontSize: 28,
+    fontSize: 16,
   },
-  headerTitle: {
-    fontSize: 14,
-    fontWeight: "800",
+  journeyLabel: {
+    fontSize: 11,
+    fontWeight: "700",
     letterSpacing: 1.2,
-    color: "#111827",
+    color: "rgba(255, 255, 255, 0.85)",
   },
-  cardContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 18,
-    gap: 14,
-  },
+  // Title
   dreamTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#111827",
-    letterSpacing: 0.6,
-    lineHeight: 26,
+    fontSize: 19,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: 0.4,
+    lineHeight: 25,
+    marginTop: 2,
   },
-  statsContainer: {
+  // Stats
+  statsRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 12,
-    backgroundColor: "#F9FAFB",
-    borderRadius: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    borderRadius: 12,
+    paddingVertical: 10,
+    marginVertical: 2,
   },
-  statItem: {
+  statPill: {
     flex: 1,
     alignItems: "center",
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "700",
-    color: "#111827",
+    color: "#FFFFFF",
   },
   statLabel: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginTop: 4,
+    fontSize: 11,
+    color: "rgba(255, 255, 255, 0.45)",
+    marginTop: 2,
     fontWeight: "500",
   },
   statDivider: {
     width: 1,
-    height: 40,
-    backgroundColor: "#E5E7EB",
+    height: 36,
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
   },
-  storySection: {
-    marginVertical: 8,
-    paddingHorizontal: 4,
-  },
+  // Story
   storyText: {
-    fontSize: 15,
-    fontStyle: "italic",
-    color: "#374151",
-    lineHeight: 22,
-  },
-  keyMomentSection: {
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    backgroundColor: "#FEF3C7",
-    borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: "#F59E0B",
-  },
-  keyMomentLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#92400E",
-    marginBottom: 4,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  keyMomentText: {
     fontSize: 14,
     fontStyle: "italic",
-    color: "#78350F",
+    color: "rgba(255, 255, 255, 0.7)",
     lineHeight: 20,
   },
+  // Key moment
+  keyMomentSection: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    borderRadius: 10,
+    borderLeftWidth: 3,
+  },
+  keyMomentLabel: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "rgba(255, 255, 255, 0.5)",
+    marginBottom: 3,
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  keyMomentText: {
+    fontSize: 13,
+    fontStyle: "italic",
+    color: "rgba(255, 255, 255, 0.65)",
+    lineHeight: 18,
+  },
+  // Meta
   metaRow: {
-    marginTop: 8,
     flexDirection: "row",
-    justifyContent: "flex-start",
     alignItems: "center",
+    gap: 6,
   },
   dateText: {
     fontSize: 11,
-    color: "#9CA3AF",
+    color: "rgba(255, 255, 255, 0.4)",
+  },
+  metaDot: {
+    fontSize: 10,
+    color: "rgba(255, 255, 255, 0.3)",
   },
   userInfo: {
     fontSize: 12,
-    color: "#9CA3AF",
-    marginTop: 4,
+    color: "rgba(255, 255, 255, 0.45)",
   },
-  cardFooter: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
+  // Divider
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    marginVertical: 2,
+  },
+  // Actions
+  actionRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
     flexWrap: "wrap",
   },
-  permissionButton: {
+  ghostButton: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#D1D5DB",
-    backgroundColor: "#FFFFFF",
+    borderColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
-  permissionIcon: {
-    fontSize: 16,
+  ghostButtonAccent: {
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
-  permissionText: {
-    fontSize: 13,
+  ghostIcon: {
+    fontSize: 14,
+  },
+  ghostText: {
+    fontSize: 12,
     fontWeight: "600",
-    color: "#374151",
-  },
-  viewPermissionsButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: "#F0F5FF",
-  },
-  viewPermissionsText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#2D5BFF",
+    color: "rgba(255, 255, 255, 0.7)",
   },
 });

@@ -20,7 +20,7 @@ import { StreakData } from '../types/index';
 import * as SecureStore from 'expo-secure-store';
 import { identifyRevenueCatUser, logoutRevenueCatUser, checkEntitlement } from '../config/revenuecat';
 
-const ENTITLEMENT_ID = 'entl8ae0503ddb';
+const ENTITLEMENT_ID = 'Premium Subscription';
 
 /**
  * Maps dreams_summary to dreams format for backward compatibility.

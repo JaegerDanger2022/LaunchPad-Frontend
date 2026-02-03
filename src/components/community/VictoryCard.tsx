@@ -1,10 +1,9 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import { VictoryCard as VictoryCardType } from "../../types/community";
-import {
-  CATEGORY_COLORS,
-  CATEGORY_COLORS_LIGHT,
-} from "../../constants/communityColors";
+import { CATEGORY_COLORS } from "../../constants/communityColors";
 import { CategoryBadge } from "./CategoryBadge";
 import { CourageBoostButton } from "./CourageBoostButton";
 import { MeTooButton } from "./MeTooButton";
@@ -28,7 +27,6 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
   onPress,
 }) => {
   const categoryColor = CATEGORY_COLORS[victory.dreamCategory];
-  const categoryBackgroundColor = CATEGORY_COLORS_LIGHT[victory.dreamCategory];
 
   const userInfo = victory.isAnonymous
     ? "Someone"
@@ -39,225 +37,216 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={[styles.card, { borderColor: categoryColor }]}
+      style={styles.cardWrapper}
       onPress={onPress}
-      activeOpacity={0.9}>
-      {/* Header with checkmark and category icon */}
-      <View
-        style={[
-          styles.cardHeader,
-          { backgroundColor: categoryBackgroundColor },
-        ]}>
-        <View style={styles.headerLeft}>
-          <Text style={[styles.checkmark, { color: categoryColor }]}>✓</Text>
-          <Text style={styles.headerTitle}>VICTORY</Text>
-        </View>
-        <CategoryBadge category={victory.dreamCategory} size="small" />
-      </View>
+      activeOpacity={0.85}>
+      {/* Colored accent strip at the very top */}
+      <LinearGradient
+        colors={[categoryColor, categoryColor + "00"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.accentStrip}
+      />
 
-      {/* Card Content */}
-      <View style={styles.cardContent}>
-        {/* Milestone Title */}
+      {/* Frosted glass body */}
+      <BlurView intensity={40} tint="dark" style={styles.glassBody}>
+        {/* Top row: checkmark badge + category tag */}
+        <View style={styles.topRow}>
+          <View style={[styles.victoryBadge, { borderColor: categoryColor + "66" }]}>
+            <Text style={[styles.checkmark, { color: categoryColor }]}>✓</Text>
+            <Text style={styles.victoryLabel}>VICTORY</Text>
+          </View>
+          <CategoryBadge category={victory.dreamCategory} size="small" />
+        </View>
+
+        {/* Milestone title */}
         <Text style={styles.milestoneTitle}>
           {(victory.milestoneTitle || "MILESTONE").toUpperCase()}
         </Text>
 
-        {/* Dream and Category Info */}
-        {/* <View style={styles.dreamSection}>
-          <Text style={styles.dreamLabel}>Part of: {victory.dreamTitle}</Text>
-        </View> */}
+        {/* Evidence quote */}
+        <Text style={styles.evidenceText}>"{victory.evidenceSnippet}"</Text>
 
-        {/* Evidence Snippet */}
-        <View style={styles.evidenceSection}>
-          <Text style={styles.evidenceText}>"{victory.evidenceSnippet}"</Text>
-        </View>
-
-        {/* Confidence Boost and Date */}
-        <View style={styles.statsRow}>
+        {/* Meta row: confidence + date + author */}
+        <View style={styles.metaRow}>
           <Text style={[styles.confidenceStat, { color: categoryColor }]}>
             +{victory.confidenceBoost}% {confidenceText}
           </Text>
+          <Text style={styles.metaDot}>•</Text>
           <Text style={styles.dateText}>{formattedDate}</Text>
         </View>
-
-        {/* User Info */}
         <Text style={styles.userInfo}>— {userInfo}</Text>
-      </View>
 
-      {/* Footer with Interactions */}
-      <View style={styles.cardFooter}>
-        <CourageBoostButton
-          boostCount={victory.courageBoosts}
-          hasUserBoosted={victory.hasUserBoosted}
-          onPress={() => onBoost(victory.id)}
-          size="medium"
-        />
+        {/* Divider */}
+        <View style={styles.divider} />
 
-        {/* Me Too Button */}
-        {onMeToo && (
-          <MeTooButton
-            meTooCount={victory.meTooCount}
-            hasUserMeTooed={victory.hasUserMeTooed}
-            onPress={() => onMeToo(victory.id)}
+        {/* Action footer */}
+        <View style={styles.actionRow}>
+          <CourageBoostButton
+            boostCount={victory.courageBoosts}
+            hasUserBoosted={victory.hasUserBoosted}
+            onPress={() => onBoost(victory.id)}
             size="medium"
           />
-        )}
 
-        {/* Permission Button */}
-        {onPermission && (
-          <TouchableOpacity
-            style={styles.permissionButton}
-            onPress={() => onPermission(victory.id)}
-            activeOpacity={0.7}>
-            <Text style={styles.permissionIcon}>💬</Text>
-            <Text style={styles.permissionText}>Give Permission</Text>
-          </TouchableOpacity>
-        )}
+          {onMeToo && (
+            <MeTooButton
+              meTooCount={victory.meTooCount}
+              hasUserMeTooed={victory.hasUserMeTooed}
+              onPress={() => onMeToo(victory.id)}
+              size="medium"
+            />
+          )}
 
-        {/* View Permissions */}
-        {victory.permissionsCount > 0 && onViewPermissions && (
-          <TouchableOpacity
-            style={styles.viewPermissionsButton}
-            onPress={() => onViewPermissions(victory.id)}
-            activeOpacity={0.7}>
-            <Text style={styles.permissionIcon}>💬</Text>
-            <Text style={styles.viewPermissionsText}>
-              {victory.permissionsCount}{" "}
-              {victory.permissionsCount === 1 ? "Permission" : "Permissions"}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
+          {onPermission && (
+            <TouchableOpacity
+              style={styles.ghostButton}
+              onPress={() => onPermission(victory.id)}
+              activeOpacity={0.6}>
+              <Text style={styles.ghostIcon}>💬</Text>
+              <Text style={styles.ghostText}>Permission</Text>
+            </TouchableOpacity>
+          )}
+
+          {victory.permissionsCount > 0 && onViewPermissions && (
+            <TouchableOpacity
+              style={[styles.ghostButton, styles.ghostButtonAccent]}
+              onPress={() => onViewPermissions(victory.id)}
+              activeOpacity={0.6}>
+              <Text style={styles.ghostIcon}>💬</Text>
+              <Text style={[styles.ghostText, { color: categoryColor }]}>
+                {victory.permissionsCount}{" "}
+                {victory.permissionsCount === 1 ? "Permission" : "Permissions"}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </BlurView>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    borderWidth: 2,
+  cardWrapper: {
     marginHorizontal: 16,
-    marginVertical: 12,
+    marginVertical: 10,
+    borderRadius: 20,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+    // Subtle outer glow via shadow
+    shadowColor: "rgba(255, 255, 255, 0.08)",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  cardHeader: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+  accentStrip: {
+    height: 3,
+  },
+  glassBody: {
+    backgroundColor: "rgba(255, 255, 255, 0.07)",
+    padding: 18,
+    gap: 10,
+  },
+  // Top row
+  topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  headerLeft: {
+  victoryBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
   },
   checkmark: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: "bold",
   },
-  headerTitle: {
-    fontSize: 14,
+  victoryLabel: {
+    fontSize: 11,
     fontWeight: "700",
-    letterSpacing: 1,
-    color: "#111827",
+    letterSpacing: 1.2,
+    color: "rgba(255, 255, 255, 0.85)",
   },
-  cardContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    gap: 12,
-  },
+  // Title
   milestoneTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#111827",
-    letterSpacing: 0.5,
-  },
-  dreamSection: {
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: 0.4,
     marginTop: 4,
   },
-  dreamLabel: {
-    fontSize: 13,
-    color: "#6B7280",
-    fontWeight: "500",
-  },
-  evidenceSection: {
-    marginVertical: 8,
-    paddingHorizontal: 0,
-  },
+  // Evidence
   evidenceText: {
-    fontSize: 15,
+    fontSize: 14,
     fontStyle: "italic",
-    color: "#374151",
+    color: "rgba(255, 255, 255, 0.7)",
     lineHeight: 20,
   },
-  statsRow: {
-    marginTop: 8,
+  // Meta
+  metaRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    gap: 6,
+    marginTop: 2,
   },
   confidenceStat: {
     fontSize: 12,
     fontWeight: "600",
-    letterSpacing: 0.3,
+  },
+  metaDot: {
+    fontSize: 10,
+    color: "rgba(255, 255, 255, 0.3)",
   },
   dateText: {
     fontSize: 11,
-    color: "#9CA3AF",
+    color: "rgba(255, 255, 255, 0.4)",
   },
   userInfo: {
     fontSize: 12,
-    color: "#9CA3AF",
-    marginTop: 4,
+    color: "rgba(255, 255, 255, 0.45)",
   },
-  cardFooter: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
+  // Divider
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    marginVertical: 4,
+  },
+  // Actions
+  actionRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
     flexWrap: "wrap",
   },
-  permissionButton: {
+  ghostButton: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#D1D5DB",
-    backgroundColor: "#FFFFFF",
+    borderColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
-  permissionIcon: {
-    fontSize: 16,
+  ghostButtonAccent: {
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
-  permissionText: {
-    fontSize: 13,
+  ghostIcon: {
+    fontSize: 14,
+  },
+  ghostText: {
+    fontSize: 12,
     fontWeight: "600",
-    color: "#374151",
-  },
-  viewPermissionsButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: "#F0F5FF",
-  },
-  viewPermissionsText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#2D5BFF",
+    color: "rgba(255, 255, 255, 0.7)",
   },
 });

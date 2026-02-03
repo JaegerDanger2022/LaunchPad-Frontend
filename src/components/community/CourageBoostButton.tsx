@@ -92,23 +92,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    backgroundColor: 'transparent',
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   sizeSmall: {
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 5,
   },
   sizeMedium: {
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   buttonBoosted: {
-    backgroundColor: '#F59E0B',
-    borderColor: '#F59E0B',
+    backgroundColor: 'rgba(245, 158, 11, 0.25)',
+    borderColor: 'rgba(245, 158, 11, 0.5)',
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   textSmall: {
     fontSize: 12,
@@ -128,6 +128,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   textBoosted: {
-    color: '#FFFFFF',
+    color: '#F59E0B',
   },
 });

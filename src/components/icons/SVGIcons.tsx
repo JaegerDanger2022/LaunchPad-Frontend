@@ -76,23 +76,37 @@ export const ArrowRightIcon: React.FC<IconProps> = ({ size = 20, color = '#fff' 
   </View>
 );
 
-export const ProgressRingIcon: React.FC<IconProps> = ({ size = 30, color = '#6B9BD1' }) => (
-  <View style={{ width: size, height: size }}>
-    <Svg width={size} height={size} viewBox="0 0 30 30" fill="none">
-      <Circle cx="15" cy="15" r="13" stroke="#e5e7eb" strokeWidth="2" />
-      <Circle
-        cx="15"
-        cy="15"
-        r="13"
-        stroke={color}
-        strokeWidth="2"
-        strokeDasharray="40.84"
-        strokeDashoffset="16.33"
-        strokeLinecap="round"
-      />
-    </Svg>
-  </View>
-);
+interface ProgressRingIconProps extends IconProps {
+  progress?: number; // 0–100
+}
+
+export const ProgressRingIcon: React.FC<ProgressRingIconProps> = ({ size = 30, color = '#6B9BD1', progress = 0 }) => {
+  const radius = 13;
+  const circumference = 2 * Math.PI * radius; // ≈ 81.68
+  const clampedProgress = Math.min(100, Math.max(0, progress));
+  const offset = circumference * (1 - clampedProgress / 100);
+
+  return (
+    <View style={{ width: size, height: size }}>
+      <Svg width={size} height={size} viewBox="0 0 30 30" fill="none">
+        {/* Background track */}
+        <Circle cx="15" cy="15" r={radius} stroke="#e5e7eb" strokeWidth="2" />
+        {/* Progress arc — rotated so 0% starts at 12 o'clock */}
+        <Circle
+          cx="15"
+          cy="15"
+          r={radius}
+          stroke={color}
+          strokeWidth="2"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          transform="rotate(-90 15 15)"
+        />
+      </Svg>
+    </View>
+  );
+};
 
 export const AvatarIcon: React.FC<IconProps> = ({ size = 47, color = '#b4c5fd' }) => (
   <View style={{ width: size, height: size }}>
