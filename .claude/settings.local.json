@@ -16,7 +16,22 @@
       "Bash(npx expo start:*)",
       "Bash(npx expo install:*)",
       "Bash(git commit:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:ai.google.dev)",
+      "Bash(git push)",
+      "Bash(ls:*)",
+      "Bash(git rebase:*)",
+      "WebFetch(domain:www.revenuecat.com)",
+      "Bash(gradlew.bat clean:*)",
+      "Bash(cmd /c gradlew.bat:*)",
+      "Bash(export ANDROID_SERIAL=R9WWB0ZP07H)",
+      "Bash(npx expo run:android:*)",
+      "Bash(tee:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(git push:*)"
     ]
   }
 }

@@ -1,4 +1,5 @@
 import Purchases, { LOG_LEVEL, PurchasesPackage } from "react-native-purchases";
+import { Linking } from "react-native";
 import Constants from "expo-constants";
 
 // RevenueCat Configuration
@@ -129,5 +130,26 @@ export async function restorePurchases() {
   } catch (error) {
     console.error("[RevenueCat] Error restoring purchases:", error);
     throw error;
+  }
+}
+
+/**
+ * Open the platform-native subscription management page (cancel, upgrade, etc.)
+ * Returns true if the URL was available and opened, false otherwise.
+ */
+export async function showManageSubscriptions(): Promise<boolean> {
+  try {
+    const customerInfo = await Purchases.getCustomerInfo();
+    const url = customerInfo.managementURL;
+    if (url) {
+      await Linking.openURL(url);
+      console.log("[RevenueCat] Opened subscription management URL");
+      return true;
+    }
+    console.warn("[RevenueCat] No managementURL available");
+    return false;
+  } catch (error) {
+    console.error("[RevenueCat] Error opening subscription management:", error);
+    return false;
   }
 }

@@ -546,6 +546,26 @@ export async function getStreak(userId: string): Promise<GetStreakResponse> {
   }
 }
 
+export async function updatePlan(userId: string, plan: string): Promise<void> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/plan`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP ${response.status}`);
+    }
+
+    console.log(`[updatePlan] Plan updated to: ${plan}`);
+  } catch (error: any) {
+    console.error("[updatePlan] Error:", error.message);
+    // Don't throw — plan sync failure shouldn't block the app
+  }
+}
+
 // ============================================================================
 // COMMUNITY ENDPOINTS (Victory Wall)
 // ============================================================================

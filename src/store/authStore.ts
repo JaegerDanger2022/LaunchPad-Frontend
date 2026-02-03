@@ -14,7 +14,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { ensureGoogleSignInInitialized, isGoogleSignInAvailable } from '../config/googleSignIn';
-import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI, updateStreak as updateStreakAPI, getStreak, FetchUserDataOptions, fetchDreamDetails } from '../config/api';
+import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI, updateStreak as updateStreakAPI, getStreak, FetchUserDataOptions, fetchDreamDetails, updatePlan } from '../config/api';
 import { findNextIncompleteMilestone } from '../utils/upNextHelper';
 import { StreakData } from '../types/index';
 import * as SecureStore from 'expo-secure-store';
@@ -93,6 +93,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   refreshPremiumStatus: async () => {
     const active = await checkEntitlement(ENTITLEMENT_ID);
     set({ isPremium: active });
+
+    // Sync to backend so the dream-limit gate stays in sync
+    const currentUser = useAuthStore.getState().user;
+    if (currentUser?.uid) {
+      updatePlan(currentUser.uid, active ? 'pro' : 'free');
+    }
   },
 
   initializeAuth: () => {

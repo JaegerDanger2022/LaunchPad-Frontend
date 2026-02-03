@@ -9,6 +9,7 @@ import { StatsRings } from "../components/settings/StatsRings";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { getThemeColors } from "../constants/GlobalStyles";
+import { showManageSubscriptions } from "../config/revenuecat";
 import Toast from "react-native-toast-message";
 
 interface SettingsScreenProps {
@@ -18,7 +19,7 @@ interface SettingsScreenProps {
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onNavigate,
 }) => {
-  const { user, userData, logout } = useAuthStore();
+  const { user, userData, logout, isPremium } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
@@ -86,6 +87,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   const handleUpgradeToPremium = () => {
     onNavigate?.("Paywall");
+  };
+
+  const handleManageSubscription = async () => {
+    const opened = await showManageSubscriptions();
+    if (!opened) {
+      Toast.show({
+        type: "error",
+        text1: "Unavailable",
+        text2: "Subscription management is not available right now",
+        visibilityTime: 2000,
+      });
+    }
   };
 
   const handleOpenLink = (linkType: string) => {
@@ -163,12 +176,24 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               style={{
                 backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
               }}>
-              <SettingRow
-                icon="⭐"
-                label="Upgrade to Premium"
-                showArrow
-                onPress={handleUpgradeToPremium}
-              />
+              {isPremium ? (
+                <>
+                  <SettingRow icon="⭐" label="Subscription" value="Pro" />
+                  <SettingRow
+                    icon="⚙️"
+                    label="Manage Subscription"
+                    showArrow
+                    onPress={handleManageSubscription}
+                  />
+                </>
+              ) : (
+                <SettingRow
+                  icon="⭐"
+                  label="Upgrade to Pro"
+                  showArrow
+                  onPress={handleUpgradeToPremium}
+                />
+              )}
             </BlurView>
           </View>
         </View>
