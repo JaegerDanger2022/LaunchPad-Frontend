@@ -18,7 +18,9 @@ import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateU
 import { findNextIncompleteMilestone } from '../utils/upNextHelper';
 import { StreakData } from '../types/index';
 import * as SecureStore from 'expo-secure-store';
-import { identifyRevenueCatUser, logoutRevenueCatUser } from '../config/revenuecat';
+import { identifyRevenueCatUser, logoutRevenueCatUser, checkEntitlement } from '../config/revenuecat';
+
+const ENTITLEMENT_ID = 'entl8ae0503ddb';
 
 /**
  * Maps dreams_summary to dreams format for backward compatibility.
@@ -59,8 +61,10 @@ interface AuthState {
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;
+  isPremium: boolean;
 
   // Actions
+  refreshPremiumStatus: () => Promise<void>;
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   googleSignIn: () => Promise<void>;
@@ -84,6 +88,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   loading: true,
   error: null,
   isAuthenticated: false,
+  isPremium: false,
+
+  refreshPremiumStatus: async () => {
+    const active = await checkEntitlement(ENTITLEMENT_ID);
+    set({ isPremium: active });
+  },
 
   initializeAuth: () => {
     // Listen to Firebase auth state changes
@@ -95,9 +105,10 @@ export const useAuthStore = create<AuthState>((set) => ({
           await SecureStore.setItemAsync('userToken', token);
           set({ user, isAuthenticated: true });
 
-          // Identify user in RevenueCat
+          // Identify user in RevenueCat and check entitlement
           try {
             await identifyRevenueCatUser(user.uid);
+            await useAuthStore.getState().refreshPremiumStatus();
           } catch (error) {
             console.error('[Auth] RevenueCat identification error:', error);
             // Don't block auth flow on RevenueCat error
