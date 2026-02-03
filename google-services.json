@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "74552017471",
+    "project_id": "ghanai-462210",
+    "storage_bucket": "ghanai-462210.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:74552017471:android:5a08a82e134d2249332e8a",
+        "android_client_info": {
+          "package_name": "com.launchpad.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "74552017471-scs8fgeld4esrnq8dr66l6qpj90mej2c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAIdKqj4MvaLXPb0GM9J7-fsVWi9hivUk8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "74552017471-gmtr62hmog92h3i1fmfecfo8chbg2lrp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
