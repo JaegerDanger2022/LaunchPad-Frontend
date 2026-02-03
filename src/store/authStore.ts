@@ -346,6 +346,10 @@ export const useAuthStore = create<AuthState>((set) => ({
             return { userData: updatedUserData };
           });
         }
+
+        // Re-fetch full milestones — loadUserData replaces userData with summary,
+        // so milestones need to be patched back in.
+        useAuthStore.getState().loadFullDreams(userId);
       } else {
         // console.warn('[loadUserData] No user data found for:', userId);
       }
@@ -497,22 +501,28 @@ export const useAuthStore = create<AuthState>((set) => ({
   // Called fire-and-forget after initial load so the app renders instantly from summary,
   // then milestones appear as each fetch resolves.
   loadFullDreams: async (userId: string) => {
-    const state = useAuthStore.getState();
-    const dreams = state.userData?.dreams;
-    if (!dreams || dreams.length === 0) return;
+    // Collect thread_ids to fetch from a fresh snapshot
+    const threadIds = useAuthStore.getState().userData?.dreams
+      ?.map((d: any) => d.thread_id)
+      .filter(Boolean) ?? [];
 
-    for (const dream of dreams) {
-      if (!dream.thread_id) continue;
-      // Skip if milestones already populated (e.g. dream was just created with full data)
-      if (dream.roadmap?.milestones && dream.roadmap.milestones.length > 0) continue;
+    if (threadIds.length === 0) return;
+
+    for (const threadId of threadIds) {
+      // Re-read current state each iteration — a previous set() or loadUserData
+      // may have replaced userData; skip if milestones are already populated
+      const currentDream = useAuthStore.getState().userData?.dreams
+        ?.find((d: any) => d.thread_id === threadId);
+      if (!currentDream) continue;
+      if (currentDream.roadmap?.milestones && currentDream.roadmap.milestones.length > 0) continue;
 
       try {
-        const fullDream = await fetchDreamDetails(userId, dream.thread_id);
+        const fullDream = await fetchDreamDetails(userId, threadId);
         if (fullDream?.roadmap?.milestones) {
           set((prev) => {
             if (!prev.userData?.dreams) return prev;
             const updated = JSON.parse(JSON.stringify(prev.userData));
-            const target = updated.dreams.find((d: any) => d.thread_id === dream.thread_id);
+            const target = updated.dreams.find((d: any) => d.thread_id === threadId);
             if (target) {
               target.roadmap = fullDream.roadmap;
               target.metadata = fullDream.metadata;
@@ -521,7 +531,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           });
         }
       } catch (e) {
-        console.error('[loadFullDreams] Failed to fetch dream', dream.thread_id, e);
+        console.error('[loadFullDreams] Failed to fetch dream', threadId, e);
       }
     }
   },
