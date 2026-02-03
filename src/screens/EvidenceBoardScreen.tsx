@@ -21,6 +21,7 @@ import {
 import { useThemeStore } from "../store/themeStore";
 import { useAuthStore } from "../store/authStore";
 import { BottomNavbar } from "../components/BottomNavbar";
+import { fetchDreamDetails } from "../config/api";
 import {
   DreamCard,
   ProofPointItem,
@@ -44,13 +45,34 @@ const EvidenceBoardScreen = ({
   const bottomNavbarHeight = 60; // Approximate navbar height
   const bottomPadding = bottomNavbarHeight + Math.max(insets.bottom, 8) + 20;
   const { width } = useWindowDimensions();
-  const { userData } = useAuthStore();
+  const { userData, user } = useAuthStore();
 
   const [expandedDreamId, setExpandedDreamId] = useState<number | null>(null);
   const [showRecap, setShowRecap] = useState(false);
+  // Cache of fully-fetched dream data keyed by thread_id
+  const [fullDreamsCache, setFullDreamsCache] = useState<Record<string, any>>({});
 
   // Animation values for expand/collapse
   const expandAnim = useRef(new Animated.Value(0)).current;
+
+  // Fetch full dream data when a card is expanded
+  useEffect(() => {
+    if (expandedDreamId == null || !user?.uid) return;
+    // Already cached?
+    if (fullDreamsCache[expandedDreamId as any]) return;
+
+    const load = async () => {
+      try {
+        const fullDream = await fetchDreamDetails(user.uid, String(expandedDreamId));
+        if (fullDream) {
+          setFullDreamsCache((prev) => ({ ...prev, [expandedDreamId as any]: fullDream }));
+        }
+      } catch (e) {
+        console.error('[EvidenceBoard] Failed to fetch full dream:', e);
+      }
+    };
+    load();
+  }, [expandedDreamId, user?.uid]);
 
   // Trigger animation when dream is expanded
   useEffect(() => {
@@ -78,14 +100,17 @@ const EvidenceBoardScreen = ({
     }
 
     return userData.dreams.map((dreamData: any) => {
+      // Use fully-fetched data if cached, otherwise fall back to summary
+      const source = fullDreamsCache[dreamData.thread_id] || dreamData;
+
       // Extract proof points from roadmap milestones
       const proofPoints: ProofPoint[] = [];
       if (
-        dreamData.roadmap?.milestones &&
-        Array.isArray(dreamData.roadmap.milestones)
+        source.roadmap?.milestones &&
+        Array.isArray(source.roadmap.milestones)
       ) {
         proofPoints.push(
-          ...dreamData.roadmap.milestones.map((milestone: any) => ({
+          ...source.roadmap.milestones.map((milestone: any) => ({
             id: milestone.id,
             date: milestone.completedDate || "",
             mission: milestone.title,
@@ -95,18 +120,19 @@ const EvidenceBoardScreen = ({
         );
       }
 
-      // Calculate progress from metadata
-      const totalXp = dreamData.metadata?.total_xp || 1;
-      const currentScore = dreamData.metadata?.score || 0;
-      const progress = Math.min(
-        100,
-        Math.round((currentScore / totalXp) * 100),
-      );
+      // Calculate progress: use _metadata counts when full data not yet loaded
+      const totalMilestones = source._metadata?.milestones_count || (source.roadmap?.milestones?.length || 0);
+      const completedCount = source._metadata?.completed_milestones_count || proofPoints.filter(p => p.completed).length;
+      const progress = totalMilestones > 0
+        ? Math.min(100, Math.round((completedCount / totalMilestones) * 100))
+        : 0;
+
+      const currentScore = source.metadata?.score || 0;
 
       return {
         id: dreamData.thread_id,
         title: dreamData.dream,
-        category: "" as unknown as "travel" | "career" | "financial" | "other",
+        category: (dreamData.category || "") as unknown as "travel" | "career" | "financial" | "other",
         status: dreamData.status as "in-progress" | "completed",
         isComplete: dreamData.isComplete || false,
         progress,
@@ -118,7 +144,7 @@ const EvidenceBoardScreen = ({
         dream_card_bg: dreamData.dream_card_bg,
       };
     });
-  }, [userData]);
+  }, [userData, fullDreamsCache]);
 
   // Use real data if available, otherwise use fallback
   const displayDreams =

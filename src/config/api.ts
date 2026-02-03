@@ -96,11 +96,30 @@ export async function registerUserToDatabase(
   }
 }
 
-export async function fetchUserData(userId: string): Promise<UserData | null> {
-  try {
-    console.log(`Attempting to fetch user data for userId: ${userId}`);
+export interface FetchUserDataOptions {
+  /**
+   * Specify which fields to include in the response
+   * 'minimal' - Only basic user info (user_id, email, name)
+   * 'essential' - Basic info + up_next, streak, recents (default for app load)
+   * 'full' - All data including full dreams array with roadmaps
+   */
+  fields?: 'minimal' | 'essential' | 'full';
+}
 
-    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+export async function fetchUserData(
+  userId: string,
+  options: FetchUserDataOptions = { fields: 'essential' }
+): Promise<UserData | null> {
+  try {
+    // Build URL with query parameters
+    const url = new URL(`${API_BASE_URL}/users/${userId}`);
+    if (options.fields && options.fields !== 'full') {
+      url.searchParams.append('fields', options.fields);
+    }
+
+    console.log(`Attempting to fetch user data for userId: ${userId} (fields: ${options.fields || 'essential'})`);
+
+    const response = await fetch(url.toString(), {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -128,7 +147,7 @@ export async function fetchUserData(userId: string): Promise<UserData | null> {
     }
 
     const userData = await response.json();
-    // console.log("User data fetched successfully:", userData);
+    console.log(`User data fetched successfully (${options.fields || 'essential'} fields)`);
     return userData as UserData;
   } catch (error: any) {
     console.error("Error fetching user data:");
@@ -1054,6 +1073,124 @@ export async function getJourneyRecapPermissions(
   } catch (error: any) {
     console.error("[getJourneyRecapPermissions] Error:", error.message);
     throw error;
+  }
+}
+
+/**
+ * Fetch full dream data including roadmap and milestones
+ * Use this when user navigates to a specific dream detail screen
+ *
+ * NEW: Uses dreams collection endpoint (/api/dreams/{thread_id})
+ */
+export async function fetchDreamDetails(
+  userId: string,
+  threadId: string
+): Promise<any> {
+  try {
+    console.log(`Fetching dream details for threadId: ${threadId}`);
+
+    // Fetch from dreams CRUD collection endpoint
+    const response = await fetch(
+      `${API_BASE_URL}/dreams-crud/${threadId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log(`Response status: ${response.status} ${response.statusText}`);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const dreamData = await response.json();
+    console.log("Dream details fetched successfully");
+    return dreamData;
+  } catch (error: any) {
+    console.error("Error fetching dream details:", error.message);
+    throw error;
+  }
+}
+
+/**
+ * Fetch dreams list with summary info only (no full roadmaps)
+ * Use this for displaying dreams list without heavy data
+ *
+ * NEW: Uses dreams collection endpoint (/api/dreams?user_id={userId})
+ */
+export async function fetchDreamsList(
+  userId: string,
+  options?: {
+    status?: 'active' | 'completed';
+    page?: number;
+    limit?: number;
+    summary?: boolean;
+  }
+): Promise<any> {
+  try {
+    console.log(`Fetching dreams list for userId: ${userId}`);
+
+    // Build query parameters
+    const params = new URLSearchParams({
+      user_id: userId,
+      summary: (options?.summary !== false).toString(), // Default to true
+    });
+
+    if (options?.status) {
+      params.append('status', options.status);
+    }
+    if (options?.page) {
+      params.append('page', options.page.toString());
+    }
+    if (options?.limit) {
+      params.append('limit', options.limit.toString());
+    }
+
+    // Fetch from dreams CRUD collection endpoint
+    const response = await fetch(
+      `${API_BASE_URL}/dreams-crud?${params.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log(`Response status: ${response.status} ${response.statusText}`);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+
+    // Return the dreams array (backend returns { dreams: [...], pagination: {...} })
+    const dreams = result.dreams || [];
+    console.log(`Dreams list fetched successfully (${dreams.length} dreams)`);
+
+    return result; // Return full response with pagination
+  } catch (error: any) {
+    console.error("Error fetching dreams list:", error.message);
+    // Return empty result instead of throwing
+    return { dreams: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } };
   }
 }
 

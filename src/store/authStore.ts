@@ -14,11 +14,44 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { ensureGoogleSignInInitialized, isGoogleSignInAvailable } from '../config/googleSignIn';
-import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI, updateStreak as updateStreakAPI, getStreak } from '../config/api';
+import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI, updateStreak as updateStreakAPI, getStreak, FetchUserDataOptions, fetchDreamDetails } from '../config/api';
 import { findNextIncompleteMilestone } from '../utils/upNextHelper';
 import { StreakData } from '../types/index';
 import * as SecureStore from 'expo-secure-store';
 import { identifyRevenueCatUser, logoutRevenueCatUser } from '../config/revenuecat';
+
+/**
+ * Maps dreams_summary to dreams format for backward compatibility.
+ * After migration, backend returns dreams_summary (lightweight) instead of full dreams array.
+ * This helper ensures existing components continue to work without changes.
+ */
+const mapDreamsSummaryToDreams = (userData: UserData): UserData => {
+  // If we have dreams_summary but no dreams array, map it
+  if (userData.dreams_summary && !userData.dreams) {
+    userData.dreams = userData.dreams_summary.map((summary: any) => ({
+      thread_id: summary.thread_id,
+      dream: summary.dream,
+      status: summary.status,
+      dream_image_bytes: summary.dream_image_bytes, // Already base64 from backend
+      dream_card_bg: summary.dream_card_bg, // Card background color
+      category: summary.category,
+      created_at: summary.created_at,
+      updated_at: summary.updated_at,
+      isComplete: summary.isComplete,
+      // Add placeholder roadmap structure with milestone counts
+      roadmap: {
+        status: summary.status,
+        milestones: [] // Empty array - full data loaded separately when needed
+      },
+      // Add milestone count metadata for UI display
+      _metadata: {
+        milestones_count: summary.milestones_count,
+        completed_milestones_count: summary.completed_milestones_count,
+      }
+    }));
+  }
+  return userData;
+};
 
 interface AuthState {
   user: User | null;
@@ -36,12 +69,13 @@ interface AuthState {
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   clearError: () => void;
   initializeAuth: () => void;
-  loadUserData: (userId: string) => Promise<void>;
+  loadUserData: (userId: string, options?: FetchUserDataOptions) => Promise<void>;
   updateMilestoneStatusLocal: (threadId: string, milestoneId: string, status: string) => void;
   addToRecents: (threadId: string) => void;
   updateUpNext: () => void;
   updateStreakData: (streakData: StreakData) => void;
   updateCouragePoints: (amount: number) => void;
+  loadFullDreams: (userId: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -69,11 +103,14 @@ export const useAuthStore = create<AuthState>((set) => ({
             // Don't block auth flow on RevenueCat error
           }
 
-          // Load user data from MongoDB
-          console.log('Auth state changed - loading user data');
-          const userData = await fetchUserData(user.uid);
+          // Load user data from MongoDB - use 'essential' fields for faster initial load
+          console.log('Auth state changed - loading user data (essential fields only)');
+          const userData = await fetchUserData(user.uid, { fields: 'essential' });
           if (userData) {
-            set({ userData, loading: false });
+            const mappedData = mapDreamsSummaryToDreams(userData);
+            set({ userData: mappedData, loading: false });
+            // Fire-and-forget: fetch full milestones for each dream into Zustand
+            useAuthStore.getState().loadFullDreams(user.uid);
           } else {
             set({ loading: false });
           }
@@ -110,9 +147,10 @@ export const useAuthStore = create<AuthState>((set) => ({
           // Don't block signup flow on RevenueCat error
         }
 
-        // Load user data immediately after registration
-        const userData = await fetchUserData(userCredential.user.uid);
-        set({ user: userCredential.user, userData, isAuthenticated: true, loading: false });
+        // Load user data immediately after registration - use 'essential' fields
+        const userData = await fetchUserData(userCredential.user.uid, { fields: 'essential' });
+        const mappedData = mapDreamsSummaryToDreams(userData);
+        set({ user: userCredential.user, userData: mappedData, isAuthenticated: true, loading: false });
       } else {
         set({ user: userCredential.user, isAuthenticated: true, loading: false });
       }
@@ -136,9 +174,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         // Don't block login flow on RevenueCat error
       }
 
-      // Load user data from MongoDB
-      const userData = await fetchUserData(userCredential.user.uid);
-      set({ user: userCredential.user, userData, isAuthenticated: true, loading: false });
+      // Load user data from MongoDB - use 'essential' fields for faster login
+      const userData = await fetchUserData(userCredential.user.uid, { fields: 'essential' });
+      const mappedData = mapDreamsSummaryToDreams(userData);
+      set({ user: userCredential.user, userData: mappedData, isAuthenticated: true, loading: false });
+      useAuthStore.getState().loadFullDreams(userCredential.user.uid);
     } catch (error: any) {
       const errorMessage = getErrorMessage(error.code);
       set({ error: errorMessage, loading: false });
@@ -176,9 +216,11 @@ export const useAuthStore = create<AuthState>((set) => ({
           // Don't block login flow on RevenueCat error
         }
 
-        // Load user data from MongoDB
-        const userData = await fetchUserData(userCredential.user.uid);
-        set({ user: userCredential.user, userData, isAuthenticated: true, loading: false });
+        // Load user data from MongoDB - use 'essential' fields for faster login
+        const userData = await fetchUserData(userCredential.user.uid, { fields: 'essential' });
+        const mappedData = mapDreamsSummaryToDreams(userData);
+        set({ user: userCredential.user, userData: mappedData, isAuthenticated: true, loading: false });
+        useAuthStore.getState().loadFullDreams(userCredential.user.uid);
       } else {
         throw new Error('No ID token from Google Sign-In');
       }
@@ -273,13 +315,16 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   clearError: () => set({ error: null }),
 
-  loadUserData: async (userId: string) => {
+  loadUserData: async (userId: string, options?: FetchUserDataOptions) => {
     try {
+      // Default to 'essential' for performance, but allow override
+      const fetchOptions = options || { fields: 'essential' };
       // console.log('[loadUserData] Loading user data for:', userId);
-      const userData = await fetchUserData(userId);
+      const userData = await fetchUserData(userId, fetchOptions);
       if (userData) {
         // console.log('[loadUserData] Fetched userData, up_next:', userData.up_next);
-        set({ userData });
+        const mappedData = mapDreamsSummaryToDreams(userData);
+        set({ userData: mappedData });
         // console.log('[loadUserData] User data loaded successfully, state updated');
 
         // Auto-recalculate streak to catch any missed days
@@ -446,6 +491,39 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       return { userData: updatedUserData };
     });
+  },
+
+  // Fetch full roadmap+milestones for every dream and merge into userData.dreams in Zustand.
+  // Called fire-and-forget after initial load so the app renders instantly from summary,
+  // then milestones appear as each fetch resolves.
+  loadFullDreams: async (userId: string) => {
+    const state = useAuthStore.getState();
+    const dreams = state.userData?.dreams;
+    if (!dreams || dreams.length === 0) return;
+
+    for (const dream of dreams) {
+      if (!dream.thread_id) continue;
+      // Skip if milestones already populated (e.g. dream was just created with full data)
+      if (dream.roadmap?.milestones && dream.roadmap.milestones.length > 0) continue;
+
+      try {
+        const fullDream = await fetchDreamDetails(userId, dream.thread_id);
+        if (fullDream?.roadmap?.milestones) {
+          set((prev) => {
+            if (!prev.userData?.dreams) return prev;
+            const updated = JSON.parse(JSON.stringify(prev.userData));
+            const target = updated.dreams.find((d: any) => d.thread_id === dream.thread_id);
+            if (target) {
+              target.roadmap = fullDream.roadmap;
+              target.metadata = fullDream.metadata;
+            }
+            return { userData: updated };
+          });
+        }
+      } catch (e) {
+        console.error('[loadFullDreams] Failed to fetch dream', dream.thread_id, e);
+      }
+    }
   },
 }));
 

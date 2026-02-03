@@ -15,6 +15,7 @@ import { CommunityScreen } from './src/screens/CommunityScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import ShareVictoryScreen from './src/screens/ShareVictoryScreen';
 import ShareJourneyRecapScreen from './src/screens/ShareJourneyRecapScreen';
+import { PaywallScreen } from './src/screens/PaywallScreen';
 import LoginScreen from './src/screens/auth/LoginScreen';
 import SignupScreen from './src/screens/auth/SignupScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
@@ -24,6 +25,7 @@ import { useThemeStore } from './src/store/themeStore';
 import { useNotificationStore } from './src/store/notificationStore';
 import { Color } from './src/constants/GlobalStyles';
 import Toast from 'react-native-toast-message';
+import { toastConfig } from './src/components/CustomToast';
 import { configureRevenueCat } from './src/config/revenuecat';
 
 export type RootStackParamList = {
@@ -42,6 +44,7 @@ export type RootStackParamList = {
   ShareVictory: { victory: any };
   ShareJourneyRecap: { journeyRecap: any };
   ChangePassword: undefined;
+  Paywall: undefined;
 };
 
 export type TabParamList = {
@@ -237,6 +240,19 @@ const ChangePasswordScreenWrapper = ({ navigation }: any) => (
   />
 );
 
+const PaywallScreenWrapper = ({ navigation }: any) => (
+  <PaywallScreen
+    onClose={() => {
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      } else {
+        // Fallback to Settings tab if no history
+        navigation.navigate('HomeTabs', { screen: 'Settings' });
+      }
+    }}
+  />
+);
+
 // Auth Navigator
 function AuthNavigator() {
   return (
@@ -373,6 +389,15 @@ function AppNavigator() {
             animation: 'slide_from_bottom',
           }}
         />
+        <Stack.Screen
+          name="Paywall"
+          component={PaywallScreenWrapper}
+          options={{
+            presentation: 'transparentModal',
+            headerShown: false,
+            animation: 'slide_from_bottom',
+          }}
+        />
       </Stack.Group>
     </Stack.Navigator>
   );
@@ -406,7 +431,7 @@ export default function App() {
     <NavigationContainer>
       {(loading || isAuthenticated) ? <AppNavigator /> : <AuthNavigator />}
       <StatusBar style={theme === 'light' ? 'dark' : 'light'} backgroundColor={theme === 'light' ? Color.colorSnow : '#050938'} />
-      <Toast />
+      <Toast config={toastConfig} />
     </NavigationContainer>
   );
 }

@@ -434,7 +434,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
       <ParallaxHeader
         ref={scrollRef}
         backgroundColor={themeColors.bg_secondary}
-        backgroundImage={require('../assets/images/hero-bg.png')}
+        backgroundImage={require('../assets/images/community.png')}
         title="🏆 Victory Wall"
         subtitle={`Proof of action, not perfection • ${feedItems.length} ${feedItems.length === 1 ? 'post' : 'posts'}`}
         titleStyle={{

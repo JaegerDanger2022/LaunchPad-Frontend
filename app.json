@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "PacksLight---Expo-Frontend",
-    "slug": "PacksLight---Expo-Frontend",
-    "scheme": "packslight",
+    "name": "LaunchPad",
+    "slug": "launchpad",
+    "scheme": "launchpad",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -19,7 +19,8 @@
         {
           "icon": "./assets/notification-icon.png",
           "color": "#FF6B35",
-          "sounds": []
+          "sounds": [],
+          "mode": "production"
         }
       ],
       [
@@ -36,7 +37,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.packslight.app",
+      "bundleIdentifier": "com.launchpad.app",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "We need microphone access to record voice messages about your dreams"
       }
@@ -46,13 +47,15 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.packslight.app",
+      "package": "com.launchpad.app",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "useNextNotificationsApi": true,
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.RECORD_AUDIO",
-        "android.permission.MODIFY_AUDIO_SETTINGS"
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.POST_NOTIFICATIONS"
       ]
     },
     "web": {},

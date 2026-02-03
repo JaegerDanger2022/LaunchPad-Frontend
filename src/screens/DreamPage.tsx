@@ -80,7 +80,7 @@ const DreamPage = ({
   // Calculate SVG path: combines scroll animation (curve straightens) + drag animation (curve extends)
   const elasticPath = `M 0 0 L ${screenWidth} 0 L ${screenWidth} ${curveDepth} Q ${screenWidth / 2} ${curveDepth + 50} 0 ${curveDepth} Z`;
 
-  // Transform dream milestones to MilestoneCard props
+  // Transform dream milestones to MilestoneCard props — reads from Zustand (populated by loadFullDreams)
   const milestones: Milestone[] = useMemo(() => {
     if (!userData?.dreams || !Array.isArray(userData.dreams)) {
       return [];

@@ -32,9 +32,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const currentStreak = userData?.streak?.current_streak || 0;
   // const couragePoints = userData?.couragePoints || 0; // Muted - may be re-enabled later
 
-  // Count completed milestones
+  // Count completed milestones — use _metadata counts from summary, fall back to iterating if full data available
   const completedMilestones =
     userData?.dreams?.reduce((total: number, dream: any) => {
+      if (dream._metadata?.completed_milestones_count != null) {
+        return total + dream._metadata.completed_milestones_count;
+      }
       const completed =
         dream.roadmap?.milestones?.filter((m: any) => m.status === "completed")
           .length || 0;
@@ -79,6 +82,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   const handleChangePassword = () => {
     onNavigate?.("ChangePassword");
+  };
+
+  const handleUpgradeToPremium = () => {
+    onNavigate?.("Paywall");
   };
 
   const handleOpenLink = (linkType: string) => {
@@ -132,6 +139,35 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 currentStreak={currentStreak}
                 dreamCount={dreamCount}
                 completedMilestones={completedMilestones}
+              />
+            </BlurView>
+          </View>
+        </View>
+
+        {/* Premium Section */}
+        <View style={styles.section}>
+          <Text
+            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
+            Premium
+          </Text>
+          <View
+            style={[
+              styles.card,
+              {
+                borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
+              },
+            ]}>
+            <BlurView
+              intensity={60}
+              tint={theme === "dark" ? "dark" : "light"}
+              style={{
+                backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+              }}>
+              <SettingRow
+                icon="⭐"
+                label="Upgrade to Premium"
+                showArrow
+                onPress={handleUpgradeToPremium}
               />
             </BlurView>
           </View>

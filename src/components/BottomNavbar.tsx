@@ -40,14 +40,14 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({
   ];
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { bottom: insets.bottom > 0 ? insets.bottom + 4 : 12 }]}>
       <BlurView
         intensity={80}
         tint={theme === "dark" ? "dark" : "light"}
         style={[
           styles.container,
           {
-            paddingBottom: insets.bottom > 0 ? insets.bottom : 4,
+            paddingBottom: 4,
             borderWidth: 1,
             borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
           },
@@ -94,7 +94,6 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({
 const styles = StyleSheet.create({
   wrapper: {
     position: "absolute",
-    bottom: 12,
     left: 0,
     right: 0,
     zIndex: 20,

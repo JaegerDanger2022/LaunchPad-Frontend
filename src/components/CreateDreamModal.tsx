@@ -10,7 +10,9 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  TouchableWithoutFeedback,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { X } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
@@ -38,6 +40,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [inputMode, setInputMode] = useState<'text' | 'voice'>('text');
   const { user, loadUserData } = useAuthStore();
+  const insets = useSafeAreaInsets();
 
   // Voice store
   const {
@@ -185,34 +188,37 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
       visible={visible}
       transparent={true}
       animationType="fade"
-      onRequestClose={onClose}>
+      onRequestClose={handleClose}>
       {/* Backdrop */}
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          justifyContent: 'flex-end',
-        }}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1, justifyContent: 'flex-end' }}>
-          {/* Modal Content */}
-          <View
-            style={{
-              backgroundColor: Color.colorSnow,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              paddingHorizontal: 24,
-              paddingTop: 24,
-              paddingBottom: 32,
-              minHeight: 300,
-              maxHeight: '80%',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: -4 },
-              shadowOpacity: 0.1,
-              shadowRadius: 12,
-              elevation: 16,
-            }}>
+      <TouchableWithoutFeedback onPress={handleClose}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            justifyContent: 'flex-end',
+          }}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+            keyboardVerticalOffset={Platform.OS === 'android' ? -insets.bottom : 0}
+            style={{ justifyContent: 'flex-end' }}>
+            <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+              {/* Modal Content */}
+              <View
+                style={{
+                  backgroundColor: Color.colorSnow,
+                  borderTopLeftRadius: 24,
+                  borderTopRightRadius: 24,
+                  paddingHorizontal: 24,
+                  paddingTop: 24,
+                  paddingBottom: Math.max(insets.bottom + 16, 32),
+                  minHeight: 300,
+                  maxHeight: '80%',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: -4 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 12,
+                  elevation: 16,
+                }}>
             {/* Close Button */}
             <TouchableOpacity
               onPress={handleClose}
@@ -356,9 +362,11 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                 </View>
               </TouchableOpacity>
             )}
-          </View>
-        </KeyboardAvoidingView>
-      </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
+        </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
