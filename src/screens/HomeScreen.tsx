@@ -564,7 +564,7 @@ const HomeScreen = ({
                   }}>
                   {activeTab === "recents" ? (
                     /* Goal Cards Carousel, Skeletons, or No Recents */
-                    loading || isRefreshing ? (
+                    loading || isRefreshing || (userData?.recents?.length && dreamCardsData.length === 0) ? (
                       <SkeletonDreamCardsCarousel />
                     ) : dreamCardsData.length > 0 ? (
                       <Animated.ScrollView
