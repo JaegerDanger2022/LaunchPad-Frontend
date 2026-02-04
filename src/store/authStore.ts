@@ -344,8 +344,14 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (userData) {
         // console.log('[loadUserData] Fetched userData, up_next:', userData.up_next);
         const mappedData = mapDreamsSummaryToDreams(userData);
-        set({ userData: mappedData });
-        // console.log('[loadUserData] User data loaded successfully, state updated');
+        // Preserve existing dreams (with milestones already loaded) so
+        // the screen doesn't flash empty while refreshDreamsFromCrud runs.
+        set((state) => {
+          if (state.userData?.dreams?.length) {
+            mappedData.dreams = state.userData.dreams;
+          }
+          return { userData: mappedData };
+        });;
 
         // Auto-recalculate streak to catch any missed days
         console.log('[loadUserData] Auto-recalculating streak for:', userId);
