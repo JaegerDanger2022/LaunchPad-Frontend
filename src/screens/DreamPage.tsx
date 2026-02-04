@@ -233,21 +233,25 @@ const DreamPage = ({
           </Text>
 
           {/* Score Display */}
-          <Text
-            style={{
-              fontSize: 14,
-              color: Color.colorBlack,
-              fontFamily: "InstrumentSans-Regular",
-              fontWeight: "500",
-              opacity: 0.8,
-              marginTop: 8,
-              width: 100,
-              height: 48,
-              borderRadius: 12,
-              backgroundColor: "rgba(255, 255, 255, 0.2)",
-            }}>
-            {dreamScore}/{dreamTotalXp} Points
-          </Text>
+          <View style={{ alignItems: "center", marginTop: 8 }}>
+            <View
+              style={{
+                paddingHorizontal: 14,
+                paddingVertical: 6,
+                borderRadius: 20,
+                backgroundColor: "rgba(255, 255, 255, 0.25)",
+              }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: Color.colorBlack,
+                  fontFamily: "InstrumentSans-Bold",
+                  fontWeight: "700",
+                }}>
+                {dreamScore}/{dreamTotalXp} Points
+              </Text>
+            </View>
+          </View>
 
           {/* Dream Achievements Animation - Centered */}
           {/* <View style={{ alignItems: "center", marginBottom: 20 }}>
