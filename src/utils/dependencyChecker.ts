@@ -1,5 +1,11 @@
 /**
- * Check if all dependencies of a milestone are completed
+ * Check if all dependencies of a milestone are completed.
+ *
+ * Sequential fallback: when no milestone in the owning roadmap has
+ * explicit dependencies (the agent omitted the field entirely), treat
+ * the roadmap as strictly sequential — each milestone is locked until
+ * the one before it is completed; the first milestone is always unlocked.
+ *
  * @param milestone - The milestone object with optional dependencies array
  * @param dreams - User's dreams array containing roadmap with milestones
  * @returns true if all dependencies are completed, false otherwise
@@ -8,23 +14,57 @@ export const areDependenciesCompleted = (
   milestone: any,
   dreams: any[] | undefined,
 ): boolean => {
-  // If no dependencies, it's available
-  if (!milestone?.dependencies || !Array.isArray(milestone.dependencies) || milestone.dependencies.length === 0) {
-    return true;
-  }
-
-  // If no dreams data, assume dependencies are not met
   if (!dreams || !Array.isArray(dreams)) {
     return false;
   }
 
-  // Check if all dependency milestone IDs have status "completed"
-  const dependencyIds = milestone.dependencies;
+  // Find the roadmap that owns this milestone and its index within it
+  let ownerMilestones: any[] | null = null;
+  let milestoneIndex = -1;
+  for (const dream of dreams) {
+    const ms = dream.roadmap?.milestones;
+    if (ms && Array.isArray(ms)) {
+      const idx = ms.findIndex((m: any) => m.id === milestone?.id);
+      if (idx !== -1) {
+        ownerMilestones = ms;
+        milestoneIndex = idx;
+        break;
+      }
+    }
+  }
 
+  // Milestone not found in any roadmap – unlock by default
+  if (!ownerMilestones || milestoneIndex === -1) {
+    return true;
+  }
+
+  const hasExplicitDeps =
+    milestone?.dependencies &&
+    Array.isArray(milestone.dependencies) &&
+    milestone.dependencies.length > 0;
+
+  if (!hasExplicitDeps) {
+    // Check whether any milestone in this roadmap uses dependencies at all
+    const roadmapHasAnyDeps = ownerMilestones.some(
+      (m: any) => m.dependencies && Array.isArray(m.dependencies) && m.dependencies.length > 0,
+    );
+
+    if (!roadmapHasAnyDeps) {
+      // Sequential fallback: first milestone is unlocked; every other
+      // milestone requires the previous one to be completed.
+      if (milestoneIndex === 0) return true;
+      return ownerMilestones[milestoneIndex - 1]?.status === "completed";
+    }
+
+    // Roadmap uses deps elsewhere but this milestone has none – unlocked
+    return true;
+  }
+
+  // Explicit dependencies: verify every dep ID is completed
+  const dependencyIds: string[] = milestone.dependencies;
   for (const dream of dreams) {
     if (dream.roadmap?.milestones && Array.isArray(dream.roadmap.milestones)) {
       for (const m of dream.roadmap.milestones) {
-        // If this milestone is a dependency, check if it's completed
         if (dependencyIds.includes(m.id) && m.status !== "completed") {
           return false;
         }
@@ -32,6 +72,5 @@ export const areDependenciesCompleted = (
     }
   }
 
-  // All dependencies are completed
   return true;
 };
