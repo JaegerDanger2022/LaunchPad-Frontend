@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Animated } from 'react-native';
 import { useThemeStore } from '../../store/themeStore';
 
-export const HeroCardSkeleton: React.FC = () => {
+export const UpNextHeroSkeleton: React.FC = () => {
   const shimmerAnim = useRef(new Animated.Value(0)).current;
   const { theme } = useThemeStore();
 

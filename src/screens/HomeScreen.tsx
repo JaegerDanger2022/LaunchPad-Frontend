@@ -25,8 +25,8 @@ import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { AvatarIcon } from "../components/icons/SVGIcons";
 import { GoalCard, type GoalCardData } from "../components/GoalCard";
 import { CreateDreamModal } from "../components/CreateDreamModal";
-import { HeroCard } from "../components/cards/HeroCard";
-import { HeroCardSkeleton } from "../components/cards/HeroCardSkeleton";
+import { UpNextHeroCard } from "../components/cards/UpNextHeroCard";
+import { UpNextHeroSkeleton } from "../components/cards/UpNextHeroSkeleton";
 import { TopNavbar } from "../components/TopNavbar";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { TabBar, type TabType } from "../components/TabBar";
@@ -411,7 +411,7 @@ const HomeScreen = ({
 
           {/* Hero Card Section - Show skeleton during refresh or actual card */}
           {isRefreshing && userData?.up_next ? (
-            <HeroCardSkeleton />
+            <UpNextHeroSkeleton />
           ) : (
             (() => {
               // console.log('[HomeScreen] up_next:', userData?.up_next);
@@ -443,10 +443,9 @@ const HomeScreen = ({
                 );
 
                 return (
-                  <HeroCard
+                  <UpNextHeroCard
                     heroOpacity={heroOpacity}
                     heroScale={heroScale}
-                    badge="Up next"
                     title={userData.up_next.milestone_title}
                     timeMinutes={parseTimeToMinutes(
                       userData.up_next.time_estimate,
