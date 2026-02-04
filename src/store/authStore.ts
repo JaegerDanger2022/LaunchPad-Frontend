@@ -127,8 +127,10 @@ export const useAuthStore = create<AuthState>((set) => ({
           if (userData) {
             const mappedData = mapDreamsSummaryToDreams(userData);
             set({ userData: mappedData, loading: false });
-            // Fire-and-forget: fetch full milestones for each dream into Zustand
-            useAuthStore.getState().loadFullDreams(user.uid);
+            // Fire-and-forget: fetch dreams from the dreams collection (source of
+            // truth) and patch in full milestones.  This supersedes any stale
+            // dreams_summary that may be on the user document.
+            useAuthStore.getState().refreshDreamsFromCrud(user.uid);
           } else {
             set({ loading: false });
           }
@@ -196,7 +198,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const userData = await fetchUserData(userCredential.user.uid, { fields: 'essential' });
       const mappedData = mapDreamsSummaryToDreams(userData);
       set({ user: userCredential.user, userData: mappedData, isAuthenticated: true, loading: false });
-      useAuthStore.getState().loadFullDreams(userCredential.user.uid);
+      useAuthStore.getState().refreshDreamsFromCrud(userCredential.user.uid);
     } catch (error: any) {
       const errorMessage = getErrorMessage(error.code);
       set({ error: errorMessage, loading: false });
@@ -238,7 +240,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         const userData = await fetchUserData(userCredential.user.uid, { fields: 'essential' });
         const mappedData = mapDreamsSummaryToDreams(userData);
         set({ user: userCredential.user, userData: mappedData, isAuthenticated: true, loading: false });
-        useAuthStore.getState().loadFullDreams(userCredential.user.uid);
+        useAuthStore.getState().refreshDreamsFromCrud(userCredential.user.uid);
       } else {
         throw new Error('No ID token from Google Sign-In');
       }
@@ -365,9 +367,9 @@ export const useAuthStore = create<AuthState>((set) => ({
           });
         }
 
-        // Re-fetch full milestones — loadUserData replaces userData with summary,
-        // so milestones need to be patched back in.
-        useAuthStore.getState().loadFullDreams(userId);
+        // Re-fetch dreams from the collection (source of truth) and patch in
+        // full milestones.  dreams_summary on the user doc may be stale or missing.
+        useAuthStore.getState().refreshDreamsFromCrud(userId);
       } else {
         // console.warn('[loadUserData] No user data found for:', userId);
       }
