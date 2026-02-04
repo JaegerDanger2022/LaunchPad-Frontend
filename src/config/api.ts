@@ -77,11 +77,17 @@ export async function registerUserToDatabase(
             );
           });
         }
-        errorMessage = errorData.message || errorMessage;
+        errorMessage = errorData.detail || errorData.message || errorMessage;
       } catch (parseError) {
         console.error("Could not parse error response as JSON");
       }
-      throw new Error(errorMessage);
+      // 409 means the email is already registered — must surface this to the user
+      if (response.status === 409) {
+        throw new Error(errorMessage);
+      }
+      // Other failures (network, 500) are logged but don't block auth
+      console.error("Registration failed (non-fatal):", errorMessage);
+      return;
     }
 
     const result = await response.json();
@@ -91,8 +97,7 @@ export async function registerUserToDatabase(
     console.error("Error name:", error.name);
     console.error("Error message:", error.message);
     console.error("Full error:", error);
-    // Don't throw - registration failure shouldn't block app auth
-    // User is still authenticated, just not in database
+    throw error;
   }
 }
 
@@ -103,21 +108,23 @@ export interface FetchUserDataOptions {
    * 'essential' - Basic info + up_next, streak, recents (default for app load)
    * 'full' - All data including full dreams array with roadmaps
    */
-  fields?: 'minimal' | 'essential' | 'full';
+  fields?: "minimal" | "essential" | "full";
 }
 
 export async function fetchUserData(
   userId: string,
-  options: FetchUserDataOptions = { fields: 'essential' }
+  options: FetchUserDataOptions = { fields: "essential" },
 ): Promise<UserData | null> {
   try {
     // Build URL with query parameters
     const url = new URL(`${API_BASE_URL}/users/${userId}`);
-    if (options.fields && options.fields !== 'full') {
-      url.searchParams.append('fields', options.fields);
+    if (options.fields && options.fields !== "full") {
+      url.searchParams.append("fields", options.fields);
     }
 
-    console.log(`Attempting to fetch user data for userId: ${userId} (fields: ${options.fields || 'essential'})`);
+    console.log(
+      `Attempting to fetch user data for userId: ${userId} (fields: ${options.fields || "essential"})`,
+    );
 
     const response = await fetch(url.toString(), {
       method: "GET",
@@ -147,7 +154,9 @@ export async function fetchUserData(
     }
 
     const userData = await response.json();
-    console.log(`User data fetched successfully (${options.fields || 'essential'} fields)`);
+    console.log(
+      `User data fetched successfully (${options.fields || "essential"} fields)`,
+    );
     return userData as UserData;
   } catch (error: any) {
     console.error("Error fetching user data:");
@@ -226,6 +235,109 @@ export async function createDream(
     console.error("Full error:", error);
     throw error;
   }
+}
+
+// ============================================================================
+// CONVERSATION ENDPOINTS (dream chat before roadmap creation)
+// ============================================================================
+
+export interface StartConversationResponse {
+  session_id: string;
+  ai_message: string;
+  conversation_complete: boolean;
+}
+
+export interface ConversationTurnDonePayload {
+  session_id: string;
+  conversation_complete: boolean;
+  enriched_context: Record<string, any> | null;
+}
+
+export async function startConversation(
+  userId: string,
+): Promise<StartConversationResponse> {
+  const response = await fetch(`${API_BASE_URL}/conversation/start`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Send a message and stream the AI reply back via SSE.
+ * @param onChunk  Called with each text chunk as it arrives — use this to update the UI live.
+ * @returns        Resolves with the metadata from the final "done" event once the stream closes.
+ */
+export async function sendConversationTurn(
+  sessionId: string,
+  userId: string,
+  message: string,
+  onChunk: (text: string) => void,
+): Promise<ConversationTurnDonePayload> {
+  const response = await fetch(`${API_BASE_URL}/conversation/turn`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: sessionId, user_id: userId, message }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `HTTP ${response.status}`);
+  }
+
+  // Read the SSE stream
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let donePayload: ConversationTurnDonePayload | null = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+
+    // SSE events are separated by double newlines
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop() || ""; // last element is the incomplete chunk, keep it
+
+    for (const part of parts) {
+      if (!part.trim()) continue;
+
+      let eventType = "message";
+      let dataLine = "";
+
+      for (const line of part.split("\n")) {
+        if (line.startsWith("event:")) {
+          eventType = line.slice("event:".length).trim();
+        } else if (line.startsWith("data:")) {
+          dataLine = line.slice("data:".length).trim();
+        }
+      }
+
+      if (!dataLine) continue;
+
+      if (eventType === "chunk") {
+        const parsed = JSON.parse(dataLine);
+        onChunk(parsed.text);
+      } else if (eventType === "done") {
+        donePayload = JSON.parse(dataLine);
+      }
+    }
+  }
+
+  if (!donePayload) {
+    throw new Error("Stream ended without a done event");
+  }
+
+  return donePayload;
 }
 
 export interface UpdateRecentsRequest {
@@ -617,13 +729,24 @@ export async function fetchVictories(
     // For backwards compatibility with backend that hasn't been updated yet
     if (result.feed) {
       // New format: mixed feed with victories and journey recaps
-      console.log("[fetchVictories] Success, got", result.feed.length, "feed items");
+      console.log(
+        "[fetchVictories] Success, got",
+        result.feed.length,
+        "feed items",
+      );
       return result as import("../types/community").CommunityFeedResponse;
     } else {
       // Old format: only victories - convert to new format
-      console.log("[fetchVictories] Success, got", result.victories.length, "victories (old format)");
+      console.log(
+        "[fetchVictories] Success, got",
+        result.victories.length,
+        "victories (old format)",
+      );
       return {
-        feed: result.victories.map((v: any) => ({ ...v, type: 'victory_card' as const })),
+        feed: result.victories.map((v: any) => ({
+          ...v,
+          type: "victory_card" as const,
+        })),
         pagination: result.pagination,
       };
     }
@@ -806,7 +929,11 @@ export async function getVictoryPermissions(
     }
 
     const result = await response.json();
-    console.log("[getVictoryPermissions] Success, got", result.count, "permissions");
+    console.log(
+      "[getVictoryPermissions] Success, got",
+      result.count,
+      "permissions",
+    );
     return result as import("../types/community").GetPermissionsResponse;
   } catch (error: any) {
     console.error("[getVictoryPermissions] Error:", error.message);
@@ -911,14 +1038,19 @@ export async function fetchInspirationVictories(
     });
 
     if (__DEV__) {
-      console.log("[fetchInspirationVictories] Response status:", response.status);
+      console.log(
+        "[fetchInspirationVictories] Response status:",
+        response.status,
+      );
     }
 
     if (!response.ok) {
       // If endpoint doesn't exist yet (404), return empty array gracefully
       if (response.status === 404) {
         if (__DEV__) {
-          console.warn("[fetchInspirationVictories] Endpoint not implemented yet, returning empty array");
+          console.warn(
+            "[fetchInspirationVictories] Endpoint not implemented yet, returning empty array",
+          );
         }
         return {
           victories: [],
@@ -957,7 +1089,7 @@ export async function fetchInspirationVictories(
 
 export async function boostJourneyRecap(
   journeyRecapId: string,
-  giverUserId: string
+  giverUserId: string,
 ): Promise<import("../types/community").CourageBoostResponse> {
   try {
     const url = `${API_BASE_URL}/journey-recaps/${journeyRecapId}/boost?giver_user_id=${encodeURIComponent(giverUserId)}`;
@@ -993,7 +1125,7 @@ export async function boostJourneyRecap(
 export async function giveJourneyRecapPermission(
   journeyRecapId: string,
   giverUserId: string,
-  data: import("../types/community").GivePermissionRequest
+  data: import("../types/community").GivePermissionRequest,
 ): Promise<import("../types/community").GivePermissionResponse> {
   try {
     const url = `${API_BASE_URL}/journey-recaps/${journeyRecapId}/permission?giver_user_id=${encodeURIComponent(giverUserId)}`;
@@ -1005,7 +1137,10 @@ export async function giveJourneyRecapPermission(
       body: JSON.stringify(data),
     });
 
-    console.log("[giveJourneyRecapPermission] Response status:", response.status);
+    console.log(
+      "[giveJourneyRecapPermission] Response status:",
+      response.status,
+    );
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -1029,7 +1164,7 @@ export async function giveJourneyRecapPermission(
 
 export async function toggleJourneyRecapMeToo(
   journeyRecapId: string,
-  userId: string
+  userId: string,
 ): Promise<import("../types/community").MeTooResponse> {
   try {
     const url = `${API_BASE_URL}/journey-recaps/${journeyRecapId}/metoo?user_id=${encodeURIComponent(userId)}`;
@@ -1063,7 +1198,7 @@ export async function toggleJourneyRecapMeToo(
 }
 
 export async function getJourneyRecapPermissions(
-  journeyRecapId: string
+  journeyRecapId: string,
 ): Promise<import("../types/community").GetPermissionsResponse> {
   try {
     const url = `${API_BASE_URL}/journey-recaps/${journeyRecapId}/permissions`;
@@ -1074,7 +1209,10 @@ export async function getJourneyRecapPermissions(
       headers: { "Content-Type": "application/json" },
     });
 
-    console.log("[getJourneyRecapPermissions] Response status:", response.status);
+    console.log(
+      "[getJourneyRecapPermissions] Response status:",
+      response.status,
+    );
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -1100,25 +1238,22 @@ export async function getJourneyRecapPermissions(
  * Fetch full dream data including roadmap and milestones
  * Use this when user navigates to a specific dream detail screen
  *
- * NEW: Uses dreams collection endpoint (/api/dreams/{thread_id})
+ * NEW: Uses dreams collection endpoint (/dreams/{thread_id})
  */
 export async function fetchDreamDetails(
   userId: string,
-  threadId: string
+  threadId: string,
 ): Promise<any> {
   try {
     console.log(`Fetching dream details for threadId: ${threadId}`);
 
     // Fetch from dreams CRUD collection endpoint
-    const response = await fetch(
-      `${API_BASE_URL}/dreams-crud/${threadId}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/dreams-crud/${threadId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     console.log(`Response status: ${response.status} ${response.statusText}`);
 
@@ -1146,16 +1281,16 @@ export async function fetchDreamDetails(
  * Fetch dreams list with summary info only (no full roadmaps)
  * Use this for displaying dreams list without heavy data
  *
- * NEW: Uses dreams collection endpoint (/api/dreams?user_id={userId})
+ * NEW: Uses dreams collection endpoint (/dreams?user_id={userId})
  */
 export async function fetchDreamsList(
   userId: string,
   options?: {
-    status?: 'active' | 'completed';
+    status?: "active" | "completed";
     page?: number;
     limit?: number;
     summary?: boolean;
-  }
+  },
 ): Promise<any> {
   try {
     console.log(`Fetching dreams list for userId: ${userId}`);
@@ -1167,13 +1302,13 @@ export async function fetchDreamsList(
     });
 
     if (options?.status) {
-      params.append('status', options.status);
+      params.append("status", options.status);
     }
     if (options?.page) {
-      params.append('page', options.page.toString());
+      params.append("page", options.page.toString());
     }
     if (options?.limit) {
-      params.append('limit', options.limit.toString());
+      params.append("limit", options.limit.toString());
     }
 
     // Fetch from dreams CRUD collection endpoint
@@ -1184,7 +1319,7 @@ export async function fetchDreamsList(
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     console.log(`Response status: ${response.status} ${response.statusText}`);
@@ -1210,7 +1345,10 @@ export async function fetchDreamsList(
   } catch (error: any) {
     console.error("Error fetching dreams list:", error.message);
     // Return empty result instead of throwing
-    return { dreams: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } };
+    return {
+      dreams: [],
+      pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
+    };
   }
 }
 
@@ -1274,15 +1412,15 @@ export async function createJourneyRecap(
  */
 export async function savePushToken(
   userId: string,
-  pushToken: string
+  pushToken: string,
 ): Promise<void> {
   try {
     console.log(`[savePushToken] Saving push token for user: ${userId}`);
 
     const response = await fetch(`${API_BASE_URL}/users/${userId}/push-token`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ pushToken }),
     });
@@ -1301,9 +1439,9 @@ export async function savePushToken(
     }
 
     const result = await response.json();
-    console.log('[savePushToken] Success:', result);
+    console.log("[savePushToken] Success:", result);
   } catch (error: any) {
-    console.error('[savePushToken] Error:', error.message);
+    console.error("[savePushToken] Error:", error.message);
     // Don't throw - allow app to continue even if token save fails
   }
 }
@@ -1313,12 +1451,14 @@ export async function savePushToken(
  */
 export async function updateLastActivity(userId: string): Promise<void> {
   try {
-    console.log(`[updateLastActivity] Updating last activity for user: ${userId}`);
+    console.log(
+      `[updateLastActivity] Updating last activity for user: ${userId}`,
+    );
 
     const response = await fetch(`${API_BASE_URL}/users/${userId}/activity`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         last_activity: new Date().toISOString(),
@@ -1339,9 +1479,9 @@ export async function updateLastActivity(userId: string): Promise<void> {
     }
 
     const result = await response.json();
-    console.log('[updateLastActivity] Success:', result);
+    console.log("[updateLastActivity] Success:", result);
   } catch (error: any) {
-    console.error('[updateLastActivity] Error:', error.message);
+    console.error("[updateLastActivity] Error:", error.message);
     // Don't throw - allow app to continue
   }
 }
@@ -1355,23 +1495,27 @@ export async function updateNotificationPreferences(
     dailyCheckIn: boolean;
     comebackAlert: boolean;
     preferredTime: string;
-  }
+  },
 ): Promise<void> {
   try {
-    console.log(`[updateNotificationPreferences] Updating preferences for user: ${userId}`);
+    console.log(
+      `[updateNotificationPreferences] Updating preferences for user: ${userId}`,
+    );
 
     const response = await fetch(
       `${API_BASE_URL}/users/${userId}/notification-preferences`,
       {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(preferences),
-      }
+      },
     );
 
-    console.log(`[updateNotificationPreferences] Response status: ${response.status}`);
+    console.log(
+      `[updateNotificationPreferences] Response status: ${response.status}`,
+    );
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -1385,9 +1529,9 @@ export async function updateNotificationPreferences(
     }
 
     const result = await response.json();
-    console.log('[updateNotificationPreferences] Success:', result);
+    console.log("[updateNotificationPreferences] Success:", result);
   } catch (error: any) {
-    console.error('[updateNotificationPreferences] Error:', error.message);
+    console.error("[updateNotificationPreferences] Error:", error.message);
     throw error;
   }
 }

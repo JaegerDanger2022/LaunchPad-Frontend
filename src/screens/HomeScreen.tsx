@@ -5,11 +5,13 @@ import {
   Text,
   Animated,
   FlatList,
+  Modal,
   useWindowDimensions,
   StatusBar,
   TouchableOpacity,
   RefreshControl,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -18,9 +20,11 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { Plus } from "lucide-react-native";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { AvatarIcon } from "../components/icons/SVGIcons";
 import { GoalCard, type GoalCardData } from "../components/GoalCard";
+import { CreateDreamModal } from "../components/CreateDreamModal";
 import { HeroCard } from "../components/cards/HeroCard";
 import { HeroCardSkeleton } from "../components/cards/HeroCardSkeleton";
 import { TopNavbar } from "../components/TopNavbar";
@@ -50,6 +54,9 @@ const HomeScreen = ({
   onNavigate: (screen: string, params?: any) => void;
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>("recents");
+  const [isCreateDreamModalVisible, setIsCreateDreamModalVisible] = useState(false);
+  const [isDreamCreating, setIsDreamCreating] = useState(false);
+  const [phraseIndex, setPhraseIndex] = useState(0);
   const [isAtBottom, setIsAtBottom] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [recentVictories, setRecentVictories] = useState<CommunityFeedItem[]>(
@@ -177,6 +184,28 @@ const HomeScreen = ({
       useNativeDriver: true,
     }).start();
   }, [communityFadeAnim]);
+
+  // Phrases that cycle while the dream is being built on the backend
+  const dreamCreatingPhrases = [
+    "Catching your dream…",
+    "Shaping your vision…",
+    "Mapping the road ahead…",
+    "Breaking it into steps…",
+    "Setting up your milestones…",
+    "Almost there…",
+  ];
+
+  // Cycle through phrases while isDreamCreating is true
+  useEffect(() => {
+    if (!isDreamCreating) {
+      setPhraseIndex(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setPhraseIndex((prev) => (prev + 1) % dreamCreatingPhrases.length);
+    }, 1800);
+    return () => clearInterval(interval);
+  }, [isDreamCreating]);
 
   // Autoplay carousel for Community Wins
   useEffect(() => {
@@ -450,160 +479,291 @@ const HomeScreen = ({
               marginBottom: 20,
               zIndex: 10,
             }}>
-            <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-
-            <Animated.View
-              style={{
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              }}>
-              {activeTab === "recents" ? (
-                /* Goal Cards Carousel, Skeletons, or No Recents */
-                loading || isRefreshing ? (
-                  <SkeletonDreamCardsCarousel />
-                ) : dreamCardsData.length > 0 ? (
-                  <Animated.ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{
-                      paddingTop: 20,
-                    }}
-                    snapToInterval={columnWidth + 14}
-                    decelerationRate="fast">
-                    {dreamCardsData.map((item, index) => (
-                      <View
-                        key={index}
-                        style={{
-                          width: columnWidth,
-                          marginRight:
-                            index < dreamCardsData.length - 1 ? 14 : 0,
-                        }}>
-                        <GoalCard
-                          data={item}
-                          onPress={() => {
-                            if (item.status === "active" && item.threadId) {
-                              addToRecents(item.threadId);
-                            }
-                            onNavigate("Dream");
-                          }}
-                        />
-                      </View>
-                    ))}
-                  </Animated.ScrollView>
-                ) : (
-                  <NoRecentsState />
-                )
-              ) : /* Inspiration Tab - Saved Victories */
-              loading || inspirationLoading || isRefreshing ? (
-                <VictoryCardSkeleton />
-              ) : inspirationVictories.length > 0 ? (
-                <Animated.ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{
-                    paddingRight: 17,
-                  }}
-                  snapToInterval={width - 20}
-                  decelerationRate="fast"
-                  style={{ marginLeft: -17 }}>
-                  {inspirationVictories.map((item) => {
-                    // Type guard - we've already added type field
-                    if (item.type !== "victory_card") return null;
-                    const victory = item;
-
-                    return (
-                      <View key={victory.id} style={{ width: width - 20 }}>
-                        <VictoryCard
-                          victory={victory}
-                          onBoost={() => {}}
-                          onPress={() => {
-                            // Navigate to victory detail if needed
-                          }}
-                        />
-                      </View>
-                    );
-                  })}
-                </Animated.ScrollView>
-              ) : (
-                /* No Inspiration Yet Placeholder */
+            {/* If user has no dreams at all, show create-a-dream prompt instead of tabs */}
+            {!loading && userData && (!userData.dreams || userData.dreams.length === 0) ? (
+              <View
+                style={{
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingVertical: 48,
+                  paddingHorizontal: 24,
+                }}>
+                {/* Icon circle */}
                 <View
                   style={{
+                    width: 96,
+                    height: 96,
+                    borderRadius: 48,
+                    backgroundColor: theme === "dark" ? "rgba(251, 99, 34, 0.15)" : "rgba(251, 99, 34, 0.1)",
                     alignItems: "center",
                     justifyContent: "center",
-                    paddingVertical: 60,
-                    paddingHorizontal: 40,
+                    marginBottom: 20,
                   }}>
-                  {/* Decorative Circle Background */}
-                  <View
-                    style={{
-                      width: 120,
-                      height: 120,
-                      borderRadius: 60,
-                      backgroundColor: "#F0F0F0",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginBottom: 24,
-                    }}>
-                    {/* Lightbulb Icon */}
-                    <Text
-                      style={{
-                        fontSize: 60,
-                        opacity: 0.6,
-                      }}>
-                      💡
-                    </Text>
-                  </View>
-
-                  {/* Main Text */}
-                  <Text
-                    style={{
-                      fontSize: 20,
-                      fontWeight: "700",
-                      color: themeColors.text_primary,
-                      fontFamily: "InstrumentSans-Bold",
-                      marginBottom: 12,
-                      textAlign: "center",
-                    }}>
-                    No Inspiration Yet
-                  </Text>
-
-                  {/* Subtitle */}
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      color: themeColors.text_secondary,
-                      fontFamily: "InstrumentSans-Regular",
-                      textAlign: "center",
-                      lineHeight: 20,
-                      marginBottom: 24,
-                    }}>
-                    Visit the Community Wall and tap "Me Too" on victories that
-                    inspire you to save them here
-                  </Text>
-
-                  {/* Decorative Dots */}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      gap: 6,
-                      marginTop: 12,
-                    }}>
-                    {[1, 2, 3].map((dot) => (
-                      <View
-                        key={dot}
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: 3,
-                          backgroundColor: dot === 2 ? "#00D4AA" : "#E0E0E0",
-                        }}
-                      />
-                    ))}
-                  </View>
+                  <Plus size={40} color={Color.colorOrangered} />
                 </View>
-              )}
-            </Animated.View>
+
+                {/* Heading */}
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontWeight: "700",
+                    color: themeColors.text_primary,
+                    fontFamily: "InstrumentSans-Bold",
+                    marginBottom: 8,
+                    textAlign: "center",
+                  }}>
+                  Create a Dream
+                </Text>
+
+                {/* Subtitle */}
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color: themeColors.text_secondary,
+                    fontFamily: "InstrumentSans-Regular",
+                    textAlign: "center",
+                    lineHeight: 20,
+                    marginBottom: 24,
+                  }}>
+                  You don't have any dreams yet. Tap the button below to get started.
+                </Text>
+
+                {/* Create button */}
+                <TouchableOpacity
+                  onPress={() => setIsCreateDreamModalVisible(true)}
+                  activeOpacity={0.8}
+                  style={{
+                    backgroundColor: Color.colorOrangered,
+                    borderRadius: 28,
+                    paddingHorizontal: 28,
+                    paddingVertical: 12,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 8,
+                  }}>
+                  <Plus size={20} color={Color.colorWhite} />
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "700",
+                      color: Color.colorWhite,
+                      fontFamily: "InstrumentSans-Bold",
+                    }}>
+                    New Dream
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <>
+                <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+
+                <Animated.View
+                  style={{
+                    opacity: fadeAnim,
+                    transform: [{ translateY: slideAnim }],
+                  }}>
+                  {activeTab === "recents" ? (
+                    /* Goal Cards Carousel, Skeletons, or No Recents */
+                    loading || isRefreshing ? (
+                      <SkeletonDreamCardsCarousel />
+                    ) : dreamCardsData.length > 0 ? (
+                      <Animated.ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{
+                          paddingTop: 20,
+                        }}
+                        snapToInterval={columnWidth + 14}
+                        decelerationRate="fast">
+                        {dreamCardsData.map((item, index) => (
+                          <View
+                            key={index}
+                            style={{
+                              width: columnWidth,
+                              marginRight:
+                                index < dreamCardsData.length - 1 ? 14 : 0,
+                            }}>
+                            <GoalCard
+                              data={item}
+                              onPress={() => {
+                                if (item.status === "active" && item.threadId) {
+                                  addToRecents(item.threadId);
+                                }
+                                onNavigate("Dream");
+                              }}
+                            />
+                          </View>
+                        ))}
+                      </Animated.ScrollView>
+                    ) : (
+                      <NoRecentsState />
+                    )
+                  ) : /* Inspiration Tab - Saved Victories */
+                  loading || inspirationLoading || isRefreshing ? (
+                    <VictoryCardSkeleton />
+                  ) : inspirationVictories.length > 0 ? (
+                    <Animated.ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={{
+                        paddingRight: 17,
+                      }}
+                      snapToInterval={width - 20}
+                      decelerationRate="fast"
+                      style={{ marginLeft: -17 }}>
+                      {inspirationVictories.map((item) => {
+                        // Type guard - we've already added type field
+                        if (item.type !== "victory_card") return null;
+                        const victory = item;
+
+                        return (
+                          <View key={victory.id} style={{ width: width - 20 }}>
+                            <VictoryCard
+                              victory={victory}
+                              onBoost={() => {}}
+                              onPress={() => {
+                                // Navigate to victory detail if needed
+                              }}
+                            />
+                          </View>
+                        );
+                      })}
+                    </Animated.ScrollView>
+                  ) : (
+                    /* No Inspiration Yet Placeholder */
+                    <View
+                      style={{
+                        alignItems: "center",
+                        justifyContent: "center",
+                        paddingVertical: 60,
+                        paddingHorizontal: 40,
+                      }}>
+                      {/* Decorative Circle Background */}
+                      <View
+                        style={{
+                          width: 120,
+                          height: 120,
+                          borderRadius: 60,
+                          backgroundColor: "#F0F0F0",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginBottom: 24,
+                        }}>
+                        {/* Lightbulb Icon */}
+                        <Text
+                          style={{
+                            fontSize: 60,
+                            opacity: 0.6,
+                          }}>
+                          💡
+                        </Text>
+                      </View>
+
+                      {/* Main Text */}
+                      <Text
+                        style={{
+                          fontSize: 20,
+                          fontWeight: "700",
+                          color: themeColors.text_primary,
+                          fontFamily: "InstrumentSans-Bold",
+                          marginBottom: 12,
+                          textAlign: "center",
+                        }}>
+                        No Inspiration Yet
+                      </Text>
+
+                      {/* Subtitle */}
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          color: themeColors.text_secondary,
+                          fontFamily: "InstrumentSans-Regular",
+                          textAlign: "center",
+                          lineHeight: 20,
+                          marginBottom: 24,
+                        }}>
+                        Visit the Community Wall and tap "Me Too" on victories that
+                        inspire you to save them here
+                      </Text>
+
+                      {/* Decorative Dots */}
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          gap: 6,
+                          marginTop: 12,
+                        }}>
+                        {[1, 2, 3].map((dot) => (
+                          <View
+                            key={dot}
+                            style={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: 3,
+                              backgroundColor: dot === 2 ? "#00D4AA" : "#E0E0E0",
+                            }}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                  )}
+                </Animated.View>
+              </>
+            )}
           </View>
+
+          {/* Create Dream Modal (triggered from empty state) */}
+          <CreateDreamModal
+            visible={isCreateDreamModalVisible}
+            onClose={() => setIsCreateDreamModalVisible(false)}
+            onDreamCreating={() => {
+              setIsCreateDreamModalVisible(false);
+              setIsDreamCreating(true);
+            }}
+            onDreamCreated={() => {
+              setIsDreamCreating(false);
+            }}
+          />
+
+          {/* Full-screen loading overlay while dream is being built */}
+          <Modal
+            visible={isDreamCreating}
+            transparent={true}
+            animationType="fade">
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: "rgba(0, 0, 0, 0.55)",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 24,
+              }}>
+              {/* Spinner inside an orange-tinted circle */}
+              <View
+                style={{
+                  width: 88,
+                  height: 88,
+                  borderRadius: 44,
+                  backgroundColor: "rgba(251, 99, 34, 0.15)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}>
+                <ActivityIndicator size="large" color={Color.colorOrangered} />
+              </View>
+
+              {/* Cycling phrase */}
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: "600",
+                  color: Color.colorWhite,
+                  fontFamily: "InstrumentSans-SemiBold",
+                  textAlign: "center",
+                }}>
+                {dreamCreatingPhrases[phraseIndex]}
+              </Text>
+            </View>
+          </Modal>
 
           {/* Community Wins Section - Always show, with skeleton on load */}
           <Animated.View
