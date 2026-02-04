@@ -480,7 +480,7 @@ const HomeScreen = ({
               zIndex: 10,
             }}>
             {/* If user has no dreams at all, show create-a-dream prompt instead of tabs */}
-            {!loading && userData && (!userData.dreams || userData.dreams.length === 0) ? (
+            {!loading && userData && (!userData.dreams || userData.dreams.length === 0) && !userData.dreams_count ? (
               <View
                 style={{
                   alignItems: "center",
@@ -564,7 +564,7 @@ const HomeScreen = ({
                   }}>
                   {activeTab === "recents" ? (
                     /* Goal Cards Carousel, Skeletons, or No Recents */
-                    loading || isRefreshing || (userData?.recents?.length && dreamCardsData.length === 0) ? (
+                    loading || isRefreshing || (dreamCardsData.length === 0 && (userData?.recents?.length || (userData?.dreams_count && (!userData.dreams || userData.dreams.length === 0)))) ? (
                       <SkeletonDreamCardsCarousel />
                     ) : dreamCardsData.length > 0 ? (
                       <Animated.ScrollView
