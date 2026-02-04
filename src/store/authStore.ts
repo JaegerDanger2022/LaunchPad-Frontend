@@ -540,7 +540,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const currentDream = useAuthStore.getState().userData?.dreams
         ?.find((d: any) => d.thread_id === threadId);
       if (!currentDream) continue;
-      if (currentDream.roadmap?.milestones && currentDream.roadmap.milestones.length > 0 && currentDream.metadata) continue;
+      if (currentDream.roadmap?.milestones && currentDream.roadmap.milestones.length > 0 && currentDream.metadata?.score !== undefined) continue;
 
       try {
         const fullDream = await fetchDreamDetails(userId, threadId);
