@@ -79,15 +79,20 @@ export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
             style={{
               flex: 1,
               paddingHorizontal: 15,
-              paddingVertical: 12,
+              flexDirection: "row",
+              alignItems: "center",
               justifyContent: "space-between",
             }}>
             <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
               style={{
                 fontFamily: "InriaSans-Bold",
                 fontSize: 15,
-                color: Color.colorWhite,
+                color: Color.colorBlack,
                 fontWeight: "700",
+                flex: 1,
+                marginRight: 10,
               }}>
               {data.title}
             </Text>
@@ -95,14 +100,15 @@ export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 8,
+                gap: 6,
+                flexShrink: 0,
               }}>
               <ProgressRingIcon size={30} color={data.progressColor} progress={data.progress} />
               <Text
                 style={{
                   fontFamily: "InriaSans-Bold",
                   fontSize: 14,
-                  color: Color.colorWhite,
+                  color: Color.colorBlack,
                   fontWeight: "700",
                 }}>
                 {Math.round(data.progress)}%

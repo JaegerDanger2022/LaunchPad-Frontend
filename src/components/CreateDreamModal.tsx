@@ -109,10 +109,10 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
       if (res.conversation_complete) {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setCreatingDream(true);
+        // Let the user read the final AI message before dismissing
+        await new Promise((resolve) => setTimeout(resolve, 3000));
         onClose();
         onDreamCreating?.();
-        // Dream doesn't exist in the DB yet — HomeScreen polls until it appears,
-        // then refreshes user data and navigates to AllDreams.
       }
     } catch (err: any) {
       console.error('[CreateDreamModal] sendConversationTurn failed:', err);
