@@ -586,7 +586,19 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       set((state) => {
         if (!state.userData) return state;
-        return { userData: { ...state.userData, dreams } };
+        // Preserve existing milestones so optimistic updates survive until
+        // loadFullDreams patches in the authoritative data.
+        const existingByThread = new Map(
+          (state.userData.dreams || []).map((d: any) => [d.thread_id, d])
+        );
+        const merged = dreams.map((d: any) => {
+          const existing: any = existingByThread.get(d.thread_id);
+          if (existing?.roadmap?.milestones?.length) {
+            return { ...d, roadmap: { ...d.roadmap, milestones: existing.roadmap.milestones } };
+          }
+          return d;
+        });
+        return { userData: { ...state.userData, dreams: merged } };
       });
 
       // Now that dreams are in state, patch in full milestones
