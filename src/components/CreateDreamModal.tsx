@@ -16,9 +16,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { X, Send } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import { Color } from '../constants/GlobalStyles';
+import { Color, getThemeColors } from '../constants/GlobalStyles';
 import { startConversation, sendConversationTurn } from '../config/api';
 import { useAuthStore } from '../store/authStore';
+import { useThemeStore } from '../store/themeStore';
 
 interface CreateDreamModalProps {
   visible: boolean;
@@ -44,6 +45,8 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
   const [sending, setSending] = useState(false);
   const [creatingDream, setCreatingDream] = useState(false);
   const { user, loadUserData } = useAuthStore();
+  const { theme } = useThemeStore();
+  const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
 
@@ -149,18 +152,18 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
             keyboardVerticalOffset={Platform.OS === 'android' ? -insets.bottom : 0}
-            style={{ justifyContent: 'flex-end' }}>
+            style={{ flex: 1, justifyContent: 'flex-end' }}>
             <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
               {/* Modal Content */}
               <View
                 style={{
-                  backgroundColor: Color.colorSnow,
+                  backgroundColor: themeColors.bg_primary,
                   borderTopLeftRadius: 24,
                   borderTopRightRadius: 24,
                   paddingHorizontal: 24,
                   paddingTop: 24,
                   paddingBottom: Math.max(insets.bottom + 16, 32),
-                  height: '80%',
+                  flex: 1,
                   shadowColor: '#000',
                   shadowOffset: { width: 0, height: -4 },
                   shadowOpacity: 0.1,
@@ -171,7 +174,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                 <TouchableOpacity
                   onPress={handleClose}
                   style={{ alignSelf: 'flex-end', marginBottom: 12 }}>
-                  <X size={24} color={Color.colorBlack} />
+                  <X size={24} color={themeColors.text_primary} />
                 </TouchableOpacity>
 
                 {/* Title */}
@@ -179,7 +182,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                   style={{
                     fontSize: 24,
                     fontWeight: '700',
-                    color: Color.colorBlack,
+                    color: themeColors.text_primary,
                     fontFamily: 'InstrumentSans-Bold',
                     marginBottom: 4,
                     textAlign: 'center',
@@ -190,7 +193,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                 <Text
                   style={{
                     fontSize: 14,
-                    color: '#A0A0A0',
+                    color: themeColors.text_secondary,
                     fontFamily: 'InstrumentSans-Regular',
                     textAlign: 'center',
                     marginBottom: 16,
@@ -215,7 +218,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                       {msg.role === 'assistant' ? (
                         <View
                           style={{
-                            backgroundColor: '#F0F0F0',
+                            backgroundColor: themeColors.bg_secondary,
                             borderRadius: 16,
                             borderTopLeftRadius: 4,
                             paddingHorizontal: 14,
@@ -224,7 +227,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                           <Text
                             style={{
                               fontSize: 15,
-                              color: Color.colorBlack,
+                              color: themeColors.text_primary,
                               fontFamily: 'InstrumentSans-Regular',
                               lineHeight: 22,
                             }}>
@@ -261,13 +264,13 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                     <View style={{ alignSelf: 'flex-start', marginBottom: 8 }}>
                       <View
                         style={{
-                          backgroundColor: '#F0F0F0',
+                          backgroundColor: themeColors.bg_secondary,
                           borderRadius: 16,
                           borderTopLeftRadius: 4,
                           paddingHorizontal: 14,
                           paddingVertical: 10,
                         }}>
-                        <ActivityIndicator size="small" color="#A0A0A0" />
+                        <ActivityIndicator size="small" color={themeColors.text_secondary} />
                       </View>
                     </View>
                   )}
@@ -280,7 +283,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                     <Text
                       style={{
                         fontSize: 15,
-                        color: '#A0A0A0',
+                        color: themeColors.text_secondary,
                         fontFamily: 'InstrumentSans-Regular',
                         marginTop: 10,
                       }}>
@@ -292,19 +295,19 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                     <TextInput
                       style={{
                         flex: 1,
-                        backgroundColor: Color.colorWhite,
+                        backgroundColor: themeColors.bg_secondary,
                         borderWidth: 1,
-                        borderColor: '#E0E0E0',
+                        borderColor: themeColors.border,
                         borderRadius: 12,
                         paddingHorizontal: 16,
                         paddingVertical: 12,
                         fontSize: 16,
                         fontFamily: 'InstrumentSans-Regular',
-                        color: Color.colorBlack,
+                        color: themeColors.text_primary,
                         minHeight: 48,
                       }}
                       placeholder="Type a message…"
-                      placeholderTextColor="#A0A0A0"
+                      placeholderTextColor={themeColors.text_secondary}
                       value={inputText}
                       onChangeText={setInputText}
                       onSubmitEditing={handleSend}
@@ -348,7 +351,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                     <Text
                       style={{
                         fontSize: 16,
-                        color: '#A0A0A0',
+                        color: themeColors.text_secondary,
                         fontFamily: 'InstrumentSans-Regular',
                         fontWeight: '500',
                       }}>
