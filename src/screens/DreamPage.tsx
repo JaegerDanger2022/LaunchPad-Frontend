@@ -92,8 +92,10 @@ const DreamPage = ({
 
   const dreamField = dream?.dream || "Dream";
   const dreamCardBg = dream?.dream_card_bg || "#4FA9DB";
-  const dreamScore = dream?.metadata?.score || 0;
-  const dreamTotalXp = dream?.metadata?.total_xp || 0;
+  const dreamScore = dream?.metadata?.score ??
+    (dream?.roadmap?.milestones || []).reduce((sum: number, m: any) => sum + (m.status === "completed" ? (m.xp_points || 0) : 0), 0);
+  const dreamTotalXp = dream?.metadata?.total_xp ??
+    (dream?.roadmap?.milestones || []).reduce((sum: number, m: any) => sum + (m.xp_points || 0), 0);
 
   // Static curve depth
   const curveDepth = 200;
