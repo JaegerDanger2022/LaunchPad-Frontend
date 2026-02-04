@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef } from 'react';
-import { Animated } from 'react-native';
+import { View, Animated } from 'react-native';
 import { NavigationContainer, NavigationProp, useFocusEffect } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -435,7 +435,9 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
+      {loading ? (
+        <View style={{ flex: 1, backgroundColor: theme === 'light' ? Color.colorSnow : '#050938' }} />
+      ) : isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
       <StatusBar style={theme === 'light' ? 'dark' : 'light'} backgroundColor={theme === 'light' ? Color.colorSnow : '#050938'} />
       <Toast config={toastConfig} />
     </NavigationContainer>
