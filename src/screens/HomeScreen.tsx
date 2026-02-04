@@ -11,6 +11,7 @@ import {
   RefreshControl,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -74,11 +75,35 @@ const HomeScreen = ({
   const { width } = useWindowDimensions();
 
   // Get user data from auth store
-  const { userData, addToRecents, user, loadUserData, loading } =
+  const { userData, addToRecents, user, loadUserData, loading, isPremium } =
     useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
+
+  // Dream-limit gate: free = 2 total, pro = 3 active
+  const dreamLimitReached = useMemo(() => {
+    const dreams = userData?.dreams || [];
+    if (isPremium) {
+      return dreams.filter((d: any) => d.status === "active").length >= 3;
+    }
+    return dreams.length >= 2;
+  }, [userData?.dreams, isPremium]);
+
+  const handleAddDreamPress = () => {
+    if (dreamLimitReached) {
+      if (!isPremium) {
+        onNavigate("Paywall");
+      } else {
+        Alert.alert(
+          "Active Dream Limit",
+          "You already have 3 active dreams. Complete or delete one before creating a new dream.",
+        );
+      }
+      return;
+    }
+    setIsCreateDreamModalVisible(true);
+  };
 
   // Calculate column width (2 columns with 17px margins on each side and 14px gap)
   const columnWidth = (width - 34 - 14) / 2;
@@ -505,7 +530,7 @@ const HomeScreen = ({
 
                 {/* Create button */}
                 <TouchableOpacity
-                  onPress={() => setIsCreateDreamModalVisible(true)}
+                  onPress={handleAddDreamPress}
                   activeOpacity={0.8}
                   style={{
                     backgroundColor: Color.colorOrangered,

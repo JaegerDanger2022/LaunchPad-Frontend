@@ -8,6 +8,7 @@ import {
   StatusBar,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Plus } from "lucide-react-native";
@@ -44,10 +45,34 @@ const AllDreamsScreen = ({
   const [phraseIndex, setPhraseIndex] = useState(0);
 
   // Get user data from auth store
-  const { userData, addToRecents, user, refreshDreamsFromCrud } = useAuthStore();
+  const { userData, addToRecents, user, refreshDreamsFromCrud, isPremium } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
+
+  // Dream-limit gate: free = 2 total, pro = 3 active
+  const dreamLimitReached = useMemo(() => {
+    const dreams = userData?.dreams || [];
+    if (isPremium) {
+      return dreams.filter((d: any) => d.status === "active").length >= 3;
+    }
+    return dreams.length >= 2;
+  }, [userData?.dreams, isPremium]);
+
+  const handleAddDreamPress = () => {
+    if (dreamLimitReached) {
+      if (!isPremium) {
+        onNavigate("Paywall");
+      } else {
+        Alert.alert(
+          "Active Dream Limit",
+          "You already have 3 active dreams. Complete or delete one before creating a new dream.",
+        );
+      }
+      return;
+    }
+    setIsCreateDreamModalVisible(true);
+  };
 
   // Calculate column width (2 columns with 17px margins on each side and 14px gap)
   const columnWidth = (width - 34 - 14) / 2;
@@ -262,7 +287,7 @@ const AllDreamsScreen = ({
 
               {/* Add New Dream Button */}
               <TouchableOpacity
-                onPress={() => setIsCreateDreamModalVisible(true)}
+                onPress={handleAddDreamPress}
                 style={{
                   width: 56,
                   height: 56,
@@ -370,7 +395,7 @@ const AllDreamsScreen = ({
             alignItems: "center",
           }}>
           <TouchableOpacity
-            onPress={() => setIsCreateDreamModalVisible(true)}
+            onPress={handleAddDreamPress}
             style={{
               width: 56,
               height: 56,
