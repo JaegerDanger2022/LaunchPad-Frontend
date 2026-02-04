@@ -39,7 +39,7 @@ export type RootStackParamList = {
 
   // Modal screens (shown on top of tabs)
   Milestone: { milestoneId: string };
-  Dream: undefined;
+  Dream: { threadId: string };
   StreakStats: undefined;
   ShareVictory: { victory: any };
   ShareJourneyRecap: { journeyRecap: any };
@@ -114,11 +114,11 @@ const MilestoneScreenWrapper = ({ navigation, route }: any) => (
 
 const AllDreamsScreenBase = ({ navigation, route }: any) => (
   <AllDreamsScreen
-    onNavigate={(screen) => {
+    onNavigate={(screen, params?) => {
       if (screen === 'Home' || screen === 'EvidenceBoard' || screen === 'AllDreams' || screen === 'Community' || screen === 'Settings') {
         navigation.navigate(screen as keyof TabParamList);
       } else {
-        navigation.navigate(screen as keyof RootStackParamList);
+        navigation.navigate(screen as keyof RootStackParamList, params);
       }
     }}
     creatingDream={route.params?.creatingDream === true}
@@ -127,20 +127,23 @@ const AllDreamsScreenBase = ({ navigation, route }: any) => (
 
 const AllDreamsScreenWrapper = withFadeAnimation(AllDreamsScreenBase);
 
-const DreamPageWrapper = ({ navigation }: any) => (
-  <DreamPage onNavigate={(screen, params) => {
-    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Settings') {
-      navigation.goBack();
-      // Navigate to the tab after closing the modal
-      setTimeout(() => {
-        navigation.navigate('HomeTabs', {
-          screen: screen as keyof TabParamList,
-        });
-      }, 100);
-    } else {
-      navigation.navigate(screen as keyof RootStackParamList, params);
-    }
-  }} />
+const DreamPageWrapper = ({ navigation, route }: any) => (
+  <DreamPage
+    threadId={route.params?.threadId}
+    onNavigate={(screen, params) => {
+      if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Settings') {
+        navigation.goBack();
+        // Navigate to the tab after closing the modal
+        setTimeout(() => {
+          navigation.navigate('HomeTabs', {
+            screen: screen as keyof TabParamList,
+          });
+        }, 100);
+      } else {
+        navigation.navigate(screen as keyof RootStackParamList, params);
+      }
+    }}
+  />
 );
 
 const EvidenceBoardScreenBase = ({ navigation }: any) => (

@@ -59,20 +59,25 @@ const getAnimationOrImage = (challengeType: string, fallbackImageIndex: number) 
 };
 
 const DreamPage = ({
+  threadId,
   onNavigate,
 }: {
+  threadId: string;
   onNavigate: (screen: string, params?: Record<string, any>) => void;
 }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const { userData } = useAuthStore();
 
-  // Get the first dream's field string and card background color
-  const firstDream = userData?.dreams?.[0];
-  const dreamField = firstDream?.dream || "Dream";
-  const dreamCardBg = firstDream?.dream_card_bg || "#4FA9DB";
-  const dreamScore = firstDream?.metadata?.score || 0;
-  const dreamTotalXp = firstDream?.metadata?.total_xp || 0;
+  // Find the dream matching the threadId passed from navigation
+  const dream = useMemo(
+    () => userData?.dreams?.find((d: any) => d.thread_id === threadId),
+    [userData?.dreams, threadId],
+  );
+  const dreamField = dream?.dream || "Dream";
+  const dreamCardBg = dream?.dream_card_bg || "#4FA9DB";
+  const dreamScore = dream?.metadata?.score || 0;
+  const dreamTotalXp = dream?.metadata?.total_xp || 0;
 
   // Static curve depth
   const curveDepth = 200;
@@ -80,55 +85,38 @@ const DreamPage = ({
   // Calculate SVG path: combines scroll animation (curve straightens) + drag animation (curve extends)
   const elasticPath = `M 0 0 L ${screenWidth} 0 L ${screenWidth} ${curveDepth} Q ${screenWidth / 2} ${curveDepth + 50} 0 ${curveDepth} Z`;
 
-  // Transform dream milestones to MilestoneCard props — reads from Zustand (populated by loadFullDreams)
+  // Transform this dream's milestones to MilestoneCard props
   const milestones: Milestone[] = useMemo(() => {
-    if (!userData?.dreams || !Array.isArray(userData.dreams)) {
+    if (!dream?.roadmap?.milestones || !Array.isArray(dream.roadmap.milestones)) {
       return [];
     }
 
-    const allMilestones: Milestone[] = [];
+    return dream.roadmap.milestones.map((milestone: any, milestoneIndex: number) => {
+      const { animation, image } = getAnimationOrImage(
+        milestone.challenge_type,
+        milestoneIndex
+      );
 
-    userData.dreams.forEach((dream: any, dreamIndex: number) => {
-      // Check if dream has roadmap with milestones
-      if (
-        dream.roadmap?.milestones &&
-        Array.isArray(dream.roadmap.milestones)
-      ) {
-        dream.roadmap.milestones.forEach(
-          (milestone: any, milestoneIndex: number) => {
-            const { animation, image } = getAnimationOrImage(
-              milestone.challenge_type,
-              allMilestones.length
-            );
-
-            allMilestones.push({
-              id: `${dreamIndex}-${milestoneIndex}`,
-              title: milestone.title || milestone.name || "Untitled Milestone",
-              bgColor:
-                ChallengeTypeColors[
-                  milestone.challenge_type as keyof typeof ChallengeTypeColors
-                ] ||
-                milestone.bgColor ||
-                dream.dream_card_bg ||
-                "#537787",
-              duration: milestone.time_estimate || "60 mins",
-              image,
-              animation,
-              challengeType: milestone.challenge_type,
-              // Store roadmapId (thread_id from dream) for API calls
-              roadmapId: dream.thread_id,
-              // Store actual milestone database ID for API calls
-              milestoneId: milestone.id,
-              // Store raw milestone object for dependency checking
-              rawMilestone: milestone,
-            });
-          },
-        );
-      }
+      return {
+        id: `${milestoneIndex}`,
+        title: milestone.title || milestone.name || "Untitled Milestone",
+        bgColor:
+          ChallengeTypeColors[
+            milestone.challenge_type as keyof typeof ChallengeTypeColors
+          ] ||
+          milestone.bgColor ||
+          dream.dream_card_bg ||
+          "#537787",
+        duration: milestone.time_estimate || "60 mins",
+        image,
+        animation,
+        challengeType: milestone.challenge_type,
+        roadmapId: dream.thread_id,
+        milestoneId: milestone.id,
+        rawMilestone: milestone,
+      };
     });
-
-    return allMilestones;
-  }, [userData?.dreams]);
+  }, [dream]);
 
   return (
     <SafeAreaView

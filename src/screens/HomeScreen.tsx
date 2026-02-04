@@ -564,7 +564,7 @@ const HomeScreen = ({
                                 if (item.status === "active" && item.threadId) {
                                   addToRecents(item.threadId);
                                 }
-                                onNavigate("Dream");
+                                onNavigate("Dream", { threadId: item.threadId });
                               }}
                             />
                           </View>

@@ -33,7 +33,7 @@ const AllDreamsScreen = ({
   onNavigate,
   creatingDream,
 }: {
-  onNavigate: (screen: string) => void;
+  onNavigate: (screen: string, params?: any) => void;
   creatingDream?: boolean;
 }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -113,11 +113,15 @@ const AllDreamsScreen = ({
       if (cancelled) return;
       try {
         const res = await fetchDreamsList(uid, { summary: true });
-        const currentIds = new Set(
-          (res.dreams || []).map((d: any) => d.thread_id as string),
+        const dreams: any[] = res.dreams || [];
+        // A new dream is "ready" once it exists AND has milestones persisted.
+        // The summary endpoint back-fills milestones_count from the roadmap;
+        // keep polling until that count is > 0 so the GoalCard can render
+        // progress immediately.
+        const newReady = dreams.some(
+          (d) => !knownDreamIds.current.has(d.thread_id) && (d.milestones_count || 0) > 0,
         );
-        const hasNew = [...currentIds].some((id) => !knownDreamIds.current.has(id));
-        if (hasNew && !cancelled) {
+        if (newReady && !cancelled) {
           stopPolling();
           await refreshDreamsFromCrud(uid);
           setIsCreating(false);
@@ -203,7 +207,7 @@ const AllDreamsScreen = ({
     if (status === "active") {
       addToRecents(threadId);
     }
-    onNavigate("Dream");
+    onNavigate("Dream", { threadId });
   };
 
   const hasDreams = sortedDreams.length > 0 || isCreating;
