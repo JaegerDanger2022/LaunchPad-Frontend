@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { ProgressRingIcon } from "./icons/SVGIcons";
-import { Color } from "../constants/GlobalStyles";
+import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { useThemeStore } from "../store/themeStore";
 
 // Helper function to convert hex color to rgba
@@ -30,6 +30,7 @@ interface GoalCardProps {
 
 export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
   const { theme } = useThemeStore();
+  const themeColors = getThemeColors(theme);
 
   return (
     <TouchableOpacity
@@ -92,7 +93,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
                 flex: 1,
                 marginRight: 10,
               }}>
-              {data.title.length > 15 ? data.title.slice(0, 15) + "…" : data.title}
+              {data.title.length > 20 ? data.title.slice(0, 20) + "…" : data.title}
             </Text>
             <View
               style={{
@@ -101,7 +102,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
                 gap: 6,
                 flexShrink: 0,
               }}>
-              <ProgressRingIcon size={30} color={data.progressColor} progress={data.progress} />
+              <ProgressRingIcon size={30} color={themeColors.bg_primary} progress={data.progress} />
               <Text
                 style={{
                   fontFamily: "InriaSans-Bold",
