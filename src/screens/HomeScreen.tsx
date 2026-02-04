@@ -41,7 +41,7 @@ import { VictoryCard } from "../components/community/VictoryCard";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { areDependenciesCompleted } from "../utils/dependencyChecker";
-import { fetchVictories, fetchInspirationVictories } from "../config/api";
+import { fetchVictories, fetchInspirationVictories, fetchDreamsList } from "../config/api";
 import {
   VictoryCard as VictoryCardType,
   CommunityFeedItem,
@@ -206,6 +206,70 @@ const HomeScreen = ({
     }, 1800);
     return () => clearInterval(interval);
   }, [isDreamCreating]);
+
+  // Snapshot existing dream IDs when the overlay appears, then poll until a
+  // new dream shows up in the DB.  On detection: refresh user data and navigate
+  // to AllDreams so the new card is visible.
+  const knownDreamIds = useRef<Set<string>>(new Set());
+  const pollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!isDreamCreating || !user?.uid) return;
+
+    let cancelled = false;
+    const uid = user.uid;
+
+    const stopPolling = () => {
+      cancelled = true;
+      if (pollInterval.current) { clearInterval(pollInterval.current); pollInterval.current = null; }
+      if (pollTimeout.current) { clearTimeout(pollTimeout.current); pollTimeout.current = null; }
+    };
+
+    const poll = async () => {
+      if (cancelled) return;
+      try {
+        const res = await fetchDreamsList(uid, { summary: true });
+        const currentIds = new Set(
+          (res.dreams || []).map((d: any) => d.thread_id as string),
+        );
+        const hasNew = [...currentIds].some((id) => !knownDreamIds.current.has(id));
+        if (hasNew && !cancelled) {
+          stopPolling();
+          await loadUserData(uid);
+          setIsDreamCreating(false);
+          onNavigate("AllDreams");
+        }
+      } catch {
+        // keep polling on transient errors
+      }
+    };
+
+    // Snapshot current dreams, then start the polling interval
+    const init = async () => {
+      try {
+        const res = await fetchDreamsList(uid, { summary: true });
+        knownDreamIds.current = new Set(
+          (res.dreams || []).map((d: any) => d.thread_id as string),
+        );
+      } catch {
+        knownDreamIds.current = new Set();
+      }
+
+      if (cancelled) return;
+      pollInterval.current = setInterval(poll, 3000);
+      // Safety: dismiss after 90 s if the roadmap never appears
+      pollTimeout.current = setTimeout(() => {
+        stopPolling();
+        setIsDreamCreating(false);
+        onNavigate("AllDreams");
+      }, 90000);
+    };
+
+    init();
+
+    return () => stopPolling();
+  }, [isDreamCreating, user?.uid]);
 
   // Autoplay carousel for Community Wins
   useEffect(() => {
@@ -719,9 +783,6 @@ const HomeScreen = ({
             onDreamCreating={() => {
               setIsCreateDreamModalVisible(false);
               setIsDreamCreating(true);
-            }}
-            onDreamCreated={() => {
-              setIsDreamCreating(false);
             }}
           />
 

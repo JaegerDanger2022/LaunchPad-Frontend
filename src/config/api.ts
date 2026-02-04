@@ -281,6 +281,9 @@ export async function sendConversationTurn(
   message: string,
   onChunk: (text: string) => void,
 ): Promise<ConversationTurnDonePayload> {
+  // React Native's fetch doesn't support response.body streaming, and XHR
+  // onprogress is unreliable across platforms.  Fetch the full SSE payload,
+  // then replay all chunk events into onChunk so the UI still updates.
   const response = await fetch(`${API_BASE_URL}/conversation/turn`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -292,44 +295,32 @@ export async function sendConversationTurn(
     throw new Error(errorData.detail || `HTTP ${response.status}`);
   }
 
-  // Read the SSE stream
-  const reader = response.body!.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
+  const text = await response.text();
   let donePayload: ConversationTurnDonePayload | null = null;
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+  // Parse all SSE events from the complete response body
+  const parts = text.split("\n\n");
+  for (const part of parts) {
+    if (!part.trim()) continue;
 
-    buffer += decoder.decode(value, { stream: true });
+    let eventType = "message";
+    let dataLine = "";
 
-    // SSE events are separated by double newlines
-    const parts = buffer.split("\n\n");
-    buffer = parts.pop() || ""; // last element is the incomplete chunk, keep it
-
-    for (const part of parts) {
-      if (!part.trim()) continue;
-
-      let eventType = "message";
-      let dataLine = "";
-
-      for (const line of part.split("\n")) {
-        if (line.startsWith("event:")) {
-          eventType = line.slice("event:".length).trim();
-        } else if (line.startsWith("data:")) {
-          dataLine = line.slice("data:".length).trim();
-        }
+    for (const line of part.split("\n")) {
+      if (line.startsWith("event:")) {
+        eventType = line.slice("event:".length).trim();
+      } else if (line.startsWith("data:")) {
+        dataLine = line.slice("data:".length).trim();
       }
+    }
 
-      if (!dataLine) continue;
+    if (!dataLine) continue;
 
-      if (eventType === "chunk") {
-        const parsed = JSON.parse(dataLine);
-        onChunk(parsed.text);
-      } else if (eventType === "done") {
-        donePayload = JSON.parse(dataLine);
-      }
+    if (eventType === "chunk") {
+      const parsed = JSON.parse(dataLine);
+      onChunk(parsed.text);
+    } else if (eventType === "done") {
+      donePayload = JSON.parse(dataLine);
     }
   }
 
@@ -1054,7 +1045,7 @@ export async function fetchInspirationVictories(
         }
         return {
           victories: [],
-          pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
+          pagination: { page: 1, limit: 10, totalCount: 0, totalPages: 0 },
         };
       }
 
@@ -1080,7 +1071,7 @@ export async function fetchInspirationVictories(
     // Return empty array instead of throwing for better UX
     return {
       victories: [],
-      pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
+      pagination: { page: 1, limit: 10, totalCount: 0, totalPages: 0 },
     };
   }
 }
@@ -1241,7 +1232,7 @@ export async function getJourneyRecapPermissions(
  * NEW: Uses dreams collection endpoint (/dreams/{thread_id})
  */
 export async function fetchDreamDetails(
-  userId: string,
+  _userId: string,
   threadId: string,
 ): Promise<any> {
   try {

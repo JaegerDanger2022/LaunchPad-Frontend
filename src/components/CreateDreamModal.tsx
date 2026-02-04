@@ -25,7 +25,6 @@ interface CreateDreamModalProps {
   visible: boolean;
   onClose: () => void;
   onDreamCreating?: () => void;
-  onDreamCreated?: () => void;
 }
 
 interface ChatMessage {
@@ -37,14 +36,13 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
   visible,
   onClose,
   onDreamCreating,
-  onDreamCreated,
 }) => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
   const [creatingDream, setCreatingDream] = useState(false);
-  const { user, loadUserData } = useAuthStore();
+  const { user } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
@@ -109,12 +107,12 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
       });
 
       if (res.conversation_complete) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setCreatingDream(true);
         onClose();
         onDreamCreating?.();
-        await loadUserData(user.uid);
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        onDreamCreated?.();
+        // Dream doesn't exist in the DB yet — HomeScreen polls until it appears,
+        // then refreshes user data and navigates to AllDreams.
       }
     } catch (err: any) {
       console.error('[CreateDreamModal] sendConversationTurn failed:', err);
