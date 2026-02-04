@@ -2,14 +2,13 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
   ScrollView,
   Switch,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   VictoryCard as VictoryCardType,
   ImpactLevel,
@@ -18,6 +17,8 @@ import { VictoryCard } from "../components/community/VictoryCard";
 import Toast from "react-native-toast-message";
 import { useAuthStore } from "../store/authStore";
 import { useCommunityStore } from "../store/communityStore";
+import { useThemeStore } from "../store/themeStore";
+import { getThemeColors } from "../constants/GlobalStyles";
 
 interface ShareVictoryScreenProps {
   onNavigate: (screen: string) => void;
@@ -39,6 +40,9 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
   console.log("[ShareVictoryScreen] Victory milestoneTitle:", victory?.milestoneTitle);
   console.log("[ShareVictoryScreen] Victory dreamTitle:", victory?.dreamTitle);
 
+  const { theme } = useThemeStore();
+  const colors = getThemeColors(theme);
+  const isDark = theme === "dark";
   const insets = useSafeAreaInsets();
   const [evidenceSnippet, setEvidenceSnippet] = useState(
     victory?.evidenceSnippet || "",
@@ -122,85 +126,199 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: colors.bg_primary }}>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingHorizontal: 16,
+          paddingTop: insets.top + 12,
+          paddingBottom: 12,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+          backgroundColor: colors.bg_secondary,
+        }}>
         <TouchableOpacity
           onPress={() => onNavigate("Home")}
           disabled={isSaving}>
-          <Text style={styles.closeButton}>✕</Text>
+          <Text style={{ fontSize: 24, color: colors.text_secondary }}>✕</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Share Your Victory</Text>
-        <View style={styles.spacer} />
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: "600",
+            color: colors.text_primary,
+          }}>
+          Share Your Victory
+        </Text>
+        <View style={{ width: 24 }} />
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingBottom: 40 }}
         scrollEnabled={true}
         bounces={false}>
         {/* Preview */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preview</Text>
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingVertical: 16,
+            backgroundColor: colors.bg_secondary,
+            marginTop: 12,
+          }}>
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: "600",
+              color: colors.text_primary,
+              marginBottom: 12,
+            }}>
+            Preview
+          </Text>
           <VictoryCard victory={previewVictory} onBoost={() => {}} />
         </View>
 
         {/* Evidence Input */}
-        <View style={styles.section}>
-          <View style={styles.labelRow}>
-            <Text style={styles.label}>Your Proof</Text>
-            <Text style={styles.charCounter}>
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingVertical: 16,
+            backgroundColor: colors.bg_secondary,
+            marginTop: 12,
+          }}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 8,
+            }}>
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: "600",
+                color: colors.text_primary,
+              }}>
+              Your Proof
+            </Text>
+            <Text style={{ fontSize: 11, color: colors.text_secondary }}>
               {evidenceSnippet.length}/200
             </Text>
           </View>
           <TextInput
-            style={styles.input}
+            style={{
+              borderWidth: 1,
+              borderColor: colors.border,
+              borderRadius: 8,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              fontSize: 14,
+              color: colors.text_primary,
+              minHeight: 80,
+              textAlignVertical: "top",
+              backgroundColor: isDark ? colors.bg_primary : "#FFFFFF",
+            }}
             placeholder="What's your proof? (max 200 chars)"
             value={evidenceSnippet}
             onChangeText={(text) => setEvidenceSnippet(text.slice(0, 200))}
             multiline
             maxLength={200}
             editable={!isSaving}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.text_secondary}
           />
         </View>
 
         {/* Impact Level */}
-        <View style={styles.section}>
-          <Text style={styles.label}>How much of an impact?</Text>
-          <View style={styles.impactGrid}>
-            {IMPACT_LEVELS.map((level) => (
-              <TouchableOpacity
-                key={level.value}
-                style={[
-                  styles.impactButton,
-                  selectedImpact === level.value && styles.impactButtonActive,
-                ]}
-                onPress={() => setSelectedImpact(level.value)}
-                disabled={isSaving}>
-                <Text
-                  style={[
-                    styles.impactButtonText,
-                    selectedImpact === level.value &&
-                      styles.impactButtonTextActive,
-                  ]}>
-                  {level.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingVertical: 16,
+            backgroundColor: colors.bg_secondary,
+            marginTop: 12,
+          }}>
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: "600",
+              color: colors.text_primary,
+              marginBottom: 8,
+            }}>
+            How much of an impact?
+          </Text>
+          <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+            {IMPACT_LEVELS.map((level) => {
+              const isActive = selectedImpact === level.value;
+              return (
+                <TouchableOpacity
+                  key={level.value}
+                  style={{
+                    flex: 1,
+                    minWidth: "45%",
+                    paddingVertical: 12,
+                    paddingHorizontal: 12,
+                    borderWidth: 1,
+                    borderColor: isActive ? "#2D5BFF" : colors.border,
+                    borderRadius: 8,
+                    alignItems: "center",
+                    backgroundColor: isActive
+                      ? "#2D5BFF"
+                      : isDark
+                        ? colors.bg_primary
+                        : "#FFFFFF",
+                  }}
+                  onPress={() => setSelectedImpact(level.value)}
+                  disabled={isSaving}>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "500",
+                      color: isActive ? "#FFFFFF" : colors.text_primary,
+                    }}>
+                    {level.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
         {/* Anonymous Toggle */}
-        <View style={styles.section}>
-          <View style={styles.anonymousRow}>
-            <Text style={styles.label}>Share Anonymously</Text>
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingVertical: 16,
+            backgroundColor: colors.bg_secondary,
+            marginTop: 12,
+          }}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 8,
+            }}>
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: "600",
+                color: colors.text_primary,
+              }}>
+              Share Anonymously
+            </Text>
             <Switch
               value={isAnonymous}
               onValueChange={setIsAnonymous}
               disabled={isSaving}
             />
           </View>
-          <Text style={styles.helperText}>
+          <Text
+            style={{
+              fontSize: 12,
+              color: colors.text_secondary,
+              fontStyle: "italic",
+            }}>
             {isAnonymous
               ? 'Your victory will show as "Someone"'
               : "Your name will be visible to the community"}
@@ -208,21 +326,59 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
         </View>
 
         {/* Action Buttons */}
-        <View style={styles.buttonContainer}>
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            flexDirection: "row",
+            gap: 12,
+            marginTop: 20,
+          }}>
           <TouchableOpacity
-            style={styles.buttonSecondary}
+            style={{
+              flex: 1,
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              borderWidth: 1,
+              borderColor: colors.border,
+              borderRadius: 8,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: isDark ? colors.bg_primary : "#FFFFFF",
+            }}
             onPress={() => onNavigate("Home")}
             disabled={isSaving}>
-            <Text style={styles.buttonSecondaryText}>Skip for Now</Text>
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: "600",
+                color: colors.text_primary,
+              }}>
+              Skip for Now
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.buttonPrimary, isSaving && styles.buttonDisabled]}
+            style={{
+              flex: 1,
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              borderRadius: 8,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#2D5BFF",
+              opacity: isSaving ? 0.6 : 1,
+            }}
             onPress={handleShare}
             disabled={isSaving}>
             {isSaving ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
-              <Text style={styles.buttonPrimaryText}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "600",
+                  color: "#FFFFFF",
+                }}>
                 Post to Victory Wall
               </Text>
             )}
@@ -232,155 +388,5 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FAFBFC",
-  },
-  scrollContent: {
-    paddingBottom: 40,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-    backgroundColor: "#FFFFFF",
-  },
-  closeButton: {
-    fontSize: 24,
-    color: "#6B7280",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  spacer: {
-    width: 24,
-  },
-  section: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: "#FFFFFF",
-    marginTop: 12,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 8,
-  },
-  labelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  charCounter: {
-    fontSize: 11,
-    color: "#9CA3AF",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: "#111827",
-    minHeight: 80,
-    textAlignVertical: "top",
-  },
-  impactGrid: {
-    flexDirection: "row",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  impactButton: {
-    flex: 1,
-    minWidth: "45%",
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
-  },
-  impactButtonActive: {
-    backgroundColor: "#2D5BFF",
-    borderColor: "#2D5BFF",
-  },
-  impactButtonText: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "#374151",
-  },
-  impactButtonTextActive: {
-    color: "#FFFFFF",
-  },
-  anonymousRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  helperText: {
-    fontSize: 12,
-    color: "#6B7280",
-    fontStyle: "italic",
-  },
-  buttonContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 20,
-  },
-  buttonSecondary: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFFFFF",
-  },
-  buttonSecondaryText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-  },
-  buttonPrimary: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#2D5BFF",
-  },
-  buttonPrimaryText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-});
 
 export default ShareVictoryScreen;
