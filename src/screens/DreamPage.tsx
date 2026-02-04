@@ -1,10 +1,11 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef, useCallback } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   Dimensions,
   ScrollView,
+  PanResponder,
 } from "react-native";
 import {
   Color,
@@ -74,6 +75,21 @@ const DreamPage = ({
     () => userData?.dreams?.find((d: any) => d.thread_id === threadId),
     [userData?.dreams, threadId],
   );
+  const dismiss = useCallback(() => onNavigate("Home"), [onNavigate]);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 8,
+      onPanResponderMove: () => {},
+      onPanResponderReleaseOrTerminate: (_, gestureState) => {
+        if (gestureState.dy > 50) {
+          dismiss();
+        }
+      },
+    }),
+  ).current;
+
   const dreamField = dream?.dream || "Dream";
   const dreamCardBg = dream?.dream_card_bg || "#4FA9DB";
   const dreamScore = dream?.metadata?.score || 0;
@@ -124,6 +140,30 @@ const DreamPage = ({
       edges={["bottom", "left", "right"]}>
       <BottomNavbar onNavigate={onNavigate} />
       <View style={{ flex: 1 }}>
+        {/* Drag handle — invisible hit area + visible pill */}
+        <View
+          {...panResponder.panHandlers}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 40,
+            zIndex: 20,
+            alignItems: "center",
+            justifyContent: "flex-end",
+            paddingBottom: 6,
+          }}>
+          <View
+            style={{
+              width: 36,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: "rgba(255, 255, 255, 0.5)",
+            }}
+          />
+        </View>
+
         {/* SVG Curve at bottom */}
         <Svg
           width={screenWidth}
