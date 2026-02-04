@@ -44,7 +44,7 @@ const AllDreamsScreen = ({
   const [phraseIndex, setPhraseIndex] = useState(0);
 
   // Get user data from auth store
-  const { userData, addToRecents, user, loadUserData } = useAuthStore();
+  const { userData, addToRecents, user, refreshDreamsFromCrud } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
@@ -119,7 +119,7 @@ const AllDreamsScreen = ({
         const hasNew = [...currentIds].some((id) => !knownDreamIds.current.has(id));
         if (hasNew && !cancelled) {
           stopPolling();
-          await loadUserData(uid);
+          await refreshDreamsFromCrud(uid);
           setIsCreating(false);
         }
       } catch {
@@ -388,7 +388,10 @@ const AllDreamsScreen = ({
       <CreateDreamModal
         visible={isCreateDreamModalVisible}
         onClose={() => setIsCreateDreamModalVisible(false)}
-        onDreamCreated={() => setIsCreateDreamModalVisible(false)}
+        onDreamCreating={() => {
+          setIsCreateDreamModalVisible(false);
+          setIsCreating(true);
+        }}
       />
     </>
   );

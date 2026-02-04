@@ -14,7 +14,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { ensureGoogleSignInInitialized, isGoogleSignInAvailable } from '../config/googleSignIn';
-import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI, updateStreak as updateStreakAPI, getStreak, FetchUserDataOptions, fetchDreamDetails, updatePlan } from '../config/api';
+import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI, updateStreak as updateStreakAPI, getStreak, FetchUserDataOptions, fetchDreamDetails, fetchDreamsList, updatePlan } from '../config/api';
 import { findNextIncompleteMilestone } from '../utils/upNextHelper';
 import { StreakData } from '../types/index';
 import * as SecureStore from 'expo-secure-store';
@@ -80,6 +80,7 @@ interface AuthState {
   updateStreakData: (streakData: StreakData) => void;
   updateCouragePoints: (amount: number) => void;
   loadFullDreams: (userId: string) => Promise<void>;
+  refreshDreamsFromCrud: (userId: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -550,6 +551,46 @@ export const useAuthStore = create<AuthState>((set) => ({
       } catch (e) {
         console.error('[loadFullDreams] Failed to fetch dream', threadId, e);
       }
+    }
+  },
+
+  // Fetch the dreams list directly from the dreams collection (dreams-crud)
+  // and merge into userData.dreams.  Use this instead of loadUserData when you
+  // know the dreams collection is the source of truth — e.g. right after the
+  // roadmap workflow persists a new dream.  loadUserData reads dreams_summary
+  // from the user document, which may be stale or missing entirely.
+  refreshDreamsFromCrud: async (userId: string) => {
+    try {
+      const res = await fetchDreamsList(userId, { summary: true });
+      const dreams = (res.dreams || []).map((d: any) => ({
+        thread_id: d.thread_id,
+        dream: d.dream,
+        status: d.status,
+        dream_image_bytes: d.dream_image_bytes,
+        dream_card_bg: d.dream_card_bg,
+        category: d.category,
+        created_at: d.created_at,
+        updated_at: d.updated_at,
+        isComplete: d.isComplete,
+        roadmap: {
+          status: d.status,
+          milestones: [],
+        },
+        _metadata: {
+          milestones_count: d.milestones_count,
+          completed_milestones_count: d.completed_milestones_count,
+        },
+      }));
+
+      set((state) => {
+        if (!state.userData) return state;
+        return { userData: { ...state.userData, dreams } };
+      });
+
+      // Now that dreams are in state, patch in full milestones
+      useAuthStore.getState().loadFullDreams(userId);
+    } catch (e) {
+      console.error('[refreshDreamsFromCrud] Failed:', e);
     }
   },
 }));
