@@ -84,8 +84,6 @@ export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
               justifyContent: "space-between",
             }}>
             <Text
-              numberOfLines={1}
-              ellipsizeMode="tail"
               style={{
                 fontFamily: "InriaSans-Bold",
                 fontSize: 15,
@@ -94,7 +92,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
                 flex: 1,
                 marginRight: 10,
               }}>
-              {data.title}
+              {data.title.length > 15 ? data.title.slice(0, 15) + "…" : data.title}
             </Text>
             <View
               style={{

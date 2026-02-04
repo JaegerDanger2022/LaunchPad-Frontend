@@ -219,7 +219,7 @@ const AllDreamsScreen = ({
           ? { uri: convertBinaryToImage(dream.dream_image_bytes) }
           : require("../assets/images/goal-podcast.png"),
         bgColor: dream.dream_card_bg || Color.colorBurlywood,
-        progressColor: "#6B9BD1",
+        progressColor: "#A855F7",
         progress,
         threadId: dream.thread_id,
         status: dream.status,
