@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef } from 'react';
-import { View, ActivityIndicator, Animated } from 'react-native';
+import { Animated } from 'react-native';
 import { NavigationContainer, NavigationProp, useFocusEffect } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -435,11 +435,7 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      {loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme === 'light' ? Color.colorSnow : '#050938' }}>
-          <ActivityIndicator size="large" color="#2D5BFF" />
-        </View>
-      ) : isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
+      {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
       <StatusBar style={theme === 'light' ? 'dark' : 'light'} backgroundColor={theme === 'light' ? Color.colorSnow : '#050938'} />
       <Toast config={toastConfig} />
     </NavigationContainer>
