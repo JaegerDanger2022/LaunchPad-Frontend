@@ -38,7 +38,6 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
 }) => {
   console.log("[ShareVictoryScreen] Received victory:", victory);
   console.log("[ShareVictoryScreen] Victory milestoneTitle:", victory?.milestoneTitle);
-  console.log("[ShareVictoryScreen] Victory dreamTitle:", victory?.dreamTitle);
 
   const { theme } = useThemeStore();
   const colors = getThemeColors(theme);
@@ -113,7 +112,6 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
     milestoneId: victory?.milestoneId || '',
     milestoneTitle: victory?.milestoneTitle || '',
     dreamId: victory?.dreamId || '',
-    dreamTitle: victory?.dreamTitle || '',
     dreamCategory: victory?.dreamCategory || 'achievement_goals',
     evidenceSnippet,
     confidenceBoost: victory?.confidenceBoost || 10,

@@ -44,7 +44,6 @@ export interface VictoryCard {
   milestoneId: string;
   milestoneTitle: string;
   dreamId: string;
-  dreamTitle: string;
   dreamCategory: DreamCategory;
 
   evidenceSnippet: string;

@@ -329,7 +329,6 @@ export const RepeatableGoal: React.FC<RepeatableGoalProps> = ({
                     milestoneId: milestoneId || '',
                     milestoneTitle: milestone?.title || milestone?.name || '',
                     dreamId: threadId || '',
-                    dreamTitle: milestone?.dreamTitle || '',
                     dreamCategory: milestone?.dreamCategory || 'achievement_goals',
                     evidenceSnippet: milestone?.evidence || '',
                     confidenceBoost: milestone?.xp_points || 10,
