@@ -5,7 +5,6 @@ import {
   Text,
   Animated,
   FlatList,
-  Modal,
   useWindowDimensions,
   StatusBar,
   TouchableOpacity,
@@ -41,7 +40,7 @@ import { VictoryCard } from "../components/community/VictoryCard";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { areDependenciesCompleted } from "../utils/dependencyChecker";
-import { fetchVictories, fetchInspirationVictories, fetchDreamsList } from "../config/api";
+import { fetchVictories, fetchInspirationVictories } from "../config/api";
 import {
   VictoryCard as VictoryCardType,
   CommunityFeedItem,
@@ -55,8 +54,6 @@ const HomeScreen = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>("recents");
   const [isCreateDreamModalVisible, setIsCreateDreamModalVisible] = useState(false);
-  const [isDreamCreating, setIsDreamCreating] = useState(false);
-  const [phraseIndex, setPhraseIndex] = useState(0);
   const [isAtBottom, setIsAtBottom] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [recentVictories, setRecentVictories] = useState<CommunityFeedItem[]>(
@@ -184,92 +181,6 @@ const HomeScreen = ({
       useNativeDriver: true,
     }).start();
   }, [communityFadeAnim]);
-
-  // Phrases that cycle while the dream is being built on the backend
-  const dreamCreatingPhrases = [
-    "Catching your dream…",
-    "Shaping your vision…",
-    "Mapping the road ahead…",
-    "Breaking it into steps…",
-    "Setting up your milestones…",
-    "Almost there…",
-  ];
-
-  // Cycle through phrases while isDreamCreating is true
-  useEffect(() => {
-    if (!isDreamCreating) {
-      setPhraseIndex(0);
-      return;
-    }
-    const interval = setInterval(() => {
-      setPhraseIndex((prev) => (prev + 1) % dreamCreatingPhrases.length);
-    }, 1800);
-    return () => clearInterval(interval);
-  }, [isDreamCreating]);
-
-  // Snapshot existing dream IDs when the overlay appears, then poll until a
-  // new dream shows up in the DB.  On detection: refresh user data and navigate
-  // to AllDreams so the new card is visible.
-  const knownDreamIds = useRef<Set<string>>(new Set());
-  const pollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
-  const pollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (!isDreamCreating || !user?.uid) return;
-
-    let cancelled = false;
-    const uid = user.uid;
-
-    const stopPolling = () => {
-      cancelled = true;
-      if (pollInterval.current) { clearInterval(pollInterval.current); pollInterval.current = null; }
-      if (pollTimeout.current) { clearTimeout(pollTimeout.current); pollTimeout.current = null; }
-    };
-
-    const poll = async () => {
-      if (cancelled) return;
-      try {
-        const res = await fetchDreamsList(uid, { summary: true });
-        const currentIds = new Set(
-          (res.dreams || []).map((d: any) => d.thread_id as string),
-        );
-        const hasNew = [...currentIds].some((id) => !knownDreamIds.current.has(id));
-        if (hasNew && !cancelled) {
-          stopPolling();
-          await loadUserData(uid);
-          setIsDreamCreating(false);
-          onNavigate("AllDreams");
-        }
-      } catch {
-        // keep polling on transient errors
-      }
-    };
-
-    // Snapshot current dreams, then start the polling interval
-    const init = async () => {
-      try {
-        const res = await fetchDreamsList(uid, { summary: true });
-        knownDreamIds.current = new Set(
-          (res.dreams || []).map((d: any) => d.thread_id as string),
-        );
-      } catch {
-        knownDreamIds.current = new Set();
-      }
-
-      if (cancelled) return;
-      pollInterval.current = setInterval(poll, 3000);
-      // Safety: dismiss after 90 s if the roadmap never appears
-      pollTimeout.current = setTimeout(() => {
-        stopPolling();
-        setIsDreamCreating(false);
-        onNavigate("AllDreams");
-      }, 90000);
-    };
-
-    init();
-
-    return () => stopPolling();
-  }, [isDreamCreating, user?.uid]);
 
   // Autoplay carousel for Community Wins
   useEffect(() => {
@@ -782,49 +693,9 @@ const HomeScreen = ({
             onClose={() => setIsCreateDreamModalVisible(false)}
             onDreamCreating={() => {
               setIsCreateDreamModalVisible(false);
-              setIsDreamCreating(true);
+              onNavigate("AllDreams", { creatingDream: true });
             }}
           />
-
-          {/* Full-screen loading overlay while dream is being built */}
-          <Modal
-            visible={isDreamCreating}
-            transparent={true}
-            animationType="fade">
-            <View
-              style={{
-                flex: 1,
-                backgroundColor: "rgba(0, 0, 0, 0.55)",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 24,
-              }}>
-              {/* Spinner inside an orange-tinted circle */}
-              <View
-                style={{
-                  width: 88,
-                  height: 88,
-                  borderRadius: 44,
-                  backgroundColor: "rgba(251, 99, 34, 0.15)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}>
-                <ActivityIndicator size="large" color={Color.colorOrangered} />
-              </View>
-
-              {/* Cycling phrase */}
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: "600",
-                  color: Color.colorWhite,
-                  fontFamily: "InstrumentSans-SemiBold",
-                  textAlign: "center",
-                }}>
-                {dreamCreatingPhrases[phraseIndex]}
-              </Text>
-            </View>
-          </Modal>
 
           {/* Community Wins Section - Always show, with skeleton on load */}
           <Animated.View

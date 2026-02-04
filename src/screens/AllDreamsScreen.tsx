@@ -7,28 +7,44 @@ import {
   useWindowDimensions,
   StatusBar,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Plus } from "lucide-react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { GoalCard, type GoalCardData } from "../components/GoalCard";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { CreateDreamModal } from "../components/CreateDreamModal";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
+import { fetchDreamsList } from "../config/api";
+
+const dreamCreatingPhrases = [
+  "Catching your dream…",
+  "Shaping your vision…",
+  "Mapping the road ahead…",
+  "Breaking it into steps…",
+  "Setting up your milestones…",
+  "Almost there…",
+];
 
 const AllDreamsScreen = ({
   onNavigate,
+  creatingDream,
 }: {
   onNavigate: (screen: string) => void;
+  creatingDream?: boolean;
 }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const { width } = useWindowDimensions();
   const [isCreateDreamModalVisible, setIsCreateDreamModalVisible] = useState(false);
+  const [isCreating, setIsCreating] = useState(creatingDream === true);
+  const [phraseIndex, setPhraseIndex] = useState(0);
 
   // Get user data from auth store
-  const { userData, addToRecents } = useAuthStore();
+  const { userData, addToRecents, user, loadUserData } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
@@ -63,6 +79,76 @@ const AllDreamsScreen = ({
       }),
     ]).start();
   }, [fadeAnim, slideAnim]);
+
+  // Cycle through phrases while the placeholder card is visible
+  useEffect(() => {
+    if (!isCreating) {
+      setPhraseIndex(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setPhraseIndex((prev) => (prev + 1) % dreamCreatingPhrases.length);
+    }, 1800);
+    return () => clearInterval(interval);
+  }, [isCreating]);
+
+  // Poll for the new dream; dismiss placeholder once it appears
+  const knownDreamIds = useRef<Set<string>>(new Set());
+  const pollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!isCreating || !user?.uid) return;
+
+    let cancelled = false;
+    const uid = user.uid;
+
+    const stopPolling = () => {
+      cancelled = true;
+      if (pollInterval.current) { clearInterval(pollInterval.current); pollInterval.current = null; }
+      if (pollTimeout.current) { clearTimeout(pollTimeout.current); pollTimeout.current = null; }
+    };
+
+    const poll = async () => {
+      if (cancelled) return;
+      try {
+        const res = await fetchDreamsList(uid, { summary: true });
+        const currentIds = new Set(
+          (res.dreams || []).map((d: any) => d.thread_id as string),
+        );
+        const hasNew = [...currentIds].some((id) => !knownDreamIds.current.has(id));
+        if (hasNew && !cancelled) {
+          stopPolling();
+          await loadUserData(uid);
+          setIsCreating(false);
+        }
+      } catch {
+        // keep polling on transient errors
+      }
+    };
+
+    const init = async () => {
+      try {
+        const res = await fetchDreamsList(uid, { summary: true });
+        knownDreamIds.current = new Set(
+          (res.dreams || []).map((d: any) => d.thread_id as string),
+        );
+      } catch {
+        knownDreamIds.current = new Set();
+      }
+
+      if (cancelled) return;
+      pollInterval.current = setInterval(poll, 3000);
+      // Safety: dismiss placeholder after 90 s
+      pollTimeout.current = setTimeout(() => {
+        stopPolling();
+        setIsCreating(false);
+      }, 90000);
+    };
+
+    init();
+    return () => stopPolling();
+  }, [isCreating, user?.uid]);
 
   const convertBinaryToImage = (binaryData: string) => {
     try {
@@ -120,7 +206,7 @@ const AllDreamsScreen = ({
     onNavigate("Dream");
   };
 
-  const hasDreams = sortedDreams.length > 0;
+  const hasDreams = sortedDreams.length > 0 || isCreating;
 
   if (!hasDreams) {
     return (
@@ -195,7 +281,10 @@ const AllDreamsScreen = ({
         <CreateDreamModal
           visible={isCreateDreamModalVisible}
           onClose={() => setIsCreateDreamModalVisible(false)}
-          onDreamCreated={() => setIsCreateDreamModalVisible(false)}
+          onDreamCreating={() => {
+            setIsCreateDreamModalVisible(false);
+            setIsCreating(true);
+          }}
         />
       </>
     );
@@ -217,16 +306,48 @@ const AllDreamsScreen = ({
               marginTop: 20,
             }}>
             <FlatList
-              data={sortedDreams}
-              renderItem={({ item }) => (
-                <View style={{ width: columnWidth }}>
-                  <GoalCard
-                    data={item}
-                    onPress={() => handleGoalCardPress(item.threadId || "", item.status || "")}
-                  />
-                </View>
-              )}
-              keyExtractor={(_, index) => index.toString()}
+              data={isCreating ? [{ __placeholder: true } as any, ...sortedDreams] : sortedDreams}
+              renderItem={({ item }) => {
+                if (item.__placeholder) {
+                  return (
+                    <View style={{ width: columnWidth }}>
+                      <LinearGradient
+                        colors={["#fb6322", "#f79971"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={{
+                          height: 228,
+                          borderRadius: 10,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 14,
+                        }}>
+                        <ActivityIndicator size="large" color="#fff" />
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontWeight: "600",
+                            color: "#fff",
+                            fontFamily: "InstrumentSans-Bold",
+                            textAlign: "center",
+                            paddingHorizontal: 12,
+                          }}>
+                          {dreamCreatingPhrases[phraseIndex]}
+                        </Text>
+                      </LinearGradient>
+                    </View>
+                  );
+                }
+                return (
+                  <View style={{ width: columnWidth }}>
+                    <GoalCard
+                      data={item}
+                      onPress={() => handleGoalCardPress(item.threadId || "", item.status || "")}
+                    />
+                  </View>
+                );
+              }}
+              keyExtractor={(item, index) => item.__placeholder ? "__placeholder__" : index.toString()}
               numColumns={2}
               columnWrapperStyle={{ gap: 14, marginBottom: 14 }}
               scrollEnabled={false}

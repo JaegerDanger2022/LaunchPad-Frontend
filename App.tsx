@@ -90,7 +90,7 @@ const withFadeAnimation = (Component: any) => {
 const HomeScreenBase = ({ navigation }: any) => (
   <HomeScreen onNavigate={(screen, params) => {
     if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Settings') {
-      navigation.navigate(screen as keyof TabParamList);
+      navigation.navigate(screen as keyof TabParamList, params);
     } else {
       navigation.navigate(screen as keyof RootStackParamList, params);
     }
@@ -112,14 +112,17 @@ const MilestoneScreenWrapper = ({ navigation, route }: any) => (
   />
 );
 
-const AllDreamsScreenBase = ({ navigation }: any) => (
-  <AllDreamsScreen onNavigate={(screen) => {
-    if (screen === 'Home' || screen === 'EvidenceBoard' || screen === 'AllDreams' || screen === 'Community' || screen === 'Settings') {
-      navigation.navigate(screen as keyof TabParamList);
-    } else {
-      navigation.navigate(screen as keyof RootStackParamList);
-    }
-  }} />
+const AllDreamsScreenBase = ({ navigation, route }: any) => (
+  <AllDreamsScreen
+    onNavigate={(screen) => {
+      if (screen === 'Home' || screen === 'EvidenceBoard' || screen === 'AllDreams' || screen === 'Community' || screen === 'Settings') {
+        navigation.navigate(screen as keyof TabParamList);
+      } else {
+        navigation.navigate(screen as keyof RootStackParamList);
+      }
+    }}
+    creatingDream={route.params?.creatingDream === true}
+  />
 );
 
 const AllDreamsScreenWrapper = withFadeAnimation(AllDreamsScreenBase);
