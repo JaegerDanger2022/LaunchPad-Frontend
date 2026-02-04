@@ -80,23 +80,24 @@ interface ProgressRingIconProps extends IconProps {
   progress?: number; // 0–100
 }
 
-export const ProgressRingIcon: React.FC<ProgressRingIconProps> = ({ size = 30, color = '#6B9BD1', progress = 0 }) => {
+export const ProgressRingIcon: React.FC<ProgressRingIconProps> = ({ size = 30, progress = 0 }) => {
   const radius = 13;
   const circumference = 2 * Math.PI * radius; // ≈ 81.68
   const clampedProgress = Math.min(100, Math.max(0, progress));
   const offset = circumference * (1 - clampedProgress / 100);
+  const arcColor = clampedProgress > 0 ? '#ff9000' : '#050938';
 
   return (
     <View style={{ width: size, height: size }}>
       <Svg width={size} height={size} viewBox="0 0 30 30" fill="none">
         {/* Background track */}
-        <Circle cx="15" cy="15" r={radius} stroke="#e5e7eb" strokeWidth="2" />
+        <Circle cx="15" cy="15" r={radius} stroke="#050938" strokeWidth="2" />
         {/* Progress arc — rotated so 0% starts at 12 o'clock */}
         <Circle
           cx="15"
           cy="15"
           r={radius}
-          stroke={color}
+          stroke={arcColor}
           strokeWidth="2"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
