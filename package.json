@@ -32,6 +32,7 @@
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
     "react-native-gesture-handler": "^2.30.0",
+    "react-native-pie-chart": "^4.0.2",
     "react-native-purchases": "^9.7.5",
     "react-native-purchases-ui": "^9.7.5",
     "react-native-reanimated": "^4.2.1",
