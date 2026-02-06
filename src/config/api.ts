@@ -688,6 +688,32 @@ export async function updatePlan(userId: string, plan: string): Promise<void> {
   }
 }
 
+/**
+ * Update user's preferred timezone
+ */
+export async function updateUserTimezone(
+  userId: string,
+  timezone: string
+): Promise<void> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/timezone`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pref_timezone: timezone }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP ${response.status}`);
+    }
+
+    console.log(`[updateUserTimezone] Timezone updated to: ${timezone}`);
+  } catch (error: any) {
+    console.error("[updateUserTimezone] Error:", error.message);
+    throw error;
+  }
+}
+
 // ============================================================================
 // COMMUNITY ENDPOINTS (Victory Wall)
 // ============================================================================

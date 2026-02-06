@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -14,10 +14,12 @@ import { BlurView } from "expo-blur";
 import { ProfileHeader } from "../components/settings/ProfileHeader";
 import { SettingRow } from "../components/settings/SettingRow";
 import { StatsRings } from "../components/settings/StatsRings";
+import { TimezonePickerModal } from "../components/settings/TimezonePickerModal";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { getThemeColors } from "../constants/GlobalStyles";
 import { showManageSubscriptions } from "../config/revenuecat";
+import { updateUserTimezone } from "../config/api";
 import Toast from "react-native-toast-message";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -30,9 +32,10 @@ interface SettingsScreenProps {
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onNavigate,
 }) => {
-  const { user, userData, logout, isPremium } = useAuthStore();
+  const { user, userData, logout, isPremium, loadUserData } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const themeColors = getThemeColors(theme);
+  const [showTimezoneModal, setShowTimezoneModal] = useState(false);
 
   const translateY = useRef(new Animated.Value(0)).current;
   const backdropOpacity = useRef(new Animated.Value(1)).current;
@@ -153,6 +156,69 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       text2: `${linkType} will be available soon`,
       visibilityTime: 2000,
     });
+  };
+
+  const handleTimezoneChange = async (timezone: string) => {
+    if (!user?.uid) return;
+
+    try {
+      await updateUserTimezone(user.uid, timezone);
+
+      // Reload user data to get updated timezone
+      await loadUserData(user.uid);
+
+      Toast.show({
+        type: "success",
+        text1: "Timezone Updated",
+        text2: `Your timezone has been set to ${getTimezoneLabel(timezone)}`,
+        visibilityTime: 2000,
+      });
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Update Failed",
+        text2: "Could not update timezone. Please try again.",
+        visibilityTime: 2000,
+      });
+    }
+  };
+
+  const getTimezoneLabel = (timezone: string | null): string => {
+    if (!timezone) return "Not Set";
+
+    // Extract readable label from timezone value
+    const timezoneMap: Record<string, string> = {
+      'America/New_York': 'Eastern Time (ET)',
+      'America/Chicago': 'Central Time (CT)',
+      'America/Denver': 'Mountain Time (MT)',
+      'America/Los_Angeles': 'Pacific Time (PT)',
+      'America/Anchorage': 'Alaska Time (AKT)',
+      'Pacific/Honolulu': 'Hawaii Time (HT)',
+      'Europe/London': 'London (GMT/BST)',
+      'Europe/Paris': 'Paris (CET/CEST)',
+      'Europe/Berlin': 'Berlin (CET/CEST)',
+      'Europe/Athens': 'Athens (EET/EEST)',
+      'Europe/Moscow': 'Moscow (MSK)',
+      'Asia/Dubai': 'Dubai (GST)',
+      'Asia/Kolkata': 'Mumbai (IST)',
+      'Asia/Bangkok': 'Bangkok (ICT)',
+      'Asia/Singapore': 'Singapore (SGT)',
+      'Asia/Hong_Kong': 'Hong Kong (HKT)',
+      'Asia/Tokyo': 'Tokyo (JST)',
+      'Asia/Seoul': 'Seoul (KST)',
+      'Australia/Sydney': 'Sydney (AEDT/AEST)',
+      'Australia/Melbourne': 'Melbourne (AEDT/AEST)',
+      'Australia/Brisbane': 'Brisbane (AEST)',
+      'Pacific/Auckland': 'Auckland (NZDT/NZST)',
+      'America/Sao_Paulo': 'São Paulo (BRT)',
+      'America/Argentina/Buenos_Aires': 'Buenos Aires (ART)',
+      'America/Santiago': 'Santiago (CLT)',
+      'Africa/Cairo': 'Cairo (EET)',
+      'Africa/Johannesburg': 'Johannesburg (SAST)',
+      'Africa/Lagos': 'Lagos (WAT)',
+    };
+
+    return timezoneMap[timezone] || timezone;
   };
 
   return (
@@ -325,9 +391,25 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                       });
                     }}
                   />
+                  <SettingRow
+                    icon="🌍"
+                    label="Timezone"
+                    value={getTimezoneLabel(userData?.pref_timezone || null)}
+                    showArrow
+                    onPress={() => setShowTimezoneModal(true)}
+                  />
                 </BlurView>
               </View>
             </View>
+
+            {/* Timezone Picker Modal */}
+            <TimezonePickerModal
+              visible={showTimezoneModal}
+              currentTimezone={userData?.pref_timezone || null}
+              onSelect={handleTimezoneChange}
+              onClose={() => setShowTimezoneModal(false)}
+              theme={theme}
+            />
 
             {/* About Section */}
             <View style={styles.section}>
