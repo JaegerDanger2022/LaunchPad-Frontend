@@ -1282,6 +1282,73 @@ export async function getJourneyRecapPermissions(
  *
  * NEW: Uses dreams collection endpoint (/dreams/{thread_id})
  */
+/**
+ * Helper function to check if a roadmap needs sequential dependencies auto-generated
+ * Returns true if ALL milestones have no dependencies (empty or missing)
+ */
+function needsSequentialDependencies(milestones: any[]): boolean {
+  if (!milestones || milestones.length === 0) return false;
+
+  // Check if ALL milestones have no dependencies
+  return milestones.every(
+    (m: any) => !m.dependencies || (Array.isArray(m.dependencies) && m.dependencies.length === 0)
+  );
+}
+
+/**
+ * Auto-generate sequential dependencies for a roadmap
+ * First milestone has no deps, each subsequent milestone depends on the previous one
+ */
+function generateSequentialDependencies(milestones: any[]): any[] {
+  if (!milestones || milestones.length === 0) return milestones;
+
+  return milestones.map((milestone, index) => {
+    if (index === 0) {
+      // First milestone has no dependencies
+      return { ...milestone, dependencies: [] };
+    } else {
+      // Each milestone depends on the previous one
+      return {
+        ...milestone,
+        dependencies: [milestones[index - 1].id],
+      };
+    }
+  });
+}
+
+/**
+ * Update dream's roadmap dependencies in the backend
+ */
+async function updateDreamDependencies(
+  threadId: string,
+  milestones: any[]
+): Promise<void> {
+  try {
+    console.log(`[API] Updating dependencies for dream ${threadId}`);
+
+    const response = await fetch(`${API_BASE_URL}/dreams-crud/${threadId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        roadmap: {
+          milestones: milestones,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update dependencies: ${response.status}`);
+    }
+
+    console.log(`[API] Successfully updated sequential dependencies for dream ${threadId}`);
+  } catch (error: any) {
+    console.error("[API] Error updating dream dependencies:", error.message);
+    // Don't throw - we can still use the local version with dependencies
+  }
+}
+
 export async function fetchDreamDetails(
   _userId: string,
   threadId: string,
@@ -1321,6 +1388,35 @@ export async function fetchDreamDetails(
 
     const dreamData = await response.json();
     console.log("Dream details fetched successfully");
+
+    // Auto-generate sequential dependencies if needed
+    if (dreamData?.roadmap?.milestones) {
+      const milestones = dreamData.roadmap.milestones;
+
+      if (needsSequentialDependencies(milestones)) {
+        console.log(`[API] Dream ${threadId} has no dependencies - auto-generating sequential dependencies`);
+
+        const updatedMilestones = generateSequentialDependencies(milestones);
+
+        // Update in backend (fire and forget)
+        updateDreamDependencies(threadId, updatedMilestones).catch(err => {
+          console.warn('[API] Failed to persist sequential dependencies:', err);
+        });
+
+        // Update local copy immediately
+        dreamData.roadmap.milestones = updatedMilestones;
+
+        console.log('[API] Sequential dependencies generated:', {
+          milestoneCount: updatedMilestones.length,
+          sample: updatedMilestones.slice(0, 3).map((m: any) => ({
+            id: m.id,
+            title: m.title?.substring(0, 30),
+            dependencies: m.dependencies,
+          })),
+        });
+      }
+    }
+
     return dreamData;
   } catch (error: any) {
     console.error("Error fetching dream details:", error.message);
