@@ -28,7 +28,8 @@
         {
           "microphonePermission": "We need microphone access to record voice messages about your dreams"
         }
-      ]
+      ],
+      "expo-video"
     ],
     "notification": {
       "icon": "./assets/notification-icon.png",

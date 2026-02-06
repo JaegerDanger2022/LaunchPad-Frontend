@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,439 +7,486 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  ScrollView,
+  StyleSheet,
+  Animated,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { EyeIcon, EyeOffIcon, CheckCircle2Icon } from 'lucide-react-native';
+import { VideoView, useVideoPlayer } from 'expo-video';
+import { EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import { Color } from '../../constants/GlobalStyles';
-import { useAuthStore, checkGoogleSignInAvailable } from '../../store/authStore';
+import { useAuthStore } from '../../store/authStore';
+
+type Step = {
+  id: 'name' | 'email' | 'password';
+  lunaDialogue: string;
+  placeholder: string;
+  keyboardType?: 'default' | 'email-address';
+  secureTextEntry?: boolean;
+  autoCapitalize?: 'none' | 'words';
+  validation?: (value: string) => boolean;
+  errorMessage?: string;
+};
+
+const steps: Step[] = [
+  {
+    id: 'name',
+    lunaDialogue: "Hi! I'm Luna. What should I call you?",
+    placeholder: 'Your first name',
+    autoCapitalize: 'words',
+    validation: (val) => val.trim().length >= 2,
+    errorMessage: 'Please enter at least 2 characters',
+  },
+  {
+    id: 'email',
+    lunaDialogue: 'Nice to e-meet you {name}! Where can I send your progress reports?',
+    placeholder: 'you@example.com',
+    keyboardType: 'email-address',
+    autoCapitalize: 'none',
+    validation: (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+    errorMessage: 'Please enter a valid email address',
+  },
+  {
+    id: 'password',
+    lunaDialogue: "Let's keep your data safe. Pick a strong password!",
+    placeholder: 'At least 6 characters',
+    secureTextEntry: true,
+    autoCapitalize: 'none',
+    validation: (val) => val.length >= 6,
+    errorMessage: 'Password must be at least 6 characters',
+  },
+];
 
 const SignupScreen = ({ navigation }: any) => {
-  const [firstName, setFirstName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
   const [showPassword, setShowPassword] = useState(false);
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
-  const [googleSignInAvailable, setGoogleSignInAvailable] = useState(false);
-  const { signUp, googleSignIn, loading, error, clearError } = useAuthStore();
+  const [fieldError, setFieldError] = useState('');
+  const [displayedText, setDisplayedText] = useState('');
+  const { signUp, loading, error, clearError } = useAuthStore();
+  const inputRef = useRef<TextInput>(null);
 
+  // Setup video player for Luna background
+  const videoSource = require('../../assets/animations/ondoarding/Luna floating.mp4');
+  const player = useVideoPlayer(videoSource, (player) => {
+    player.loop = true;
+    player.play();
+  });
+
+  // Animation values for fade in/out transitions
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  const currentStep = steps[currentStepIndex];
+  const currentValue = formData[currentStep.id];
+
+  // Replace {name} in Luna's dialogue
+  const getLunaDialogue = () => {
+    return currentStep.lunaDialogue.replace('{name}', formData.name);
+  };
+
+  // Typewriter effect for Luna's dialogue
   useEffect(() => {
-    setGoogleSignInAvailable(checkGoogleSignInAvailable());
-  }, []);
+    const fullText = getLunaDialogue();
+    setDisplayedText('');
+    let currentIndex = 0;
 
-  const isValidEmail = (e: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(e);
-  };
+    // Delay before starting typewriter (only on initial mount)
+    const initialDelay = currentStepIndex === 0 ? 800 : 0;
 
-  const canSubmit =
-    firstName.length >= 2 &&
-    email &&
-    isValidEmail(email) &&
-    password.length >= 6 &&
-    agreeToTerms &&
-    !loading;
+    const typewriterTimer = setTimeout(() => {
+      const typingInterval = setInterval(() => {
+        if (currentIndex < fullText.length) {
+          setDisplayedText(fullText.slice(0, currentIndex + 1));
+          currentIndex++;
+        } else {
+          clearInterval(typingInterval);
+        }
+      }, 30); // 30ms per character for smooth typewriter effect
 
-  const handleSignup = async () => {
-    if (!canSubmit) return;
+      return () => clearInterval(typingInterval);
+    }, initialDelay);
 
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      await signUp(email, password, firstName);
-    } catch (err) {
-      // Error is handled by the store
+    return () => clearTimeout(typewriterTimer);
+  }, [currentStepIndex, formData.name]);
+
+  // Animate in when component mounts or step changes
+  useEffect(() => {
+    // Reset animation values
+    fadeAnim.setValue(0);
+    slideAnim.setValue(30);
+
+    // Delay animation to let user see the video first (only on initial mount)
+    const delay = currentStepIndex === 0 ? 800 : 0;
+
+    const timer = setTimeout(() => {
+      // Animate in
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [currentStepIndex]);
+
+  const handleNext = async () => {
+    // Clear any previous errors
+    setFieldError('');
+    if (error) clearError();
+
+    // Validate current field
+    if (currentStep.validation && !currentStep.validation(currentValue)) {
+      setFieldError(currentStep.errorMessage || 'Invalid input');
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return;
+    }
+
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    // If this is the last step, submit the form
+    if (currentStepIndex === steps.length - 1) {
+      try {
+        await signUp(formData.email, formData.password, formData.name);
+        // Success - auth store will handle navigation
+      } catch (err) {
+        // Error is handled by the store
+      }
+    } else {
+      // Move to next step
+      setCurrentStepIndex(currentStepIndex + 1);
+      // Auto-focus the next input after a short delay
+      setTimeout(() => inputRef.current?.focus(), 300);
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
+  const handleBack = async () => {
+    if (currentStepIndex > 0) {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      await googleSignIn();
-    } catch (err) {
-      // Error is handled by the store
+      setCurrentStepIndex(currentStepIndex - 1);
+      setFieldError('');
+      if (error) clearError();
     }
   };
+
+  const handleChangeText = (text: string) => {
+    setFormData({ ...formData, [currentStep.id]: text });
+    if (fieldError) setFieldError('');
+    if (error) clearError();
+  };
+
+  const isNextDisabled = !currentValue.trim() || loading;
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1, backgroundColor: Color.colorSnow }}>
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        showsVerticalScrollIndicator={false}>
-        <View style={{ flex: 1 }}>
-          {/* Orange Gradient Header */}
-          <LinearGradient
-            colors={['#fb6322', '#f79971']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              paddingHorizontal: 22,
-              paddingTop: 60,
-              paddingBottom: 40,
-            }}>
-            <Text
-              style={{
-                fontSize: 32,
-                fontWeight: '700',
-                color: Color.colorWhite,
-                fontFamily: 'InstrumentSans-Bold',
-                marginBottom: 8,
-              }}>
-              Create Account
-            </Text>
-            <Text
-              style={{
-                fontSize: 16,
-                color: Color.colorWhite,
-                fontFamily: 'InstrumentSans-Regular',
-                fontWeight: '400',
-                opacity: 0.9,
-              }}>
-              Start achieving your goals today
-            </Text>
-          </LinearGradient>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
+        {/* Video Background */}
+        <VideoView
+          player={player}
+          style={styles.videoBackground}
+          contentFit="cover"
+          nativeControls={false}
+          allowsFullscreen={false}
+        />
 
-          {/* Form Content */}
-          <View
-            style={{
-              flex: 1,
-              paddingHorizontal: 22,
-              paddingTop: 32,
-              paddingBottom: 32,
-            }}>
-            {/* Error Message */}
-            {error && (
-              <View
-                style={{
-                  backgroundColor: '#ffebee',
-                  borderLeftWidth: 4,
-                  borderLeftColor: '#e74c3c',
-                  paddingHorizontal: 12,
-                  paddingVertical: 10,
-                  borderRadius: 8,
-                  marginBottom: 20,
-                }}>
-                <Text
-                  style={{
-                    color: '#c0392b',
-                    fontSize: 14,
-                    fontFamily: 'InstrumentSans-Regular',
-                  }}>
-                  {error}
-                </Text>
-              </View>
-            )}
+        {/* Luna's Dialogue Header - Fixed at top */}
+        <Animated.View
+          style={[
+            styles.headerContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}>
+          <Text style={styles.lunaDialogue}>{displayedText}</Text>
+        </Animated.View>
 
-            {/* First Name Input */}
-            <View style={{ marginBottom: 16 }}>
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: '600',
-                  color: Color.colorBlack,
-                  fontFamily: 'InstrumentSans-Bold',
-                  marginBottom: 8,
-                }}>
-                First Name
-              </Text>
-              <TextInput
-                style={{
-                  backgroundColor: Color.colorWhite,
-                  borderWidth: 1,
-                  borderColor: '#E0E0E0',
-                  borderRadius: 10,
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                  fontSize: 16,
-                  fontFamily: 'InstrumentSans-Regular',
-                  color: Color.colorBlack,
-                }}
-                placeholder="John"
-                placeholderTextColor="#A0A0A0"
-                autoCapitalize="words"
-                value={firstName}
-                onChangeText={(text) => {
-                  setFirstName(text);
-                  if (error) clearError();
-                }}
-                editable={!loading}
-              />
-            </View>
-
-            {/* Email Input */}
-            <View style={{ marginBottom: 16 }}>
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: '600',
-                  color: Color.colorBlack,
-                  fontFamily: 'InstrumentSans-Bold',
-                  marginBottom: 8,
-                }}>
-                Email Address
-              </Text>
-              <TextInput
-                style={{
-                  backgroundColor: Color.colorWhite,
-                  borderWidth: 1,
-                  borderColor: error ? '#e74c3c' : '#E0E0E0',
-                  borderRadius: 10,
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                  fontSize: 16,
-                  fontFamily: 'InstrumentSans-Regular',
-                  color: Color.colorBlack,
-                }}
-                placeholder="you@example.com"
-                placeholderTextColor="#A0A0A0"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  if (error) clearError();
-                }}
-                editable={!loading}
-              />
-            </View>
-
-            {/* Password Input */}
-            <View style={{ marginBottom: 16 }}>
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: '600',
-                  color: Color.colorBlack,
-                  fontFamily: 'InstrumentSans-Bold',
-                  marginBottom: 8,
-                }}>
-                Password
-              </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: Color.colorWhite,
-                  borderWidth: 1,
-                  borderColor: '#E0E0E0',
-                  borderRadius: 10,
-                  paddingHorizontal: 16,
-                }}>
-                <TextInput
-                  style={{
-                    flex: 1,
-                    paddingVertical: 12,
-                    fontSize: 16,
-                    fontFamily: 'InstrumentSans-Regular',
-                    color: Color.colorBlack,
-                  }}
-                  placeholder="At least 6 characters"
-                  placeholderTextColor="#A0A0A0"
-                  secureTextEntry={!showPassword}
-                  value={password}
-                  onChangeText={(text) => {
-                    setPassword(text);
-                    if (error) clearError();
-                  }}
-                  editable={!loading}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardAvoidView}>
+          <View style={styles.content}>
+            {/* Input Card */}
+            <Animated.View
+              style={[
+                styles.inputCard,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                },
+              ]}>
+            {/* Step Progress Indicator */}
+            <View style={styles.progressContainer}>
+              {steps.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.progressDot,
+                    index === currentStepIndex && styles.progressDotActive,
+                    index < currentStepIndex && styles.progressDotComplete,
+                  ]}
                 />
+              ))}
+            </View>
+
+            {/* Input Field */}
+            <View style={styles.inputWrapper}>
+              <TextInput
+                ref={inputRef}
+                style={styles.input}
+                placeholder={currentStep.placeholder}
+                placeholderTextColor="#A0A0A0"
+                value={currentValue}
+                onChangeText={handleChangeText}
+                keyboardType={currentStep.keyboardType || 'default'}
+                autoCapitalize={currentStep.autoCapitalize || 'none'}
+                secureTextEntry={currentStep.secureTextEntry && !showPassword}
+                editable={!loading}
+                selectionColor="#FF5A36"
+                returnKeyType={currentStepIndex === steps.length - 1 ? 'done' : 'next'}
+                onSubmitEditing={handleNext}
+              />
+              {currentStep.secureTextEntry && (
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeIcon}
                   disabled={loading}>
                   {showPassword ? (
-                    <EyeOffIcon size={20} color="#A0A0A0" />
+                    <EyeOffIcon size={22} color="#A0A0A0" />
                   ) : (
-                    <EyeIcon size={20} color="#A0A0A0" />
+                    <EyeIcon size={22} color="#A0A0A0" />
                   )}
                 </TouchableOpacity>
-              </View>
+              )}
             </View>
 
-            {/* Terms & Conditions Checkbox */}
-            <TouchableOpacity
-              onPress={() => setAgreeToTerms(!agreeToTerms)}
-              disabled={loading}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 24 }}>
-              <View
-                style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 4,
-                  borderWidth: 2,
-                  borderColor: agreeToTerms ? '#fb6322' : '#E0E0E0',
-                  backgroundColor: agreeToTerms ? '#fb6322' : 'transparent',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                {agreeToTerms && <CheckCircle2Icon size={16} color={Color.colorWhite} />}
+            {/* Error Message */}
+            {(fieldError || error) && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{fieldError || error}</Text>
               </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    color: Color.colorBlack,
-                    fontFamily: 'InstrumentSans-Regular',
-                  }}>
-                  I agree to the{' '}
-                  <Text
-                    style={{
-                      color: '#fb6322',
-                      fontFamily: 'InstrumentSans-Bold',
-                      fontWeight: '600',
-                    }}>
-                    Terms & Conditions
-                  </Text>
-                </Text>
-              </View>
-            </TouchableOpacity>
+            )}
 
-            {/* Sign Up Button */}
-            <TouchableOpacity
-              onPress={handleSignup}
-              disabled={!canSubmit}
-              activeOpacity={0.8}
-              style={{
-                marginBottom: 20,
-                opacity: canSubmit ? 1 : 0.5,
-              }}>
-              <LinearGradient
-                colors={['#fb6322', '#f79971']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{
-                  borderRadius: 10,
-                  paddingVertical: 14,
-                  alignItems: 'center',
-                }}>
+            {/* Action Buttons */}
+            <View style={styles.buttonContainer}>
+              {currentStepIndex > 0 && (
+                <TouchableOpacity
+                  onPress={handleBack}
+                  style={styles.backButton}
+                  disabled={loading}
+                  activeOpacity={0.7}>
+                  <Text style={styles.backButtonText}>Back</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                onPress={handleNext}
+                disabled={isNextDisabled}
+                style={[
+                  styles.nextButton,
+                  currentStepIndex === 0 && styles.nextButtonFullWidth,
+                  isNextDisabled && styles.nextButtonDisabled,
+                ]}
+                activeOpacity={0.8}>
                 {loading ? (
-                  <ActivityIndicator size="small" color={Color.colorWhite} />
+                  <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Text
-                    style={{
-                      color: Color.colorWhite,
-                      fontSize: 16,
-                      fontFamily: 'InstrumentSans-Bold',
-                      fontWeight: '700',
-                    }}>
-                    SIGN UP
+                  <Text style={styles.nextButtonText}>
+                    {currentStepIndex === steps.length - 1 ? 'Create Account' : 'Next'}
                   </Text>
                 )}
-              </LinearGradient>
-            </TouchableOpacity>
-
-            {/* Divider */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginVertical: 24,
-                gap: 12,
-              }}>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#E0E0E0' }} />
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: '#A0A0A0',
-                  fontFamily: 'InstrumentSans-Regular',
-                }}>
-                or continue with
-              </Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: '#E0E0E0' }} />
+              </TouchableOpacity>
             </View>
 
-            {/* Google Sign-In Button - Only show if available */}
-            {googleSignInAvailable && (
-              <TouchableOpacity
-                onPress={handleGoogleSignIn}
-                disabled={loading}
-                activeOpacity={0.8}
-                style={{
-                  marginBottom: 12,
-                  opacity: loading ? 0.6 : 1,
-                }}>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: Color.colorWhite,
-                    borderWidth: 1,
-                    borderColor: '#E0E0E0',
-                    borderRadius: 10,
-                    paddingVertical: 14,
-                    gap: 8,
-                  }}>
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      color: Color.colorBlack,
-                      fontFamily: 'InstrumentSans-Bold',
-                      fontWeight: '600',
-                    }}>
-                    Sign up with Google
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
-
-            {/* Info message for Expo Go users */}
-            {!googleSignInAvailable && (
-              <View
-                style={{
-                  backgroundColor: '#FFF3CD',
-                  borderLeftWidth: 4,
-                  borderLeftColor: '#FFC107',
-                  paddingHorizontal: 12,
-                  paddingVertical: 10,
-                  borderRadius: 8,
-                  marginBottom: 20,
-                }}>
-                <Text
-                  style={{
-                    color: '#856404',
-                    fontSize: 12,
-                    fontFamily: 'InstrumentSans-Regular',
-                    lineHeight: 16,
-                  }}>
-                  Google Sign-In requires building the app. Use email/password signup for now, or run: {"\n"}
-                  <Text style={{ fontFamily: 'InstrumentSans-Bold', fontWeight: '600' }}>
-                    expo prebuild {"&&"} npm run build:ios/android
-                  </Text>
-                </Text>
-              </View>
-            )}
-
             {/* Login Link */}
-            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 4 }}>
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: '#A0A0A0',
-                  fontFamily: 'InstrumentSans-Regular',
-                }}>
-                Already have an account?
-              </Text>
+            <View style={styles.loginLinkContainer}>
+              <Text style={styles.loginLinkText}>Already have an account? </Text>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Login')}
                 disabled={loading}>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    color: '#fb6322',
-                    fontFamily: 'InstrumentSans-Bold',
-                    fontWeight: '600',
-                  }}>
-                  Log In
-                </Text>
+                <Text style={styles.loginLinkButton}>Log In</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </Animated.View>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
+    </TouchableWithoutFeedback>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F7F7F7',
+  },
+  videoBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  keyboardAvoidView: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingHorizontal: 24,
+    paddingBottom: Platform.OS === 'ios' ? 50 : 30,
+  },
+  headerContainer: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 40,
+    left: 24,
+    right: 24,
+    zIndex: 10,
+  },
+  lunaDialogue: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    lineHeight: 34,
+    fontFamily: 'InstrumentSans-Bold',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+  },
+  inputCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 30,
+    padding: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 24,
+  },
+  progressDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#E0E0E0',
+  },
+  progressDotActive: {
+    backgroundColor: '#FF5A36',
+    width: 24,
+  },
+  progressDotComplete: {
+    backgroundColor: '#4CAF50',
+  },
+  inputWrapper: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  input: {
+    backgroundColor: '#F9F9F9',
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    fontFamily: 'InstrumentSans-Bold',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 16,
+    top: '50%',
+    transform: [{ translateY: -11 }],
+  },
+  errorContainer: {
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#E74C3C',
+    fontSize: 14,
+    fontFamily: 'InstrumentSans-Regular',
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  backButton: {
+    flex: 1,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#666',
+    fontFamily: 'InstrumentSans-Bold',
+  },
+  nextButton: {
+    flex: 2,
+    backgroundColor: '#FF5A36',
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#FF5A36',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  nextButtonFullWidth: {
+    flex: 1,
+  },
+  nextButtonDisabled: {
+    backgroundColor: '#CCCCCC',
+    shadowOpacity: 0,
+  },
+  nextButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    fontFamily: 'InstrumentSans-Bold',
+  },
+  loginLinkContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loginLinkText: {
+    fontSize: 14,
+    color: '#666',
+    fontFamily: 'InstrumentSans-Regular',
+  },
+  loginLinkButton: {
+    fontSize: 14,
+    color: '#FF5A36',
+    fontWeight: '700',
+    fontFamily: 'InstrumentSans-Bold',
+  },
+});
 
 export default SignupScreen;
