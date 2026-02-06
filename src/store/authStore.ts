@@ -14,7 +14,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { ensureGoogleSignInInitialized, isGoogleSignInAvailable } from '../config/googleSignIn';
-import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI, updateStreak as updateStreakAPI, getStreak, FetchUserDataOptions, fetchDreamDetails, fetchDreamsList, updatePlan } from '../config/api';
+import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI, updateStreak as updateStreakAPI, getStreak, FetchUserDataOptions, fetchDreamDetails, fetchDreamsList, updatePlan, addMilestoneToRoadmap } from '../config/api';
 import { findNextIncompleteMilestone } from '../utils/upNextHelper';
 import { StreakData } from '../types/index';
 import * as SecureStore from 'expo-secure-store';
@@ -65,7 +65,7 @@ interface AuthState {
 
   // Actions
   refreshPremiumStatus: () => Promise<void>;
-  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
+  signUp: (email: string, password: string, firstName: string, lastName?: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   googleSignIn: () => Promise<void>;
   logout: () => Promise<void>;
@@ -81,6 +81,7 @@ interface AuthState {
   updateCouragePoints: (amount: number) => void;
   loadFullDreams: (userId: string) => Promise<void>;
   refreshDreamsFromCrud: (userId: string) => Promise<void>;
+  addCustomMilestone: (threadId: string, title: string, challengeType: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -145,7 +146,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 
-  signUp: async (email: string, password: string, firstName: string, lastName: string) => {
+  signUp: async (email: string, password: string, firstName: string, lastName?: string) => {
     try {
       set({ loading: true, error: null });
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -155,7 +156,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         await registerUserToDatabase({
           user_id: userCredential.user.uid,
           firstname: firstName,
-          lastname: lastName,
+          lastname: lastName || '',
           email,
         });
 
@@ -611,6 +612,46 @@ export const useAuthStore = create<AuthState>((set) => ({
       useAuthStore.getState().loadFullDreams(userId);
     } catch (e) {
       console.error('[refreshDreamsFromCrud] Failed:', e);
+    }
+  },
+
+  // Insert a user-created milestone before the last milestone (typically celebration_moment).
+  // Optimistic local update fires immediately; API call persists in the background.
+  addCustomMilestone: async (threadId: string, title: string, challengeType: string) => {
+    const newMilestone = {
+      id: `custom_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+      title,
+      challenge_type: challengeType,
+      status: 'not_started',
+      xp_points: 10,
+      time_estimate: '30 mins',
+      description: 'Custom milestone',
+      motivation_hook: '',
+      streak_eligible: false,
+      is_custom: true,
+    };
+
+    // Optimistic update: splice before the last milestone
+    set((state) => {
+      if (!state.userData?.dreams) return state;
+      const updated = JSON.parse(JSON.stringify(state.userData));
+      const dream = updated.dreams.find((d: any) => d.thread_id === threadId);
+      if (!dream?.roadmap?.milestones) return state;
+
+      const milestones = dream.roadmap.milestones;
+      const insertAt = milestones.length > 0 ? milestones.length - 1 : 0;
+      milestones.splice(insertAt, 0, newMilestone);
+
+      return { userData: updated };
+    });
+
+    // Persist to backend (fire-and-forget)
+    try {
+      await addMilestoneToRoadmap(threadId, { title, challenge_type: challengeType });
+      console.log('[addCustomMilestone] Persisted successfully');
+    } catch (e) {
+      console.error('[addCustomMilestone] Backend persist failed:', e);
+      // Milestone stays in local state for the session — a refresh will reconcile
     }
   },
 }));

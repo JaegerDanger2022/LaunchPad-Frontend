@@ -17,12 +17,9 @@ import { useAuthStore, checkGoogleSignInAvailable } from '../../store/authStore'
 
 const SignupScreen = ({ navigation }: any) => {
   const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [googleSignInAvailable, setGoogleSignInAvailable] = useState(false);
   const { signUp, googleSignIn, loading, error, clearError } = useAuthStore();
@@ -36,14 +33,11 @@ const SignupScreen = ({ navigation }: any) => {
     return emailRegex.test(e);
   };
 
-  const passwordsMatch = password === confirmPassword && password.length >= 6;
   const canSubmit =
     firstName.length >= 2 &&
-    lastName.length >= 2 &&
     email &&
     isValidEmail(email) &&
     password.length >= 6 &&
-    passwordsMatch &&
     agreeToTerms &&
     !loading;
 
@@ -52,7 +46,7 @@ const SignupScreen = ({ navigation }: any) => {
 
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      await signUp(email, password, firstName, lastName);
+      await signUp(email, password, firstName);
     } catch (err) {
       // Error is handled by the store
     }
@@ -174,42 +168,6 @@ const SignupScreen = ({ navigation }: any) => {
               />
             </View>
 
-            {/* Last Name Input */}
-            <View style={{ marginBottom: 16 }}>
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: '600',
-                  color: Color.colorBlack,
-                  fontFamily: 'InstrumentSans-Bold',
-                  marginBottom: 8,
-                }}>
-                Last Name
-              </Text>
-              <TextInput
-                style={{
-                  backgroundColor: Color.colorWhite,
-                  borderWidth: 1,
-                  borderColor: '#E0E0E0',
-                  borderRadius: 10,
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                  fontSize: 16,
-                  fontFamily: 'InstrumentSans-Regular',
-                  color: Color.colorBlack,
-                }}
-                placeholder="Doe"
-                placeholderTextColor="#A0A0A0"
-                autoCapitalize="words"
-                value={lastName}
-                onChangeText={(text) => {
-                  setLastName(text);
-                  if (error) clearError();
-                }}
-                editable={!loading}
-              />
-            </View>
-
             {/* Email Input */}
             <View style={{ marginBottom: 16 }}>
               <Text
@@ -297,69 +255,6 @@ const SignupScreen = ({ navigation }: any) => {
                   )}
                 </TouchableOpacity>
               </View>
-            </View>
-
-            {/* Confirm Password Input */}
-            <View style={{ marginBottom: 16 }}>
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: '600',
-                  color: Color.colorBlack,
-                  fontFamily: 'InstrumentSans-Bold',
-                  marginBottom: 8,
-                }}>
-                Confirm Password
-              </Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: Color.colorWhite,
-                  borderWidth: 1,
-                  borderColor: password && !passwordsMatch ? '#e74c3c' : '#E0E0E0',
-                  borderRadius: 10,
-                  paddingHorizontal: 16,
-                }}>
-                <TextInput
-                  style={{
-                    flex: 1,
-                    paddingVertical: 12,
-                    fontSize: 16,
-                    fontFamily: 'InstrumentSans-Regular',
-                    color: Color.colorBlack,
-                  }}
-                  placeholder="Confirm your password"
-                  placeholderTextColor="#A0A0A0"
-                  secureTextEntry={!showConfirmPassword}
-                  value={confirmPassword}
-                  onChangeText={(text) => {
-                    setConfirmPassword(text);
-                    if (error) clearError();
-                  }}
-                  editable={!loading}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  disabled={loading}>
-                  {showConfirmPassword ? (
-                    <EyeOffIcon size={20} color="#A0A0A0" />
-                  ) : (
-                    <EyeIcon size={20} color="#A0A0A0" />
-                  )}
-                </TouchableOpacity>
-              </View>
-              {password && !passwordsMatch && (
-                <Text
-                  style={{
-                    color: '#e74c3c',
-                    fontSize: 12,
-                    fontFamily: 'InstrumentSans-Regular',
-                    marginTop: 4,
-                  }}>
-                  Passwords do not match
-                </Text>
-              )}
             </View>
 
             {/* Terms & Conditions Checkbox */}
