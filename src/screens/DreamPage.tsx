@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useCallback } from "react";
+import React, { useMemo, useRef, useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -12,15 +12,15 @@ import {
   getThemeColors,
   ChallengeTypeColors,
 } from "../constants/GlobalStyles";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
-import { ChevronLeft } from "lucide-react-native";
-import LottieView from "lottie-react-native";
+import { ChevronLeft, Plus } from "lucide-react-native";
 import { MilestoneCard } from "../components/cards/MilestoneCard";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { useThemeStore } from "../store/themeStore";
 import { useAuthStore } from "../store/authStore";
 import { areDependenciesCompleted } from "../utils/dependencyChecker";
+import { AddMilestoneModal } from "../components/AddMilestoneModal";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -66,9 +66,11 @@ const DreamPage = ({
   threadId: string;
   onNavigate: (screen: string, params?: Record<string, any>) => void;
 }) => {
+  const insets = useSafeAreaInsets();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
-  const { userData } = useAuthStore();
+  const { userData, addCustomMilestone } = useAuthStore();
+  const [showAddMilestone, setShowAddMilestone] = useState(false);
 
   // Find the dream matching the threadId passed from navigation
   const dream = useMemo(
@@ -92,16 +94,14 @@ const DreamPage = ({
 
   const dreamField = dream?.dream || "Dream";
   const dreamCardBg = dream?.dream_card_bg || "#4FA9DB";
+
+  const curveDepth = 200;
+  const elasticPath = `M 0 0 L ${screenWidth} 0 L ${screenWidth} ${curveDepth} Q ${screenWidth / 2} ${curveDepth + 50} 0 ${curveDepth} Z`;
+
   const dreamScore = dream?.metadata?.score ??
     (dream?.roadmap?.milestones || []).reduce((sum: number, m: any) => sum + (m.status === "completed" ? (m.xp_points || 0) : 0), 0);
   const dreamTotalXp = dream?.metadata?.total_xp ??
     (dream?.roadmap?.milestones || []).reduce((sum: number, m: any) => sum + (m.xp_points || 0), 0);
-
-  // Static curve depth
-  const curveDepth = 200;
-
-  // Calculate SVG path: combines scroll animation (curve straightens) + drag animation (curve extends)
-  const elasticPath = `M 0 0 L ${screenWidth} 0 L ${screenWidth} ${curveDepth} Q ${screenWidth / 2} ${curveDepth + 50} 0 ${curveDepth} Z`;
 
   // Transform this dream's milestones to MilestoneCard props
   const milestones: Milestone[] = useMemo(() => {
@@ -166,7 +166,7 @@ const DreamPage = ({
           />
         </View>
 
-        {/* SVG Curve at bottom */}
+        {/* SVG Curve */}
         <Svg
           width={screenWidth}
           height={320}
@@ -198,24 +198,6 @@ const DreamPage = ({
             }}>
             <ChevronLeft size={24} color={Color.colorBlack} strokeWidth={2.5} />
           </TouchableOpacity>
-        </View>
-        {/* Dream Achievements Animation - Absolutely Positioned */}
-        <View
-          style={{
-            position: "absolute",
-            top: 180,
-            left: 0,
-            right: 0,
-            alignItems: "center",
-            zIndex: 7,
-            height: 100,
-          }}>
-          <LottieView
-            source={require("../assets/animations/dream_achievements.json")}
-            autoPlay
-            loop={false}
-            style={{ width: 120, height: 80 }}
-          />
         </View>
         {/* Header Content */}
         <View style={{ paddingHorizontal: 22, paddingTop: 100, zIndex: 6 }}>
@@ -253,15 +235,6 @@ const DreamPage = ({
             </View>
           </View>
 
-          {/* Dream Achievements Animation - Centered */}
-          {/* <View style={{ alignItems: "center", marginBottom: 20 }}>
-            <LottieView
-              source={require("../assets/animations/dream_achievements.json")}
-              autoPlay
-              loop
-              style={{ width: 120, height: 80 }}
-            />
-          </View> */}
         </View>
 
         <View style={{ flex: 1, overflow: "hidden" }}>
@@ -316,7 +289,43 @@ const DreamPage = ({
             </View>
           </ScrollView>
         </View>
+
       </View>
+
+      {/* FAB – add custom milestone (hide only for completed dreams) */}
+      {dream?.status !== "completed" && (
+        <TouchableOpacity
+          onPress={() => setShowAddMilestone(true)}
+          style={{
+            position: "absolute",
+            bottom: insets.bottom + 70,
+            right: 24,
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+            backgroundColor: Color.colorOrangered,
+            alignItems: "center",
+            justifyContent: "center",
+            shadowColor: Color.colorOrangered,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+            elevation: 20,
+            zIndex: 200,
+          }}>
+          <Plus size={28} color={Color.colorWhite} strokeWidth={2.5} />
+        </TouchableOpacity>
+      )}
+
+      {/* Add-milestone bottom sheet (inline overlay — avoids nested <Modal> inside transparentModal) */}
+      <AddMilestoneModal
+        visible={showAddMilestone}
+        onClose={() => setShowAddMilestone(false)}
+        onSubmit={(title, challengeType) => {
+          setShowAddMilestone(false);
+          addCustomMilestone(threadId, title, challengeType);
+        }}
+      />
     </SafeAreaView>
   );
 };

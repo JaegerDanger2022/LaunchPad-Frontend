@@ -2,17 +2,25 @@ import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
+  Image,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { StreakBadge } from "../components/streak/StreakBadge";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
-import { getThemeColors, ChallengeTypeColors, ChallengeTypeName } from "../constants/GlobalStyles";
+import {
+  getThemeColors,
+  ChallengeTypeColors,
+  ChallengeTypeName,
+} from "../constants/GlobalStyles";
 import PieChart from "react-native-pie-chart";
 
 // ---------------------------------------------------------------------------
@@ -42,7 +50,12 @@ function getCompletedMilestones(dreams: any[], days: number) {
       // Use updated_at as the completion timestamp
       const ts = m.updated_at ? toDate(m.updated_at).getTime() : NaN;
       if (ts >= cutoff) {
-        results.push({ ...m, _dreamCategory: dream.category, _dreamCreatedAt: dream.created_at, _dreamTitle: dream.dream });
+        results.push({
+          ...m,
+          _dreamCategory: dream.category,
+          _dreamCreatedAt: dream.created_at,
+          _dreamTitle: dream.dream,
+        });
       }
     }
   }
@@ -78,7 +91,13 @@ function countInWindow(dreams: any[], startMs: number, endMs: number): number {
 // ---------------------------------------------------------------------------
 
 /** Pill time-range selector */
-function TimeRangePills({ selected, onChange }: { selected: TimeRange; onChange: (v: TimeRange) => void }) {
+function TimeRangePills({
+  selected,
+  onChange,
+}: {
+  selected: TimeRange;
+  onChange: (v: TimeRange) => void;
+}) {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const options: TimeRange[] = [7, 30, 90];
@@ -96,9 +115,20 @@ function TimeRangePills({ selected, onChange }: { selected: TimeRange; onChange:
               styles.pill,
               active
                 ? { backgroundColor: "#A855F7" }
-                : { backgroundColor: theme === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", borderWidth: 1, borderColor: themeColors.border },
+                : {
+                    backgroundColor:
+                      theme === "dark"
+                        ? "rgba(255,255,255,0.08)"
+                        : "rgba(0,0,0,0.06)",
+                    borderWidth: 1,
+                    borderColor: themeColors.border,
+                  },
             ]}>
-            <Text style={[styles.pillText, { color: active ? "#fff" : themeColors.text_secondary }]}>
+            <Text
+              style={[
+                styles.pillText,
+                { color: active ? "#fff" : themeColors.text_secondary },
+              ]}>
               {v} days
             </Text>
           </TouchableOpacity>
@@ -114,14 +144,43 @@ function XPCard({ earnedXP, totalXP }: { earnedXP: number; totalXP: number }) {
   const pct = totalXP > 0 ? Math.min(earnedXP / totalXP, 1) : 0;
 
   return (
-    <View style={[styles.card, { backgroundColor: theme === "dark" ? "#2B2D56" : "#fff" }]}>
-      <Text style={[styles.cardLabel, { color: theme === "dark" ? "#b0b0b0" : "#6B7280" }]}>XP EARNED</Text>
-      <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, marginBottom: 12 }}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: theme === "dark" ? "#2B2D56" : "#fff" },
+      ]}>
+      <Text
+        style={[
+          styles.cardLabel,
+          { color: theme === "dark" ? "#b0b0b0" : "#6B7280" },
+        ]}>
+        COURAGE POINTS EARNED
+      </Text>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "baseline",
+          gap: 6,
+          marginBottom: 12,
+        }}>
         <Text style={[styles.bigNumber, { color: "#A855F7" }]}>{earnedXP}</Text>
-        <Text style={[styles.cardLabel, { color: theme === "dark" ? "#808080" : "#9CA3AF" }]}>/ {totalXP} total</Text>
+        <Text
+          style={[
+            styles.cardLabel,
+            { color: theme === "dark" ? "#808080" : "#9CA3AF" },
+          ]}>
+          / {totalXP} total
+        </Text>
       </View>
       {/* Progress bar */}
-      <View style={[styles.progressBg, { backgroundColor: theme === "dark" ? "rgba(255,255,255,0.1)" : "#F3F4F6" }]}>
+      <View
+        style={[
+          styles.progressBg,
+          {
+            backgroundColor:
+              theme === "dark" ? "rgba(255,255,255,0.1)" : "#F3F4F6",
+          },
+        ]}>
         <LinearGradient
           colors={["#A855F7", "#6366F1"]}
           style={[styles.progressFill, { width: `${pct * 100}%` }]}
@@ -138,27 +197,77 @@ function WeeklyActivityCard({ bars }: { bars: number[] }) {
   const BAR_HEIGHT = 80;
 
   return (
-    <View style={[styles.card, { backgroundColor: theme === "dark" ? "#2B2D56" : "#fff" }]}>
-      <Text style={[styles.cardLabel, { color: theme === "dark" ? "#b0b0b0" : "#6B7280" }]}>WEEKLY ACTIVITY</Text>
-      <Text style={[styles.bigNumber, { color: "#fff", marginBottom: 16 }]}>{bars.reduce((a, b) => a + b, 0)} completions</Text>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: theme === "dark" ? "#2B2D56" : "#fff" },
+      ]}>
+      <Text
+        style={[
+          styles.cardLabel,
+          { color: theme === "dark" ? "#b0b0b0" : "#6B7280" },
+        ]}>
+        WEEKLY ACTIVITY
+      </Text>
+      <Text style={[styles.bigNumber, { color: "#fff", marginBottom: 16 }]}>
+        {bars.reduce((a, b) => a + b, 0)} completions
+      </Text>
 
-      <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 6, height: BAR_HEIGHT + 20 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-end",
+          gap: 6,
+          height: BAR_HEIGHT + 20,
+        }}>
         {bars.map((val, i) => {
           const h = (val / max) * BAR_HEIGHT;
           const isToday = i === dowMon(new Date());
           return (
-            <View key={i} style={{ flex: 1, alignItems: "center", justifyContent: "flex-end", height: BAR_HEIGHT + 20 }}>
+            <View
+              key={i}
+              style={{
+                flex: 1,
+                alignItems: "center",
+                justifyContent: "flex-end",
+                height: BAR_HEIGHT + 20,
+              }}>
               <View style={{ height: BAR_HEIGHT, justifyContent: "flex-end" }}>
                 {val > 0 ? (
                   <LinearGradient
-                    colors={isToday ? ["#A855F7", "#C084FC"] : ["rgba(168,85,247,0.5)", "rgba(168,85,247,0.3)"]}
-                    style={[styles.bar, { height: h, borderRadius: h > 12 ? 6 : 4 }]}
+                    colors={
+                      isToday
+                        ? ["#A855F7", "#C084FC"]
+                        : ["rgba(168,85,247,0.5)", "rgba(168,85,247,0.3)"]
+                    }
+                    style={[
+                      styles.bar,
+                      { height: h, borderRadius: h > 12 ? 6 : 4 },
+                    ]}
                   />
                 ) : (
-                  <View style={[styles.bar, { height: 4, borderRadius: 2, backgroundColor: theme === "dark" ? "rgba(255,255,255,0.1)" : "#E5E7EB" }]} />
+                  <View
+                    style={[
+                      styles.bar,
+                      {
+                        height: 4,
+                        borderRadius: 2,
+                        backgroundColor:
+                          theme === "dark"
+                            ? "rgba(255,255,255,0.1)"
+                            : "#E5E7EB",
+                      },
+                    ]}
+                  />
                 )}
               </View>
-              <Text style={[styles.dayLabel, { color: theme === "dark" ? "#808080" : "#9CA3AF" }]}>{DAY_LABELS[i]}</Text>
+              <Text
+                style={[
+                  styles.dayLabel,
+                  { color: theme === "dark" ? "#808080" : "#9CA3AF" },
+                ]}>
+                {DAY_LABELS[i]}
+              </Text>
             </View>
           );
         })}
@@ -168,41 +277,98 @@ function WeeklyActivityCard({ bars }: { bars: number[] }) {
 }
 
 /** Streak & Achievements section */
-function StreakCard({ streakData, onPress }: { streakData: any; onPress: () => void }) {
+function StreakCard({
+  streakData,
+  onPress,
+}: {
+  streakData: any;
+  onPress: () => void;
+}) {
   const { theme } = useThemeStore();
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.85}>
-      <View style={[styles.card, { backgroundColor: theme === "dark" ? "#2B2D56" : "#fff" }]}>
-        <Text style={[styles.cardLabel, { color: theme === "dark" ? "#b0b0b0" : "#6B7280" }]}>STREAK & ACHIEVEMENTS</Text>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: theme === "dark" ? "#2B2D56" : "#fff" },
+        ]}>
+        <Text
+          style={[
+            styles.cardLabel,
+            { color: theme === "dark" ? "#b0b0b0" : "#6B7280" },
+          ]}>
+          STREAK & ACHIEVEMENTS
+        </Text>
         {/* 3-stat row */}
         <View style={{ flexDirection: "row", gap: 10, marginBottom: 16 }}>
-          <LinearGradient colors={["#FF6B35", "#FF9068"]} style={[styles.statPill, { flex: 1 }]}>
-            <Text style={styles.statPillEmoji}>🔥</Text>
+          <LinearGradient
+            colors={["#A855F7", "#6366F1"]}
+            style={[styles.statPill, { flex: 1 }]}>
+            <Image source={require("../assets/animations/fire.gif")} style={styles.statPillIcon} />
             <Text style={styles.statPillNum}>{streakData.current_streak}</Text>
             <Text style={styles.statPillSub}>Current</Text>
           </LinearGradient>
-          <LinearGradient colors={["#FFD93D", "#FFA502"]} style={[styles.statPill, { flex: 1 }]}>
-            <Text style={styles.statPillEmoji}>🏆</Text>
+          <LinearGradient
+            colors={["#A855F7", "#6366F1"]}
+            style={[styles.statPill, { flex: 1 }]}>
+            <Image source={require("../assets/animations/trophy.gif")} style={styles.statPillIcon} />
             <Text style={styles.statPillNum}>{streakData.longest_streak}</Text>
             <Text style={styles.statPillSub}>Best</Text>
           </LinearGradient>
-          <LinearGradient colors={["#14B8A6", "#06B6D4"]} style={[styles.statPill, { flex: 1 }]}>
-            <Text style={styles.statPillEmoji}>✅</Text>
-            <Text style={styles.statPillNum}>{streakData.total_completions}</Text>
+          <LinearGradient
+            colors={["#A855F7", "#6366F1"]}
+            style={[styles.statPill, { flex: 1 }]}>
+            <Image source={require("../assets/animations/verified.gif")} style={styles.statPillIcon} />
+            <Text style={styles.statPillNum}>
+              {streakData.total_completions}
+            </Text>
             <Text style={styles.statPillSub}>Total</Text>
           </LinearGradient>
         </View>
         {/* Achievements */}
         {[
-          { label: "3-Day Streaks", count: streakData.milestone_achievements.three_day_count, emoji: "🔥" },
-          { label: "7-Day Streaks", count: streakData.milestone_achievements.seven_day_count, emoji: "🏆" },
-          { label: "30-Day Streaks", count: streakData.milestone_achievements.thirty_day_count, emoji: "👑" },
+          {
+            label: "3-Day Streaks",
+            count: streakData.milestone_achievements.three_day_count,
+            icon: require("../assets/animations/fire.gif"),
+          },
+          {
+            label: "7-Day Streaks",
+            count: streakData.milestone_achievements.seven_day_count,
+            icon: require("../assets/animations/trophy.gif"),
+          },
+          {
+            label: "30-Day Streaks",
+            count: streakData.milestone_achievements.thirty_day_count,
+            icon: require("../assets/animations/crown.gif"),
+          },
         ].map((a) => (
-          <View key={a.label} style={[styles.achievementRow, { borderBottomColor: theme === "dark" ? "rgba(255,255,255,0.08)" : "#F3F4F6", borderBottomWidth: 1 }]}>
-            <Text style={{ fontSize: 18, width: 28 }}>{a.emoji}</Text>
-            <Text style={[styles.achievementLabel, { color: theme === "dark" ? "#fff" : "#1F2937", flex: 1 }]}>{a.label}</Text>
-            <Text style={[styles.achievementCount, { color: theme === "dark" ? "#b0b0b0" : "#6B7280" }]}>{a.count}x</Text>
+          <View
+            key={a.label}
+            style={[
+              styles.achievementRow,
+              {
+                borderBottomColor:
+                  theme === "dark" ? "rgba(255,255,255,0.08)" : "#F3F4F6",
+                borderBottomWidth: 1,
+              },
+            ]}>
+            <Image source={a.icon} style={{ width: 24, height: 24 }} />
+            <Text
+              style={[
+                styles.achievementLabel,
+                { color: theme === "dark" ? "#fff" : "#1F2937", flex: 1 },
+              ]}>
+              {a.label}
+            </Text>
+            <Text
+              style={[
+                styles.achievementCount,
+                { color: theme === "dark" ? "#b0b0b0" : "#6B7280" },
+              ]}>
+              {a.count}x
+            </Text>
           </View>
         ))}
       </View>
@@ -211,7 +377,15 @@ function StreakCard({ streakData, onPress }: { streakData: any; onPress: () => v
 }
 
 /** Completion Trend card (current window vs previous) */
-function CompletionTrendCard({ current, previous, range }: { current: number; previous: number; range: TimeRange }) {
+function CompletionTrendCard({
+  current,
+  previous,
+  range,
+}: {
+  current: number;
+  previous: number;
+  range: TimeRange;
+}) {
   const { theme } = useThemeStore();
   const diff = current - previous;
   const up = diff >= 0;
@@ -220,12 +394,20 @@ function CompletionTrendCard({ current, previous, range }: { current: number; pr
     <LinearGradient
       colors={up ? ["#EC4899", "#F472B6"] : ["#6366F1", "#818CF8"]}
       style={[styles.card, { padding: 18 }]}>
-      <Text style={[styles.cardLabel, { color: "rgba(255,255,255,0.75)" }]}>COMPLETION TREND</Text>
+      <Text style={[styles.cardLabel, { color: "rgba(255,255,255,0.75)" }]}>
+        COMPLETION TREND
+      </Text>
       <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>
         <Text style={[styles.bigNumber, { color: "#fff" }]}>{current}</Text>
         <Text style={{ color: "#fff", fontSize: 22 }}>{up ? "↑" : "↓"}</Text>
       </View>
-      <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, marginTop: 4, fontFamily: "InstrumentSans-Regular" }}>
+      <Text
+        style={{
+          color: "rgba(255,255,255,0.8)",
+          fontSize: 13,
+          marginTop: 4,
+          fontFamily: "InstrumentSans-Regular",
+        }}>
         {Math.abs(diff)} {up ? "more" : "fewer"} than previous {range} days
       </Text>
     </LinearGradient>
@@ -239,17 +421,43 @@ function BestDayCard({ bars }: { bars: number[] }) {
   const hasAny = bars.some((b) => b > 0);
 
   return (
-    <View style={[styles.card, { backgroundColor: theme === "dark" ? "#2B2D56" : "#fff" }]}>
-      <Text style={[styles.cardLabel, { color: theme === "dark" ? "#b0b0b0" : "#6B7280" }]}>BEST DAY</Text>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: theme === "dark" ? "#2B2D56" : "#fff" },
+      ]}>
+      <Text
+        style={[
+          styles.cardLabel,
+          { color: theme === "dark" ? "#b0b0b0" : "#6B7280" },
+        ]}>
+        BEST DAY
+      </Text>
       {hasAny ? (
         <>
-          <Text style={[styles.bigNumber, { color: "#A855F7" }]}>{DAY_LABELS[maxIdx]}</Text>
-          <Text style={[{ color: theme === "dark" ? "#b0b0b0" : "#6B7280", fontSize: 14, fontFamily: "InstrumentSans-Regular" }]}>
+          <Text style={[styles.bigNumber, { color: "#A855F7" }]}>
+            {DAY_LABELS[maxIdx]}
+          </Text>
+          <Text
+            style={[
+              {
+                color: theme === "dark" ? "#b0b0b0" : "#6B7280",
+                fontSize: 14,
+                fontFamily: "InstrumentSans-Regular",
+              },
+            ]}>
             {bars[maxIdx]} completion{bars[maxIdx] !== 1 ? "s" : ""} this week
           </Text>
         </>
       ) : (
-        <Text style={[{ color: theme === "dark" ? "#808080" : "#9CA3AF", fontSize: 14, fontFamily: "InstrumentSans-Regular" }]}>
+        <Text
+          style={[
+            {
+              color: theme === "dark" ? "#808080" : "#9CA3AF",
+              fontSize: 14,
+              fontFamily: "InstrumentSans-Regular",
+            },
+          ]}>
           No completions yet this week
         </Text>
       )}
@@ -275,23 +483,84 @@ function DreamDurationCard({ dreams }: { dreams: any[] }) {
         }
       }
       const end = latestMs > 0 ? new Date(latestMs) : new Date();
-      const days = start ? Math.max(1, Math.round((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000))) : null;
-      return { title: d.dream || "Dream", days, status: d.status, category: d.category };
+      const days = start
+        ? Math.max(
+            1,
+            Math.round(
+              (end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000),
+            ),
+          )
+        : null;
+      return {
+        title: d.dream || "Dream",
+        days,
+        status: d.status,
+        category: d.category,
+      };
     });
   }, [dreams]);
 
   if (items.length === 0) return null;
 
   return (
-    <View style={[styles.card, { backgroundColor: theme === "dark" ? "#2B2D56" : "#fff" }]}>
-      <Text style={[styles.cardLabel, { color: theme === "dark" ? "#b0b0b0" : "#6B7280" }]}>DREAM DURATION</Text>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: theme === "dark" ? "#2B2D56" : "#fff" },
+      ]}>
+      <Text
+        style={[
+          styles.cardLabel,
+          { color: theme === "dark" ? "#b0b0b0" : "#6B7280" },
+        ]}>
+        DREAM DURATION
+      </Text>
       {items.map((item, i) => (
-        <View key={i} style={[styles.durationRow, i < items.length - 1 && { borderBottomColor: theme === "dark" ? "rgba(255,255,255,0.08)" : "#F3F4F6", borderBottomWidth: 1 }]}>
+        <View
+          key={i}
+          style={[
+            styles.durationRow,
+            i < items.length - 1 && {
+              borderBottomColor:
+                theme === "dark" ? "rgba(255,255,255,0.08)" : "#F3F4F6",
+              borderBottomWidth: 1,
+            },
+          ]}>
           <View style={{ flex: 1 }}>
-            <Text style={[{ color: theme === "dark" ? "#fff" : "#1F2937", fontSize: 15, fontWeight: "600", fontFamily: "InstrumentSans-SemiBold" }]} numberOfLines={1}>{item.title}</Text>
-            <Text style={[{ color: theme === "dark" ? "#808080" : "#9CA3AF", fontSize: 12, fontFamily: "InstrumentSans-Regular" }]}>{item.status === "completed" ? "Completed" : "In progress"}</Text>
+            <Text
+              style={[
+                {
+                  color: theme === "dark" ? "#fff" : "#1F2937",
+                  fontSize: 15,
+                  fontWeight: "600",
+                  fontFamily: "InstrumentSans-SemiBold",
+                },
+              ]}
+              numberOfLines={1}>
+              {item.title}
+            </Text>
+            <Text
+              style={[
+                {
+                  color: theme === "dark" ? "#808080" : "#9CA3AF",
+                  fontSize: 12,
+                  fontFamily: "InstrumentSans-Regular",
+                },
+              ]}>
+              {item.status === "completed" ? "Completed" : "In progress"}
+            </Text>
           </View>
-          <Text style={[{ color: "#A855F7", fontSize: 18, fontWeight: "700", fontFamily: "InstrumentSans-Bold" }]}>{item.days != null ? `${item.days}d` : "—"}</Text>
+          <Text
+            style={[
+              {
+                color: "#A855F7",
+                fontSize: 18,
+                fontWeight: "700",
+                fontFamily: "InstrumentSans-Bold",
+              },
+            ]}>
+            {item.days != null ? `${item.days}d` : "—"}
+          </Text>
         </View>
       ))}
     </View>
@@ -319,8 +588,18 @@ function ChallengeBreakdownCard({ milestones }: { milestones: any[] }) {
   }));
 
   return (
-    <View style={[styles.card, { backgroundColor: theme === "dark" ? "#2B2D56" : "#fff" }]}>
-      <Text style={[styles.cardLabel, { color: theme === "dark" ? "#b0b0b0" : "#6B7280" }]}>CHALLENGE TYPES</Text>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: theme === "dark" ? "#2B2D56" : "#fff" },
+      ]}>
+      <Text
+        style={[
+          styles.cardLabel,
+          { color: theme === "dark" ? "#b0b0b0" : "#6B7280" },
+        ]}>
+        CHALLENGE TYPES
+      </Text>
       {/* Doughnut chart */}
       <View style={{ alignItems: "center", marginBottom: 16 }}>
         <PieChart
@@ -335,9 +614,27 @@ function ChallengeBreakdownCard({ milestones }: { milestones: any[] }) {
           const color = (ChallengeTypeColors as any)[ct] || "#A855F7";
           const label = (ChallengeTypeName as any)[ct] || ct;
           return (
-            <View key={ct} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: color }} />
-              <Text style={[{ color: theme === "dark" ? "#b0b0b0" : "#6B7280", fontSize: 12, fontFamily: "InstrumentSans-Regular" }]}>{label} ({count})</Text>
+            <View
+              key={ct}
+              style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <View
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: 5,
+                  backgroundColor: color,
+                }}
+              />
+              <Text
+                style={[
+                  {
+                    color: theme === "dark" ? "#b0b0b0" : "#6B7280",
+                    fontSize: 12,
+                    fontFamily: "InstrumentSans-Regular",
+                  },
+                ]}>
+                {label} ({count})
+              </Text>
             </View>
           );
         })}
@@ -353,7 +650,9 @@ interface AnalyticsScreenProps {
   onNavigate: (screen: string, params?: any) => void;
 }
 
-export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ onNavigate }) => {
+export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
+  onNavigate,
+}) => {
   const { userData } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
@@ -365,7 +664,8 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ onNavigate }) 
 
   // --- XP totals (all-time, not time-gated) ---
   const { earnedXP, totalXP } = useMemo(() => {
-    let earned = 0, total = 0;
+    let earned = 0,
+      total = 0;
     for (const d of dreams) {
       if (d.metadata?.score != null) {
         earned += d.metadata.score;
@@ -384,7 +684,10 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ onNavigate }) 
   }, [dreams]);
 
   // --- Weekly activity bars (always 7-day window) ---
-  const weeklyBars = useMemo(() => buildWeeklyBars(getCompletedMilestones(dreams, 7)), [dreams]);
+  const weeklyBars = useMemo(
+    () => buildWeeklyBars(getCompletedMilestones(dreams, 7)),
+    [dreams],
+  );
 
   // --- Completion trend: current window vs previous window of same size ---
   const { currentCount, previousCount } = useMemo(() => {
@@ -416,16 +719,29 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ onNavigate }) 
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: bottomPadding }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingTop: 16,
+          paddingBottom: bottomPadding,
+        }}
         showsVerticalScrollIndicator={false}>
-
         {/* Header row: title + streak chip */}
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <Text style={[styles.screenTitle, { color: themeColors.text_primary }]}>Analytics</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 20,
+          }}>
+          <Text
+            style={[styles.screenTitle, { color: themeColors.text_primary }]}>
+            Analytics
+          </Text>
           {streakData && streakData.current_streak > 0 && (
-            <TouchableOpacity onPress={() => onNavigate("StreakStats")}>
-              <StreakBadge streakCount={streakData.current_streak} size="medium" />
-            </TouchableOpacity>
+            <StreakBadge
+              streakCount={streakData.current_streak}
+              size="medium"
+            />
           )}
         </View>
 
@@ -440,11 +756,18 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ onNavigate }) 
 
         {/* Streak & Achievements */}
         {streakData ? (
-          <StreakCard streakData={streakData} onPress={() => onNavigate("StreakStats")} />
+          <StreakCard
+            streakData={streakData}
+            onPress={() => onNavigate("StreakStats")}
+          />
         ) : null}
 
         {/* Completion Trend */}
-        <CompletionTrendCard current={currentCount} previous={previousCount} range={timeRange} />
+        <CompletionTrendCard
+          current={currentCount}
+          previous={previousCount}
+          range={timeRange}
+        />
 
         {/* Best Day */}
         <BestDayCard bars={weeklyBars} />
@@ -523,8 +846,9 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: "center",
   },
-  statPillEmoji: {
-    fontSize: 18,
+  statPillIcon: {
+    width: 22,
+    height: 22,
   },
   statPillNum: {
     fontSize: 22,

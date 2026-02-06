@@ -13,6 +13,7 @@ import EvidenceBoardScreen from './src/screens/EvidenceBoardScreen';
 import { StreakStatsScreen } from './src/screens/StreakStatsScreen';
 import { CommunityScreen } from './src/screens/CommunityScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
+import { AnalyticsScreen } from './src/screens/AnalyticsScreen';
 import ShareVictoryScreen from './src/screens/ShareVictoryScreen';
 import ShareJourneyRecapScreen from './src/screens/ShareJourneyRecapScreen';
 import { PaywallScreen } from './src/screens/PaywallScreen';
@@ -45,6 +46,7 @@ export type RootStackParamList = {
   ShareJourneyRecap: { journeyRecap: any };
   ChangePassword: undefined;
   Paywall: undefined;
+  Settings: undefined;
 };
 
 export type TabParamList = {
@@ -52,8 +54,9 @@ export type TabParamList = {
   AllDreams: undefined;
   EvidenceBoard: undefined;
   Community: undefined;
-  Settings: undefined;
+  Analytics: undefined;
 };
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -89,7 +92,7 @@ const withFadeAnimation = (Component: any) => {
 // Wrapper components that accept navigation as a prop
 const HomeScreenBase = ({ navigation }: any) => (
   <HomeScreen onNavigate={(screen, params) => {
-    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Settings') {
+    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Analytics') {
       navigation.navigate(screen as keyof TabParamList, params);
     } else {
       navigation.navigate(screen as keyof RootStackParamList, params);
@@ -115,7 +118,7 @@ const MilestoneScreenWrapper = ({ navigation, route }: any) => (
 const AllDreamsScreenBase = ({ navigation, route }: any) => (
   <AllDreamsScreen
     onNavigate={(screen, params?) => {
-      if (screen === 'Home' || screen === 'EvidenceBoard' || screen === 'AllDreams' || screen === 'Community' || screen === 'Settings') {
+      if (screen === 'Home' || screen === 'EvidenceBoard' || screen === 'AllDreams' || screen === 'Community' || screen === 'Analytics') {
         navigation.navigate(screen as keyof TabParamList);
       } else {
         navigation.navigate(screen as keyof RootStackParamList, params);
@@ -131,7 +134,7 @@ const DreamPageWrapper = ({ navigation, route }: any) => (
   <DreamPage
     threadId={route.params?.threadId}
     onNavigate={(screen, params) => {
-      if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Settings') {
+      if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Analytics') {
         navigation.goBack();
         // Navigate to the tab after closing the modal
         setTimeout(() => {
@@ -148,7 +151,7 @@ const DreamPageWrapper = ({ navigation, route }: any) => (
 
 const EvidenceBoardScreenBase = ({ navigation }: any) => (
   <EvidenceBoardScreen onNavigate={(screen, params) => {
-    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Settings') {
+    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Analytics') {
       navigation.navigate(screen as keyof TabParamList);
     } else {
       navigation.navigate(screen as keyof RootStackParamList, params);
@@ -160,7 +163,7 @@ const EvidenceBoardScreenWrapper = withFadeAnimation(EvidenceBoardScreenBase);
 
 const CommunityScreenBase = ({ navigation }: any) => (
   <CommunityScreen onNavigate={(screen) => {
-    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Settings') {
+    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Analytics') {
       navigation.navigate(screen as keyof TabParamList);
     } else {
       navigation.navigate(screen as keyof RootStackParamList);
@@ -170,9 +173,9 @@ const CommunityScreenBase = ({ navigation }: any) => (
 
 const CommunityScreenWrapper = withFadeAnimation(CommunityScreenBase);
 
-const SettingsScreenBase = ({ navigation }: any) => (
-  <SettingsScreen onNavigate={(screen) => {
-    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Settings') {
+const AnalyticsScreenBase = ({ navigation }: any) => (
+  <AnalyticsScreen onNavigate={(screen: string) => {
+    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Analytics') {
       navigation.navigate(screen as keyof TabParamList);
     } else {
       navigation.navigate(screen as keyof RootStackParamList);
@@ -180,7 +183,22 @@ const SettingsScreenBase = ({ navigation }: any) => (
   }} />
 );
 
-const SettingsScreenWrapper = withFadeAnimation(SettingsScreenBase);
+const AnalyticsScreenWrapper = withFadeAnimation(AnalyticsScreenBase);
+
+const SettingsModalWrapper = ({ navigation }: any) => (
+  <SettingsScreen onNavigate={(screen: string) => {
+    if (screen === 'Settings') {
+      navigation.goBack();
+    } else if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Analytics') {
+      navigation.goBack();
+      setTimeout(() => {
+        navigation.navigate('HomeTabs', { screen: screen as keyof TabParamList });
+      }, 100);
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList);
+    }
+  }} />
+);
 
 const StreakStatsScreenWrapper = ({ navigation }: any) => (
   <StreakStatsScreen onNavigate={(screen) => {
@@ -307,8 +325,8 @@ function TabNavigator() {
         }}
       />
       <Tab.Screen
-        name="Settings"
-        component={SettingsScreenWrapper}
+        name="Analytics"
+        component={AnalyticsScreenWrapper}
         options={{
           headerShown: false,
         }}
@@ -398,6 +416,15 @@ function AppNavigator() {
         <Stack.Screen
           name="Paywall"
           component={PaywallScreenWrapper}
+          options={{
+            presentation: 'transparentModal',
+            headerShown: false,
+            animation: 'slide_from_bottom',
+          }}
+        />
+        <Stack.Screen
+          name="Settings"
+          component={SettingsModalWrapper}
           options={{
             presentation: 'transparentModal',
             headerShown: false,

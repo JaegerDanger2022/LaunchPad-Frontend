@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Color } from '../../constants/GlobalStyles';
 
@@ -22,12 +22,12 @@ export const StreakBadge: React.FC<StreakBadgeProps> = ({
 
   return (
     <LinearGradient
-      colors={['#FF6B35', '#FF9068']}
+      colors={['#A855F7', '#6366F1']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
       style={[styles.badge, { width, height }]}
     >
-      <Text style={[styles.emoji, { fontSize }]}>🔥</Text>
+      <Image source={require('../../assets/animations/fire.gif')} style={{ width: fontSize, height: fontSize }} />
       <Text style={[styles.text, { fontSize }]}>{streakCount}</Text>
     </LinearGradient>
   );
@@ -40,9 +40,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 20,
     gap: 4,
-  },
-  emoji: {
-    lineHeight: undefined,
   },
   text: {
     color: Color.colorWhite,

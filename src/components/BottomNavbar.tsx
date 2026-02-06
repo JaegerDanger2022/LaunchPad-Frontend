@@ -8,14 +8,14 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
-import { HomeIcon, DreamsIcon, EvidenceIcon } from "./icons/SVGIcons";
+import { HomeIcon, EvidenceIcon } from "./icons/SVGIcons";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { useThemeStore } from "../store/themeStore";
-import { Users, Settings } from "lucide-react-native";
+import { Goal, Users, BarChart2 } from "lucide-react-native";
 
 interface BottomNavbarProps {
   onNavigate?: (screen: string) => void;
-  activeTab?: "home" | "dreams" | "evidence" | "community" | "settings";
+  activeTab?: "home" | "dreams" | "evidence" | "community" | "analytics";
 }
 
 export const BottomNavbar: React.FC<BottomNavbarProps> = ({
@@ -28,7 +28,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({
 
   const tabs = [
     { id: "home", icon: HomeIcon, label: "Home", screen: "Home" },
-    { id: "dreams", icon: DreamsIcon, label: "Dreams", screen: "AllDreams" },
+    { id: "dreams", icon: Goal, label: "Dreams", screen: "AllDreams" },
     {
       id: "evidence",
       icon: EvidenceIcon,
@@ -36,7 +36,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({
       screen: "EvidenceBoard",
     },
     { id: "community", icon: Users, label: "Community", screen: "Community" },
-    { id: "settings", icon: Settings, label: "Settings", screen: "Settings" },
+    { id: "analytics", icon: BarChart2, label: "Analytics", screen: "Analytics" },
   ];
 
   return (

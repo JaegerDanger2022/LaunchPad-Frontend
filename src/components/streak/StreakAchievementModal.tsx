@@ -15,19 +15,19 @@ const ACHIEVEMENT_CONFIG = {
     emoji: '🔥',
     title: 'On Fire!',
     message: '3 days in a row! You\'re building momentum.',
-    gradient: ['#FF6B35', '#FF9068'],
+    gradient: ['#A855F7', '#6366F1'],
   },
   '7_day': {
     emoji: '🔥🏆',
     title: 'Week Warrior!',
     message: '7 days strong! You\'re unstoppable.',
-    gradient: ['#FFD93D', '#FFA502'],
+    gradient: ['#A855F7', '#6366F1'],
   },
   '30_day': {
     emoji: '👑🔥',
     title: 'Monthly Champion!',
     message: '30 days! You\'re a legend.',
-    gradient: ['#A78BFA', '#EC4899'],
+    gradient: ['#A855F7', '#6366F1'],
   },
 };
 
@@ -127,6 +127,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FF6B35',
+    color: '#A855F7',
   },
 });

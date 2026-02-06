@@ -68,7 +68,7 @@ export const StreakToastNotification: React.FC<StreakToastProps> = ({
       pointerEvents="none"
     >
       <LinearGradient
-        colors={['#FF6B35', '#FF9068']}
+        colors={['#A855F7', '#6366F1']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.toast}

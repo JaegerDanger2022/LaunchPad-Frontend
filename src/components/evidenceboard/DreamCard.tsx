@@ -20,6 +20,7 @@ interface DreamCardProps {
   dream: Dream & { dream_card_bg?: string };
   isSelected: boolean;
   onPress: () => void;
+  isDark?: boolean;
 }
 
 const getCategoryGradient = (
@@ -53,6 +54,7 @@ export const DreamCard: React.FC<DreamCardProps> = ({
   dream,
   isSelected,
   onPress,
+  isDark = false,
 }) => (
   <TouchableOpacity
     onPress={onPress}
@@ -60,14 +62,17 @@ export const DreamCard: React.FC<DreamCardProps> = ({
       borderRadius: 24,
       padding: 24,
       backgroundColor: isSelected
-        ? EvidenceBoardColors.white
-        : dream.dream_card_bg || EvidenceBoardColors.dream_card_bg,
+        ? isDark
+          ? "#1b1f52"
+          : EvidenceBoardColors.white
+        : dream.dream_card_bg ||
+          (isDark ? "#2B2D56" : EvidenceBoardColors.dream_card_bg),
       borderWidth: isSelected ? 2 : 0,
       borderColor: isSelected ? EvidenceBoardColors.teal : "transparent",
       opacity: 1,
-      shadowColor: "#000",
+      shadowColor: isDark ? "rgba(0,0,0,0.4)" : "#000",
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.1,
+      shadowOpacity: isDark ? 0.3 : 0.1,
       shadowRadius: 8,
       elevation: 4,
     }}>
@@ -81,7 +86,9 @@ export const DreamCard: React.FC<DreamCardProps> = ({
       {dream.isComplete && (
         <View
           style={{
-            backgroundColor: EvidenceBoardColors.successLight,
+            backgroundColor: isDark
+              ? "rgba(34, 197, 94, 0.2)"
+              : EvidenceBoardColors.successLight,
             paddingHorizontal: 12,
             paddingVertical: 6,
             borderRadius: 20,
@@ -101,13 +108,17 @@ export const DreamCard: React.FC<DreamCardProps> = ({
       style={{
         fontSize: 18,
         fontWeight: "bold",
-        color: EvidenceBoardColors.text.primary,
+        color: "#000000",
         marginBottom: 12,
       }}>
       {dream.title}
     </Text>
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-      <Text style={{ fontSize: 14, color: EvidenceBoardColors.text.secondary }}>
+      <Text
+        style={{
+          fontSize: 14,
+          color: "#000000",
+        }}>
         🏆 {dream.couragePoints} courage points
       </Text>
     </View>

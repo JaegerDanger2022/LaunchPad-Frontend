@@ -12,11 +12,13 @@ import {
   ScrollViewProps,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import LottieView from 'lottie-react-native';
 
 interface ParallaxHeaderProps extends ScrollViewProps {
   title: string;
   subtitle?: string;
   backgroundImage?: ImageSourcePropType;
+  backgroundLottie?: any;
   backgroundColor?: string;
   parallaxHeight?: number;
   headerHeight?: number;
@@ -32,6 +34,7 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
   title,
   subtitle,
   backgroundImage,
+  backgroundLottie,
   backgroundColor = '#1F2937',
   parallaxHeight = 220,
   headerHeight = 90,
@@ -115,7 +118,32 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
               { scale: imageScale },
             ],
           }}>
-          {backgroundImage ? (
+          {backgroundLottie ? (
+            <>
+              <LottieView
+                source={backgroundLottie}
+                autoPlay
+                loop
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  width: '100%',
+                  height: '100%',
+                }}
+              />
+              <LinearGradient
+                colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)']}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                }}
+              />
+            </>
+          ) : backgroundImage ? (
             <>
               <Image
                 source={backgroundImage}

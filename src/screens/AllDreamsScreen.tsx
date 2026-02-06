@@ -19,6 +19,7 @@ import { BottomNavbar } from "../components/BottomNavbar";
 import { CreateDreamModal } from "../components/CreateDreamModal";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
+import { StreakBadge } from "../components/streak/StreakBadge";
 import { fetchDreamsList } from "../config/api";
 
 const dreamCreatingPhrases = [
@@ -49,6 +50,7 @@ const AllDreamsScreen = ({
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
+  const streakData = userData?.streak;
 
   // Dream-limit gate: free = 2 total, pro = 3 active
   const dreamLimitReached = useMemo(() => {
@@ -334,6 +336,28 @@ const AllDreamsScreen = ({
               marginHorizontal: 17,
               marginTop: 20,
             }}>
+            {/* Header row: title + streak chip */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 20,
+              }}>
+              <Text
+                style={{
+                  fontSize: 28,
+                  fontWeight: "800",
+                  fontFamily: "InstrumentSans-Bold",
+                  color: themeColors.text_primary,
+                }}>
+                Dreams
+              </Text>
+              {streakData && streakData.current_streak > 0 && (
+                <StreakBadge streakCount={streakData.current_streak} size="medium" />
+              )}
+            </View>
+
             <FlatList
               data={isCreating ? [{ __placeholder: true } as any, ...sortedDreams] : sortedDreams}
               renderItem={({ item }) => {

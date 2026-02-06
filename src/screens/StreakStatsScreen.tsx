@@ -117,7 +117,7 @@ export const StreakStatsScreen = ({ onNavigate }: { onNavigate?: (screen: string
           <ScrollView style={styles.container}>
         {/* Current Streak Card */}
         <LinearGradient
-          colors={['#FF6B35', '#FF9068']}
+          colors={['#A855F7', '#6366F1']}
           style={styles.statCard}
         >
           <Text style={styles.statEmoji}>🔥</Text>
@@ -129,7 +129,7 @@ export const StreakStatsScreen = ({ onNavigate }: { onNavigate?: (screen: string
         <View style={styles.grid}>
           {/* Longest Streak */}
           <LinearGradient
-            colors={['#FFD93D', '#FFA502']}
+            colors={['#A855F7', '#6366F1']}
             style={styles.gridCard}
           >
             <Text style={styles.gridEmoji}>🏆</Text>
@@ -139,7 +139,7 @@ export const StreakStatsScreen = ({ onNavigate }: { onNavigate?: (screen: string
 
           {/* Total Completions */}
           <LinearGradient
-            colors={['#14B8A6', '#06B6D4']}
+            colors={['#A855F7', '#6366F1']}
             style={styles.gridCard}
           >
             <Text style={styles.gridEmoji}>✅</Text>

@@ -31,7 +31,14 @@
       "Bash(npx ts-node:*)",
       "Bash(curl:*)",
       "Bash(python3:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npx eas:*)",
+      "Bash(dir:*)",
+      "Bash(tree:*)",
+      "WebFetch(domain:launchpad-backend.railway.app)",
+      "Bash(node -e:*)",
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }

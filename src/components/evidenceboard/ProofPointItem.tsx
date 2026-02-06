@@ -22,6 +22,7 @@ export interface ProofPoint {
 interface ProofPointItemProps {
   point: ProofPoint;
   index: number;
+  isDark?: boolean;
 }
 
 const getImpactColor = (impact: ProofPoint["impact"]) => {
@@ -65,6 +66,7 @@ const truncateWithEllipsis = (
 export const ProofPointItem: React.FC<ProofPointItemProps> = ({
   point,
   index,
+  isDark = false,
 }) => {
   const lineColor = getImpactColor(point.impact);
   const confidenceText =
@@ -73,6 +75,12 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
       : point.impact === "high"
         ? "15% Confidence"
         : "10% Confidence";
+
+  const circleFill = isDark ? "#1b1f52" : "white";
+  const cardFill = isDark ? "#2B2D56" : "white";
+  const titleFill = isDark ? "#ffffff" : "#1A1A1A";
+  const subtitleFill = isDark ? "#b0b0b0" : "#666666";
+  const shadowOpacity = isDark ? "0.25" : "0.1";
 
   return (
     <View style={{ marginBottom: -40 }}>
@@ -106,7 +114,7 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
           cx="50"
           cy="60"
           r="18"
-          fill="white"
+          fill={circleFill}
           stroke={point.completed ? "#22C55E" : lineColor}
           strokeWidth="4"
         />
@@ -121,7 +129,7 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
           width="290"
           height="70"
           rx="12"
-          fill="white"
+          fill={cardFill}
           filter="url(#shadow)"
         />
 
@@ -134,7 +142,7 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
             width="300"
             height="85"
             filterUnits="userSpaceOnUse">
-            <FeDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity="0.1" />
+            <FeDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity={shadowOpacity} />
           </Filter>
         </Defs>
 
@@ -142,7 +150,7 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
         <SvgText
           x="100"
           y="50"
-          fill="#1A1A1A"
+          fill={titleFill}
           fontSize="14"
           fontWeight="700"
           fontFamily="sans-serif">
@@ -155,7 +163,7 @@ export const ProofPointItem: React.FC<ProofPointItemProps> = ({
         <SvgText
           x="100"
           y="70"
-          fill="#666666"
+          fill={subtitleFill}
           fontSize="12"
           fontFamily="sans-serif">
           <TSpan>

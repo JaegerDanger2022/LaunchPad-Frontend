@@ -20,7 +20,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { Plus } from "lucide-react-native";
+import { Plus, Settings } from "lucide-react-native";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { AvatarIcon } from "../components/icons/SVGIcons";
 import { GoalCard, type GoalCardData } from "../components/GoalCard";
@@ -392,22 +392,25 @@ const HomeScreen = ({
             }}
           />
 
-          {/* Streak Badge - Show if user has active streak */}
-          {userData?.streak && userData.streak.current_streak > 0 && (
-            <View
-              style={{
-                alignItems: "flex-end",
-                paddingRight: 20,
-                marginBottom: 16,
-              }}>
-              <TouchableOpacity onPress={() => onNavigate("StreakStats")}>
-                <StreakBadge
-                  streakCount={userData.streak.current_streak}
-                  size="medium"
-                />
-              </TouchableOpacity>
-            </View>
-          )}
+          {/* Top row: Settings gear (left) + Streak badge (right) */}
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              paddingHorizontal: 20,
+              marginBottom: 16,
+            }}>
+            <TouchableOpacity onPress={() => onNavigate("Settings")} activeOpacity={0.6} style={{ padding: 4 }}>
+              <Settings size={30} color={themeColors.text_secondary} strokeWidth={2} />
+            </TouchableOpacity>
+            {userData?.streak && userData.streak.current_streak > 0 ? (
+              <StreakBadge
+                streakCount={userData.streak.current_streak}
+                size="medium"
+              />
+            ) : <View />}
+          </View>
 
           {/* Hero Card Section - Show skeleton during refresh or actual card */}
           {isRefreshing && userData?.up_next ? (

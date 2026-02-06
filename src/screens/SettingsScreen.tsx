@@ -1,8 +1,16 @@
-import React from "react";
-import { View, Text, ScrollView, StyleSheet, Alert } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import React, { useRef } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  Animated,
+  PanResponder,
+  Dimensions,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
-import { BottomNavbar } from "../components/BottomNavbar";
 import { ProfileHeader } from "../components/settings/ProfileHeader";
 import { SettingRow } from "../components/settings/SettingRow";
 import { StatsRings } from "../components/settings/StatsRings";
@@ -11,6 +19,9 @@ import { useThemeStore } from "../store/themeStore";
 import { getThemeColors } from "../constants/GlobalStyles";
 import { showManageSubscriptions } from "../config/revenuecat";
 import Toast from "react-native-toast-message";
+
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const DRAG_THRESHOLD = 100;
 
 interface SettingsScreenProps {
   onNavigate?: (screen: string) => void;
@@ -22,11 +33,45 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const { user, userData, logout, isPremium } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const themeColors = getThemeColors(theme);
-  const insets = useSafeAreaInsets();
 
-  // Bottom navbar height + safe area
-  const bottomNavbarHeight = 60; // Approximate navbar height
-  const bottomPadding = bottomNavbarHeight + Math.max(insets.bottom, 8) + 20;
+  const translateY = useRef(new Animated.Value(0)).current;
+  const backdropOpacity = useRef(new Animated.Value(1)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, g) => g.dy > 5,
+      onPanResponderGrant: () => {},
+      onPanResponderMove: (_, g) => {
+        if (g.dy > 0) translateY.setValue(g.dy);
+      },
+      onPanResponderRelease: (_, g) => {
+        if (g.dy > DRAG_THRESHOLD || g.vy > 0.5) {
+          Animated.parallel([
+            Animated.timing(translateY, {
+              toValue: SCREEN_HEIGHT,
+              duration: 250,
+              useNativeDriver: true,
+            }),
+            Animated.timing(backdropOpacity, {
+              toValue: 0,
+              duration: 250,
+              useNativeDriver: true,
+            }),
+          ]).start(() => {
+            onNavigate?.("Settings");
+          });
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            tension: 50,
+            friction: 8,
+          }).start();
+        }
+      },
+    }),
+  ).current;
 
   // Calculate user stats
   const dreamCount = userData?.dreams?.length || 0;
@@ -111,26 +156,56 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: themeColors.bg_primary }]}>
-      <BottomNavbar onNavigate={onNavigate} activeTab="settings" />
+    <View style={{ flex: 1 }}>
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          { backgroundColor: "rgba(0,0,0,0.5)", opacity: backdropOpacity },
+        ]}
+      />
+      <Animated.View
+        style={[styles.animatedContent, { transform: [{ translateY }] }]}>
+        <SafeAreaView
+          style={[
+            styles.container,
+            { backgroundColor: themeColors.bg_primary },
+          ]}>
+          {/* Drag handle */}
+          <View
+            {...panResponder.panHandlers}
+            style={styles.dragHandleContainer}>
+            <View style={styles.dragHandle} />
+          </View>
+          {/* Header */}
+          <View {...panResponder.panHandlers} style={styles.modalHeader}>
+            <Text
+              style={[
+                styles.modalHeaderTitle,
+                { color: themeColors.text_primary },
+              ]}>
+              Settings
+            </Text>
+          </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomPadding }]}
-        showsVerticalScrollIndicator={false}>
-        {/* Profile Header */}
-        {userData && (
-          <ProfileHeader
-            firstname={userData.firstname || "User"}
-            lastname={userData.lastname || ""}
-            email={userData.email || user?.email || ""}
-            createdAt={userData.created_at}
-          />
-        )}
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingBottom: 40 },
+            ]}
+            showsVerticalScrollIndicator={false}>
+            {/* Profile Header */}
+            {userData && (
+              <ProfileHeader
+                firstname={userData.firstname || "User"}
+                lastname={userData.lastname || ""}
+                email={userData.email || user?.email || ""}
+                createdAt={userData.created_at}
+              />
+            )}
 
-        {/* Stats Section */}
-        <View style={styles.section}>
+            {/* Stats Section */}
+            {/* <View style={styles.section}>
           <Text
             style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
             Your Stats
@@ -155,174 +230,237 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               />
             </BlurView>
           </View>
-        </View>
+        </View> */}
 
-        {/* Premium Section */}
-        <View style={styles.section}>
-          <Text
-            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
-            Premium
-          </Text>
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
-              },
-            ]}>
-            <BlurView
-              intensity={60}
-              tint={theme === "dark" ? "dark" : "light"}
-              style={{
-                backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
-              }}>
-              {isPremium ? (
-                <>
-                  <SettingRow icon="⭐" label="Subscription" value="Pro" />
+            {/* Premium Section */}
+            <View style={styles.section}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { color: themeColors.text_primary },
+                ]}>
+                Premium
+              </Text>
+              <View
+                style={[
+                  styles.card,
+                  {
+                    borderColor:
+                      theme === "dark"
+                        ? "rgba(255, 255, 255, 0.2)"
+                        : "rgba(0, 0, 0, 0.1)",
+                  },
+                ]}>
+                <BlurView
+                  intensity={60}
+                  tint={theme === "dark" ? "dark" : "light"}
+                  style={{
+                    backgroundColor:
+                      theme === "dark"
+                        ? "rgba(255, 255, 255, 0.1)"
+                        : "rgba(0, 0, 0, 0.05)",
+                  }}>
+                  {isPremium ? (
+                    <>
+                      <SettingRow icon="⭐" label="Subscription" value="Pro" />
+                      <SettingRow
+                        icon="⚙️"
+                        label="Manage Subscription"
+                        showArrow
+                        onPress={handleManageSubscription}
+                      />
+                    </>
+                  ) : (
+                    <SettingRow
+                      icon="⭐"
+                      label="Upgrade to Pro"
+                      showArrow
+                      onPress={handleUpgradeToPremium}
+                    />
+                  )}
+                </BlurView>
+              </View>
+            </View>
+
+            {/* Preferences Section */}
+            <View style={styles.section}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { color: themeColors.text_primary },
+                ]}>
+                Preferences
+              </Text>
+              <View
+                style={[
+                  styles.card,
+                  {
+                    borderColor:
+                      theme === "dark"
+                        ? "rgba(255, 255, 255, 0.2)"
+                        : "rgba(0, 0, 0, 0.1)",
+                  },
+                ]}>
+                <BlurView
+                  intensity={60}
+                  tint={theme === "dark" ? "dark" : "light"}
+                  style={{
+                    backgroundColor:
+                      theme === "dark"
+                        ? "rgba(255, 255, 255, 0.1)"
+                        : "rgba(0, 0, 0, 0.05)",
+                  }}>
                   <SettingRow
-                    icon="⚙️"
-                    label="Manage Subscription"
-                    showArrow
-                    onPress={handleManageSubscription}
+                    icon="🎨"
+                    label="Theme"
+                    value={theme === "light" ? "Light" : "Dark"}
+                    isSwitch
+                    switchValue={theme === "dark"}
+                    onSwitchChange={(value) => {
+                      toggleTheme();
+                      Toast.show({
+                        type: "success",
+                        text1: `${value ? "Dark" : "Light"} Mode Enabled`,
+                        visibilityTime: 1500,
+                      });
+                    }}
                   />
-                </>
-              ) : (
-                <SettingRow
-                  icon="⭐"
-                  label="Upgrade to Pro"
-                  showArrow
-                  onPress={handleUpgradeToPremium}
-                />
-              )}
-            </BlurView>
-          </View>
-        </View>
+                </BlurView>
+              </View>
+            </View>
 
-        {/* Preferences Section */}
-        <View style={styles.section}>
-          <Text
-            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
-            Preferences
-          </Text>
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
-              },
-            ]}>
-            <BlurView
-              intensity={60}
-              tint={theme === "dark" ? "dark" : "light"}
-              style={{
-                backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
-              }}>
-              <SettingRow
-                icon="🎨"
-                label="Theme"
-                value={theme === "light" ? "Light" : "Dark"}
-                isSwitch
-                switchValue={theme === "dark"}
-                onSwitchChange={(value) => {
-                  toggleTheme();
-                  Toast.show({
-                    type: "success",
-                    text1: `${value ? "Dark" : "Light"} Mode Enabled`,
-                    visibilityTime: 1500,
-                  });
-                }}
-              />
-            </BlurView>
-          </View>
-        </View>
+            {/* About Section */}
+            <View style={styles.section}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { color: themeColors.text_primary },
+                ]}>
+                About
+              </Text>
+              <View
+                style={[
+                  styles.card,
+                  {
+                    borderColor:
+                      theme === "dark"
+                        ? "rgba(255, 255, 255, 0.2)"
+                        : "rgba(0, 0, 0, 0.1)",
+                  },
+                ]}>
+                <BlurView
+                  intensity={60}
+                  tint={theme === "dark" ? "dark" : "light"}
+                  style={{
+                    backgroundColor:
+                      theme === "dark"
+                        ? "rgba(255, 255, 255, 0.1)"
+                        : "rgba(0, 0, 0, 0.05)",
+                  }}>
+                  <SettingRow icon="ℹ️" label="App Version" value="0.10" />
+                  <SettingRow
+                    icon="📄"
+                    label="Terms of Service"
+                    showArrow
+                    onPress={() => handleOpenLink("Terms of Service")}
+                  />
+                  <SettingRow
+                    icon="🔒"
+                    label="Privacy Policy"
+                    showArrow
+                    onPress={() => handleOpenLink("Privacy Policy")}
+                  />
+                  <SettingRow
+                    icon="❓"
+                    label="Help & Support"
+                    showArrow
+                    onPress={() => handleOpenLink("Help & Support")}
+                  />
+                </BlurView>
+              </View>
+            </View>
 
-        {/* About Section */}
-        <View style={styles.section}>
-          <Text
-            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
-            About
-          </Text>
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
-              },
-            ]}>
-            <BlurView
-              intensity={60}
-              tint={theme === "dark" ? "dark" : "light"}
-              style={{
-                backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
-              }}>
-              <SettingRow icon="ℹ️" label="App Version" value="0.10" />
-              <SettingRow
-                icon="📄"
-                label="Terms of Service"
-                showArrow
-                onPress={() => handleOpenLink("Terms of Service")}
-              />
-              <SettingRow
-                icon="🔒"
-                label="Privacy Policy"
-                showArrow
-                onPress={() => handleOpenLink("Privacy Policy")}
-              />
-              <SettingRow
-                icon="❓"
-                label="Help & Support"
-                showArrow
-                onPress={() => handleOpenLink("Help & Support")}
-              />
-            </BlurView>
-          </View>
-        </View>
+            {/* Account Section */}
+            <View style={styles.section}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { color: themeColors.text_primary },
+                ]}>
+                Account
+              </Text>
+              <View
+                style={[
+                  styles.card,
+                  {
+                    borderColor:
+                      theme === "dark"
+                        ? "rgba(255, 255, 255, 0.2)"
+                        : "rgba(0, 0, 0, 0.1)",
+                  },
+                ]}>
+                <BlurView
+                  intensity={60}
+                  tint={theme === "dark" ? "dark" : "light"}
+                  style={{
+                    backgroundColor:
+                      theme === "dark"
+                        ? "rgba(255, 255, 255, 0.1)"
+                        : "rgba(0, 0, 0, 0.05)",
+                  }}>
+                  <SettingRow
+                    icon="🔑"
+                    label="Change Password"
+                    showArrow
+                    onPress={handleChangePassword}
+                  />
+                  <SettingRow
+                    icon="🚪"
+                    label="Logout"
+                    showArrow
+                    onPress={handleLogout}
+                  />
+                </BlurView>
+              </View>
+            </View>
 
-        {/* Account Section */}
-        <View style={styles.section}>
-          <Text
-            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
-            Account
-          </Text>
-          <View
-            style={[
-              styles.card,
-              {
-                borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
-              },
-            ]}>
-            <BlurView
-              intensity={60}
-              tint={theme === "dark" ? "dark" : "light"}
-              style={{
-                backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
-              }}>
-              <SettingRow
-                icon="🔑"
-                label="Change Password"
-                showArrow
-                onPress={handleChangePassword}
-              />
-              <SettingRow
-                icon="🚪"
-                label="Logout"
-                showArrow
-                onPress={handleLogout}
-              />
-            </BlurView>
-          </View>
-        </View>
-
-        {/* Bottom spacing */}
-        <View style={{ height: 40 }} />
-      </ScrollView>
-    </SafeAreaView>
+            {/* Bottom spacing */}
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        </SafeAreaView>
+      </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  animatedContent: {
+    flex: 1,
+    marginTop: 50,
+  },
   container: {
     flex: 1,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  dragHandleContainer: {
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  dragHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: "#CCCCCC",
+    borderRadius: 2,
+  },
+  modalHeader: {
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+  },
+  modalHeaderTitle: {
+    fontSize: 28,
+    fontWeight: "800",
+    fontFamily: "InstrumentSans-Bold",
   },
   scrollView: {
     flex: 1,

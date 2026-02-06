@@ -4,6 +4,7 @@ export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000";
 
 import { StreakData } from "../types/index";
+import { SHOWCASE_UID, getShowcaseUserData, getShowcaseDreamsList, getShowcaseDreamDetail } from "./showcaseSeed";
 import {
   VictoryCard,
   VictoriesResponse,
@@ -116,6 +117,12 @@ export async function fetchUserData(
   options: FetchUserDataOptions = { fields: "essential" },
 ): Promise<UserData | null> {
   try {
+    // Showcase demo account — return seeded data without hitting the network
+    if (userId === SHOWCASE_UID) {
+      console.log("[fetchUserData] Returning showcase seed data");
+      return getShowcaseUserData() as UserData;
+    }
+
     // Build URL with query parameters
     const url = new URL(`${API_BASE_URL}/users/${userId}`);
     if (options.fields && options.fields !== "full") {
@@ -604,6 +611,17 @@ export interface GetStreakResponse {
 
 export async function getStreak(userId: string): Promise<GetStreakResponse> {
   try {
+    // Showcase demo account — return seeded streak without hitting the network
+    if (userId === SHOWCASE_UID) {
+      return {
+        success: true,
+        message: "showcase seed",
+        streak_data: getShowcaseUserData().streak,
+        streak_broken: false,
+        recalculated: false,
+      };
+    }
+
     const url = `${API_BASE_URL}/users/${userId}/streak`;
     // console.log("[getStreak] Fetching streak for user:", userId);
 
@@ -1236,6 +1254,15 @@ export async function fetchDreamDetails(
   threadId: string,
 ): Promise<any> {
   try {
+    // Showcase demo account — return seeded detail without hitting the network
+    if (_userId === SHOWCASE_UID) {
+      const detail = getShowcaseDreamDetail(threadId);
+      if (detail) {
+        console.log("[fetchDreamDetails] Returning showcase seed for", threadId);
+        return detail;
+      }
+    }
+
     console.log(`Fetching dream details for threadId: ${threadId}`);
 
     // Fetch from dreams CRUD collection endpoint
@@ -1284,6 +1311,12 @@ export async function fetchDreamsList(
   },
 ): Promise<any> {
   try {
+    // Showcase demo account — return seeded list without hitting the network
+    if (userId === SHOWCASE_UID) {
+      console.log("[fetchDreamsList] Returning showcase seed data");
+      return getShowcaseDreamsList();
+    }
+
     console.log(`Fetching dreams list for userId: ${userId}`);
 
     // Build query parameters
@@ -1340,6 +1373,57 @@ export async function fetchDreamsList(
       dreams: [],
       pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
     };
+  }
+}
+
+// ============================================================================
+// CUSTOM MILESTONE ENDPOINTS
+// ============================================================================
+
+export interface AddMilestoneRequest {
+  title: string;
+  challenge_type: string;
+}
+
+export interface AddMilestoneResponse {
+  success: boolean;
+  milestone: any;
+  milestones: any[];
+}
+
+export async function addMilestoneToRoadmap(
+  threadId: string,
+  data: AddMilestoneRequest,
+): Promise<AddMilestoneResponse> {
+  try {
+    const url = `${API_BASE_URL}/dreams-crud/${threadId}/milestones`;
+    console.log("[addMilestoneToRoadmap] POST:", url, data);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    console.log("[addMilestoneToRoadmap] Response status:", response.status);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log("[addMilestoneToRoadmap] Success:", result);
+    return result as AddMilestoneResponse;
+  } catch (error: any) {
+    console.error("[addMilestoneToRoadmap] Error:", error.message);
+    throw error;
   }
 }
 
