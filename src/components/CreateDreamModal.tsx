@@ -20,6 +20,7 @@ import { Color, getThemeColors } from '../constants/GlobalStyles';
 import { startConversation, sendConversationTurn } from '../config/api';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
+import { LunaChatHeader } from './LunaChatHeader';
 
 interface CreateDreamModalProps {
   visible: boolean;
@@ -32,6 +33,8 @@ interface ChatMessage {
   text: string;
 }
 
+type ChatStatus = 'rendering' | 'waiting' | 'sending';
+
 export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
   visible,
   onClose,
@@ -42,11 +45,43 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
   const [creatingDream, setCreatingDream] = useState(false);
+  const [chatStatus, setChatStatus] = useState<ChatStatus>('waiting');
+  const [fullAiMessage, setFullAiMessage] = useState(''); // Store complete AI message
+  const [displayedAiMessage, setDisplayedAiMessage] = useState(''); // Typewriter display
+  const typewriterRef = useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
+
+  // Typewriter effect for AI messages
+  useEffect(() => {
+    if (!fullAiMessage) return;
+
+    setChatStatus('rendering'); // Start rendering animation
+    setDisplayedAiMessage('');
+    let currentIndex = 0;
+
+    const typeNextChar = () => {
+      if (currentIndex < fullAiMessage.length) {
+        setDisplayedAiMessage(fullAiMessage.slice(0, currentIndex + 1));
+        currentIndex++;
+        typewriterRef.current = setTimeout(typeNextChar, 20); // 20ms per character
+      } else {
+        // Typewriter complete, switch to waiting
+        setChatStatus('waiting');
+      }
+    };
+
+    typeNextChar();
+
+    return () => {
+      if (typewriterRef.current) {
+        clearTimeout(typewriterRef.current);
+      }
+    };
+  }, [fullAiMessage]);
 
   // Start conversation when modal opens
   useEffect(() => {
@@ -56,11 +91,15 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
       setInputText('');
       setSending(true);
       setCreatingDream(false);
+      setFullAiMessage('');
+      setDisplayedAiMessage('');
+      setChatStatus('sending'); // Initial loading state
 
       startConversation(user.uid)
         .then((res) => {
           setSessionId(res.session_id);
-          setMessages([{ role: 'assistant', text: res.ai_message }]);
+          setFullAiMessage(res.ai_message); // Trigger typewriter
+          setMessages([{ role: 'assistant', text: '' }]); // Empty bubble for typewriter
         })
         .catch((err) => {
           console.error('[CreateDreamModal] startConversation failed:', err);
@@ -84,52 +123,58 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
 
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    // Append user message + empty assistant bubble for streaming
-    setMessages((prev) => [
-      ...prev,
-      { role: 'user', text },
-      { role: 'assistant', text: '' },
-    ]);
+    // Append user message to display
+    setMessages((prev) => [...prev, { role: 'user', text }]);
     setInputText('');
     setSending(true);
+    setChatStatus('sending'); // User sent message, AI thinking
 
     try {
+      let accumulatedMessage = '';
       const res = await sendConversationTurn(sessionId, user.uid, text, (chunk) => {
-        // Append each chunk to the last (assistant) bubble
-        setMessages((prev) => {
-          const updated = [...prev];
-          updated[updated.length - 1] = {
-            ...updated[updated.length - 1],
-            text: updated[updated.length - 1].text + chunk,
-          };
-          return updated;
-        });
+        // Accumulate chunks silently
+        accumulatedMessage += chunk;
       });
 
       if (res.conversation_complete) {
+        // Show final message with typewriter before completing
+        setMessages((prev) => [...prev, { role: 'assistant', text: '' }]);
+        setFullAiMessage(accumulatedMessage); // Trigger typewriter
+
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setCreatingDream(true);
         // Let the user read the final AI message before dismissing
         await new Promise((resolve) => setTimeout(resolve, 3000));
         onClose();
         onDreamCreating?.();
+      } else {
+        // Add assistant message and trigger typewriter
+        setMessages((prev) => [...prev, { role: 'assistant', text: '' }]);
+        setFullAiMessage(accumulatedMessage); // Trigger typewriter
       }
     } catch (err: any) {
       console.error('[CreateDreamModal] sendConversationTurn failed:', err);
-      // Remove both the user message and the empty assistant bubble
-      setMessages((prev) => prev.slice(0, -2));
+      // Remove the user message
+      setMessages((prev) => prev.slice(0, -1));
       Alert.alert('Error', err.message || 'Something went wrong. Please try again.');
+      setChatStatus('waiting'); // Return to waiting state on error
     } finally {
       setSending(false);
     }
   };
 
   const handleClose = () => {
+    if (typewriterRef.current) {
+      clearTimeout(typewriterRef.current);
+    }
     setSessionId(null);
     setMessages([]);
     setInputText('');
     setSending(false);
     setCreatingDream(false);
+    setChatStatus('waiting');
+    setFullAiMessage('');
+    setDisplayedAiMessage('');
     onClose();
   };
 
@@ -175,63 +220,49 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                   <X size={24} color={themeColors.text_primary} />
                 </TouchableOpacity>
 
-                {/* Title */}
-                <Text
-                  style={{
-                    fontSize: 24,
-                    fontWeight: '700',
-                    color: themeColors.text_primary,
-                    fontFamily: 'InstrumentSans-Bold',
-                    marginBottom: 4,
-                    textAlign: 'center',
-                  }}>
-                  What's Your Dream?
-                </Text>
-
-                <Text
-                  style={{
-                    fontSize: 14,
-                    color: themeColors.text_secondary,
-                    fontFamily: 'InstrumentSans-Regular',
-                    textAlign: 'center',
-                    marginBottom: 16,
-                    lineHeight: 20,
-                  }}>
-                  Chat with your dream coach
-                </Text>
+                {/* Luna Chat Header with Video Portal */}
+                <LunaChatHeader
+                  chatStatus={chatStatus}
+                  borderColor={themeColors.border}
+                />
 
                 {/* Chat bubble list */}
                 <ScrollView
                   ref={scrollRef}
                   style={{ flex: 1, marginBottom: 12 }}
                   contentContainerStyle={{ justifyContent: 'flex-end' }}>
-                  {messages.map((msg, i) => (
-                    <View
-                      key={i}
-                      style={{
-                        alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                        maxWidth: '85%',
-                        marginBottom: 8,
-                      }}>
-                      {msg.role === 'assistant' ? (
-                        <View
-                          style={{
-                            backgroundColor: themeColors.bg_secondary,
-                            borderRadius: 16,
-                            borderTopLeftRadius: 4,
-                            paddingHorizontal: 14,
-                            paddingVertical: 10,
-                          }}>
-                          <Text
+                  {messages.map((msg, i) => {
+                    // Show typewriter text for the last assistant message
+                    const isLastAssistantMsg = msg.role === 'assistant' && i === messages.length - 1;
+                    const displayText = isLastAssistantMsg ? displayedAiMessage : msg.text;
+
+                    return (
+                      <View
+                        key={i}
+                        style={{
+                          alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                          maxWidth: '85%',
+                          marginBottom: 8,
+                        }}>
+                        {msg.role === 'assistant' ? (
+                          <View
                             style={{
-                              fontSize: 15,
-                              color: themeColors.text_primary,
-                              fontFamily: 'InstrumentSans-Regular',
-                              lineHeight: 22,
+                              backgroundColor: themeColors.bg_secondary,
+                              borderRadius: 16,
+                              borderTopLeftRadius: 4,
+                              paddingHorizontal: 14,
+                              paddingVertical: 10,
                             }}>
-                            {msg.text}
-                          </Text>
-                        </View>
+                            <Text
+                              style={{
+                                fontSize: 15,
+                                color: themeColors.text_primary,
+                                fontFamily: 'InstrumentSans-Regular',
+                                lineHeight: 22,
+                              }}>
+                              {displayText}
+                            </Text>
+                          </View>
                       ) : (
                         <LinearGradient
                           colors={['#fb6322', '#f79971']}
@@ -255,7 +286,8 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                         </LinearGradient>
                       )}
                     </View>
-                  ))}
+                    );
+                  })}
 
                   {/* Typing indicator — only during the initial /start call (no messages yet) */}
                   {sending && messages.length === 0 && (
