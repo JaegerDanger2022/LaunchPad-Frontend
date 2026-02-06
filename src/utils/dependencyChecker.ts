@@ -34,7 +34,11 @@ export const areDependenciesCompleted = (
   }
 
   // Milestone not found in any roadmap – unlock by default
+  // This handles cases where milestone data isn't loaded yet or custom milestones
   if (!ownerMilestones || milestoneIndex === -1) {
+    console.warn('[DepChecker] Milestone not found in any roadmap - ID:', milestone?.id);
+    console.warn('[DepChecker] This should not happen if dream data is fully loaded');
+    // If we can't find the milestone, default to unlocked (backward compatible)
     return true;
   }
 
@@ -52,8 +56,11 @@ export const areDependenciesCompleted = (
     if (!roadmapHasAnyDeps) {
       // Sequential fallback: first milestone is unlocked; every other
       // milestone requires the previous one to be completed.
-      if (milestoneIndex === 0) return true;
-      return ownerMilestones[milestoneIndex - 1]?.status === "completed";
+      if (milestoneIndex === 0) {
+        return true;
+      }
+      const prevStatus = ownerMilestones[milestoneIndex - 1]?.status;
+      return prevStatus === "completed";
     }
 
     // Roadmap uses deps elsewhere but this milestone has none – unlocked

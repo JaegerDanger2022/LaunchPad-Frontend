@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useCallback, useState } from "react";
+import React, { useMemo, useRef, useCallback, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Dimensions,
   ScrollView,
   PanResponder,
+  ActivityIndicator,
 } from "react-native";
 import {
   Color,
@@ -21,6 +22,7 @@ import { useThemeStore } from "../store/themeStore";
 import { useAuthStore } from "../store/authStore";
 import { areDependenciesCompleted } from "../utils/dependencyChecker";
 import { AddMilestoneModal } from "../components/AddMilestoneModal";
+import { fetchDreamDetails } from "../config/api";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -69,14 +71,45 @@ const DreamPage = ({
   const insets = useSafeAreaInsets();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
-  const { userData, addCustomMilestone } = useAuthStore();
+  const { userData, addCustomMilestone, user } = useAuthStore();
   const [showAddMilestone, setShowAddMilestone] = useState(false);
+  const [fullDreamData, setFullDreamData] = useState<any>(null);
+  const [isLoadingDream, setIsLoadingDream] = useState(true);
 
   // Find the dream matching the threadId passed from navigation
-  const dream = useMemo(
+  const dreamFromStore = useMemo(
     () => userData?.dreams?.find((d: any) => d.thread_id === threadId),
     [userData?.dreams, threadId],
   );
+
+  // Use fullDreamData if available, otherwise fall back to dreamFromStore
+  const dream = fullDreamData || dreamFromStore;
+
+  // Load full dream details on mount
+  useEffect(() => {
+    const loadDreamDetails = async () => {
+      if (!user?.uid || !threadId) {
+        setIsLoadingDream(false);
+        return;
+      }
+
+      try {
+        console.log('[DreamPage] Loading full dream details for thread:', threadId);
+        const details = await fetchDreamDetails(user.uid, threadId);
+        if (details) {
+          console.log('[DreamPage] Loaded dream with', details.roadmap?.milestones?.length, 'milestones');
+          setFullDreamData(details);
+        }
+      } catch (error) {
+        console.error('[DreamPage] Error loading dream details:', error);
+      } finally {
+        setIsLoadingDream(false);
+      }
+    };
+
+    loadDreamDetails();
+  }, [user?.uid, threadId]);
+
   const dismiss = useCallback(() => onNavigate("Home"), [onNavigate]);
 
   const panResponder = useRef(
@@ -245,46 +278,65 @@ const DreamPage = ({
                 paddingTop: 120,
                 paddingBottom: 40,
               }}>
-              {/* milestones Grid - 2 Items Per Row */}
+              {/* Loading indicator */}
+              {isLoadingDream && milestones.length === 0 ? (
+                <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: 40 }}>
+                  <ActivityIndicator size="large" color={themeColors.text_primary} />
+                  <Text style={{
+                    color: themeColors.text_secondary,
+                    fontFamily: "InstrumentSans-Regular",
+                    fontSize: 14,
+                    marginTop: 12,
+                  }}>
+                    Loading milestones...
+                  </Text>
+                </View>
+              ) : null}
+
+              {/* Milestones List - One Item Per Row */}
               <View style={{ gap: 16 }}>
-                {Array.from({ length: Math.ceil(milestones.length / 2) }).map(
-                  (_, rowIndex) => {
-                    const rowItems = milestones.slice(
-                      rowIndex * 2,
-                      rowIndex * 2 + 2,
-                    );
-                    return (
-                      <View
-                        key={rowIndex}
-                        style={{ flexDirection: "row", gap: 16 }}>
-                        {rowItems.map((milestone) => {
-                          const dependenciesMet = areDependenciesCompleted(
-                            milestone.rawMilestone,
-                            userData?.dreams,
-                          );
+                {milestones.map((milestone, index) => {
+                  // For dependency checking, pass all dreams but with the current dream's full data
+                  // This handles both intra-dream and cross-dream dependencies
+                  const dreamsForDepCheck = userData?.dreams?.map((d: any) =>
+                    d.thread_id === threadId && fullDreamData ? fullDreamData : d
+                  ) || [];
 
-                          return (
-                            <MilestoneCard
-                              key={milestone.id}
-                              {...milestone}
-                              isLocked={!dependenciesMet}
-                              onPress={() => {
-                                if (dependenciesMet) {
-                                  onNavigate("Milestone", {
-                                    milestoneId: milestone.milestoneId,
-                                  });
-                                }
-                              }}
-                            />
-                          );
-                        })}
+                  const dependenciesMet = areDependenciesCompleted(
+                    milestone.rawMilestone,
+                    dreamsForDepCheck,
+                  );
 
-                        {/* Spacer for odd-numbered rows */}
-                        {rowItems.length === 1 && <View style={{ flex: 1 }} />}
-                      </View>
-                    );
-                  },
-                )}
+                  // Debug logging
+                  if (index === 0) {
+                    console.log('[DreamPage] First milestone debug:', {
+                      milestoneId: milestone.milestoneId,
+                      milestoneTitle: milestone.title,
+                      hasDependencies: milestone.rawMilestone?.dependencies,
+                      dependencies: milestone.rawMilestone?.dependencies,
+                      status: milestone.rawMilestone?.status,
+                      dependenciesMet,
+                      currentDreamMilestones: dream?.roadmap?.milestones?.length,
+                      allDreams: userData?.dreams?.length,
+                      usingFullData: !!fullDreamData,
+                    });
+                  }
+
+                  return (
+                    <MilestoneCard
+                      key={milestone.id}
+                      {...milestone}
+                      isLocked={!dependenciesMet}
+                      onPress={() => {
+                        if (dependenciesMet) {
+                          onNavigate("Milestone", {
+                            milestoneId: milestone.milestoneId,
+                          });
+                        }
+                      }}
+                    />
+                  );
+                })}
               </View>
             </View>
           </ScrollView>
