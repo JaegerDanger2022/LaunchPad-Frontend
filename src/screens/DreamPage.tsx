@@ -71,10 +71,11 @@ const DreamPage = ({
   const insets = useSafeAreaInsets();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
-  const { userData, addCustomMilestone, user } = useAuthStore();
+  const { userData, addCustomMilestone, user, loadFullDreams } = useAuthStore();
   const [showAddMilestone, setShowAddMilestone] = useState(false);
   const [fullDreamData, setFullDreamData] = useState<any>(null);
   const [isLoadingDream, setIsLoadingDream] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Find the dream matching the threadId passed from navigation
   const dreamFromStore = useMemo(
@@ -82,10 +83,21 @@ const DreamPage = ({
     [userData?.dreams, threadId],
   );
 
-  // Use fullDreamData if available, otherwise fall back to dreamFromStore
-  const dream = fullDreamData || dreamFromStore;
+  // Use dreamFromStore if it has more milestones (indicates a recent update),
+  // otherwise use fullDreamData, or fall back to dreamFromStore
+  const dream = useMemo(() => {
+    if (!dreamFromStore && !fullDreamData) return null;
+    if (!fullDreamData) return dreamFromStore;
+    if (!dreamFromStore) return fullDreamData;
 
-  // Load full dream details on mount
+    // If dreamFromStore has more milestones, it's fresher (e.g., custom milestone was just added)
+    const storeMilestoneCount = dreamFromStore?.roadmap?.milestones?.length || 0;
+    const fullDataMilestoneCount = fullDreamData?.roadmap?.milestones?.length || 0;
+
+    return storeMilestoneCount > fullDataMilestoneCount ? dreamFromStore : fullDreamData;
+  }, [dreamFromStore, fullDreamData]);
+
+  // Load full dream details on mount and when refreshTrigger changes
   useEffect(() => {
     const loadDreamDetails = async () => {
       if (!user?.uid || !threadId) {
@@ -103,6 +115,11 @@ const DreamPage = ({
               threadId: details.thread_id,
               dreamTitle: details.dream,
               milestoneCount: details.roadmap?.milestones?.length || 0,
+              milestones: details.roadmap?.milestones?.map((m: any) => ({
+                id: m.id,
+                title: m.title,
+                is_custom: m.is_custom,
+              })),
             });
             setFullDreamData(details);
           } else {
@@ -122,7 +139,7 @@ const DreamPage = ({
     };
 
     loadDreamDetails();
-  }, [user?.uid, threadId]);
+  }, [user?.uid, threadId, refreshTrigger]);
 
   const dismiss = useCallback(() => onNavigate("Home"), [onNavigate]);
 
@@ -322,19 +339,19 @@ const DreamPage = ({
                   );
 
                   // Debug logging
-                  if (index === 0) {
-                    console.log('[DreamPage] First milestone debug:', {
-                      milestoneId: milestone.milestoneId,
-                      milestoneTitle: milestone.title,
-                      hasDependencies: milestone.rawMilestone?.dependencies,
-                      dependencies: milestone.rawMilestone?.dependencies,
-                      status: milestone.rawMilestone?.status,
-                      dependenciesMet,
-                      currentDreamMilestones: dream?.roadmap?.milestones?.length,
-                      allDreams: userData?.dreams?.length,
-                      usingFullData: !!fullDreamData,
-                    });
-                  }
+                  // if (index === 0) {
+                  //   console.log('[DreamPage] First milestone debug:', {
+                  //     milestoneId: milestone.milestoneId,
+                  //     milestoneTitle: milestone.title,
+                  //     hasDependencies: milestone.rawMilestone?.dependencies,
+                  //     dependencies: milestone.rawMilestone?.dependencies,
+                  //     status: milestone.rawMilestone?.status,
+                  //     dependenciesMet,
+                  //     currentDreamMilestones: dream?.roadmap?.milestones?.length,
+                  //     allDreams: userData?.dreams?.length,
+                  //     usingFullData: !!fullDreamData,
+                  //   });
+                  // }
 
                   return (
                     <MilestoneCard
@@ -388,9 +405,29 @@ const DreamPage = ({
       <AddMilestoneModal
         visible={showAddMilestone}
         onClose={() => setShowAddMilestone(false)}
-        onSubmit={(title, challengeType) => {
+        onSubmit={async (title, challengeType) => {
           setShowAddMilestone(false);
-          addCustomMilestone(threadId, title, challengeType);
+          console.log('[DreamPage] Adding custom milestone:', { title, challengeType, threadId });
+
+          try {
+            await addCustomMilestone(threadId, title, challengeType);
+            console.log('[DreamPage] Custom milestone added, waiting 500ms before refresh');
+
+            // Small delay to ensure backend has persisted the data
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Force reload from backend by clearing local cache
+            if (user?.uid) {
+              console.log('[DreamPage] Refreshing dream data from backend');
+              await loadFullDreams(user.uid);
+            }
+
+            console.log('[DreamPage] Triggering component refresh');
+            // Trigger a refresh to fetch the updated dream with the new milestone
+            setRefreshTrigger(prev => prev + 1);
+          } catch (error) {
+            console.error('[DreamPage] Error adding custom milestone:', error);
+          }
         }}
       />
     </SafeAreaView>

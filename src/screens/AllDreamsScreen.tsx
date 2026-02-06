@@ -192,7 +192,7 @@ const AllDreamsScreen = ({
       }
 
       if (cancelled) return;
-      pollInterval.current = setInterval(poll, 3000);
+      pollInterval.current = setInterval(poll, 7000);
       // Safety: dismiss placeholder after 200 s
       pollTimeout.current = setTimeout(() => {
         stopPolling();

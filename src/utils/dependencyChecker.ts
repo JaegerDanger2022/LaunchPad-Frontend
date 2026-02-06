@@ -36,16 +36,16 @@ export const areDependenciesCompleted = (
   // Milestone not found in any roadmap – LOCK by default to prevent accidental unlocks
   // This prevents all milestones from unlocking when dream data isn't fully loaded
   if (!ownerMilestones || milestoneIndex === -1) {
-    console.warn(
-      '[DepChecker] Milestone not found in roadmap.',
-      'This usually means data is still loading.',
-      {
-        milestoneId: milestone?.id,
-        availableDreams: dreams?.length,
-        dreamsWithMilestones: dreams?.filter(d => d.roadmap?.milestones?.length > 0).length,
-      }
-    );
-    console.warn('[DepChecker] Locking milestone until dream data is fully loaded');
+    // console.warn(
+    //   '[DepChecker] Milestone not found in roadmap.',
+    //   'This usually means data is still loading.',
+    //   {
+    //     milestoneId: milestone?.id,
+    //     availableDreams: dreams?.length,
+    //     dreamsWithMilestones: dreams?.filter(d => d.roadmap?.milestones?.length > 0).length,
+    //   }
+    // );
+    // console.warn('[DepChecker] Locking milestone until dream data is fully loaded');
     // If we can't find the milestone, default to LOCKED (prevents premature unlocks)
     return false;
   }
@@ -57,39 +57,39 @@ export const areDependenciesCompleted = (
   // If no dependencies field or empty array, milestone is unlocked
   // (First milestone in sequential roadmaps will have empty array)
   if (!hasDependencies || dependencies.length === 0) {
-    console.log('[DepChecker] No dependencies - unlocking milestone:', {
-      milestoneId: milestone?.id,
-      milestoneTitle: milestone?.title,
-      milestoneIndex,
-    });
+    // console.log('[DepChecker] No dependencies - unlocking milestone:', {
+    //   milestoneId: milestone?.id,
+    //   milestoneTitle: milestone?.title,
+    //   milestoneIndex,
+    // });
     return true;
   }
 
   // Check each dependency - all must be completed
   const dependencyIds: string[] = dependencies;
-  console.log('[DepChecker] Checking dependencies for milestone:', {
-    milestoneId: milestone?.id,
-    milestoneTitle: milestone?.title?.substring(0, 40),
-    dependencyIds,
-    dependencyCount: dependencyIds.length,
-  });
+  // console.log('[DepChecker] Checking dependencies for milestone:', {
+  //   milestoneId: milestone?.id,
+  //   milestoneTitle: milestone?.title?.substring(0, 40),
+  //   dependencyIds,
+  //   dependencyCount: dependencyIds.length,
+  // });
 
   // Search all dreams for the dependency milestones
   for (const dream of dreams) {
     if (dream.roadmap?.milestones && Array.isArray(dream.roadmap.milestones)) {
       for (const m of dream.roadmap.milestones) {
         if (dependencyIds.includes(m.id) && m.status !== "completed") {
-          console.log('[DepChecker] BLOCKED - dependency not completed:', {
-            blockingMilestoneId: m.id,
-            blockingMilestoneTitle: m.title?.substring(0, 40),
-            blockingMilestoneStatus: m.status,
-          });
+          // console.log('[DepChecker] BLOCKED - dependency not completed:', {
+          //   blockingMilestoneId: m.id,
+          //   blockingMilestoneTitle: m.title?.substring(0, 40),
+          //   blockingMilestoneStatus: m.status,
+          // });
           return false;
         }
       }
     }
   }
 
-  console.log('[DepChecker] All dependencies completed - UNLOCKED');
+  // console.log('[DepChecker] All dependencies completed - UNLOCKED');
   return true;
 };

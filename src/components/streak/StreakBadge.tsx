@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { Color } from '../../constants/GlobalStyles';
 
 interface StreakBadgeProps {
@@ -21,15 +21,14 @@ export const StreakBadge: React.FC<StreakBadgeProps> = ({
   const { width, height, fontSize } = dimensions[size];
 
   return (
-    <LinearGradient
-      colors={['#A855F7', '#6366F1']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 0 }}
+    <BlurView
+      intensity={20}
+      tint="dark"
       style={[styles.badge, { width, height }]}
     >
       <Image source={require('../../assets/animations/fire.gif')} style={{ width: fontSize, height: fontSize }} />
       <Text style={[styles.text, { fontSize }]}>{streakCount}</Text>
-    </LinearGradient>
+    </BlurView>
   );
 };
 
@@ -40,6 +39,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 20,
     gap: 4,
+    backgroundColor: 'rgba(43, 45, 86, 0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    overflow: 'hidden',
   },
   text: {
     color: Color.colorWhite,
