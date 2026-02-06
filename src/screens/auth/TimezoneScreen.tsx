@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import * as Haptics from 'expo-haptics';
-import * as Localization from 'expo-localization';
 
 interface TimezoneScreenProps {
   navigation: any;
@@ -70,15 +69,23 @@ const TIMEZONES = [
 const TimezoneScreen = ({ navigation, route }: TimezoneScreenProps) => {
   const { email, password, name } = route.params;
 
-  // Auto-detect device timezone and find closest match
+  // Auto-detect device timezone using the same method as LangGraph agent
   const getDefaultTimezone = () => {
     try {
-      const deviceTimezone = Localization.getCalendars()[0]?.timeZone;
+      // Use Intl API (same as LangGraph agent expects)
+      const deviceTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       if (!deviceTimezone) return null;
 
-      // Check if device timezone matches any of our options
-      const match = TIMEZONES.find(tz => tz.value === deviceTimezone);
-      return match ? deviceTimezone : null;
+      // Check if device timezone matches any of our options exactly
+      const exactMatch = TIMEZONES.find(tz => tz.value === deviceTimezone);
+      if (exactMatch) return deviceTimezone;
+
+      // If no exact match, try to find a timezone in the same region
+      // For example: "America/Indiana/Indianapolis" -> "America/New_York"
+      const region = deviceTimezone.split('/')[0];
+      const fallback = TIMEZONES.find(tz => tz.value.startsWith(region));
+
+      return fallback ? fallback.value : null;
     } catch (error) {
       console.log('Could not detect timezone:', error);
       return null;
