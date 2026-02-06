@@ -428,6 +428,9 @@ const HomeScreen = ({
 
                 // Find the actual milestone object to check dependencies
                 let rawMilestone: any = null;
+                let milestoneThreadId: string | null = null;
+                let milestonesLoaded = false;
+
                 if (userData?.dreams) {
                   for (const dream of userData.dreams) {
                     if (dream.roadmap?.milestones) {
@@ -436,16 +439,18 @@ const HomeScreen = ({
                       );
                       if (found) {
                         rawMilestone = found;
+                        milestoneThreadId = dream.thread_id;
+                        milestonesLoaded = dream.roadmap.milestones.length > 0;
                         break;
                       }
                     }
                   }
                 }
 
-                const dependenciesMet = areDependenciesCompleted(
-                  rawMilestone,
-                  userData?.dreams,
-                );
+                // SAFETY CHECK: Default to locked if milestone data isn't fully loaded yet
+                const dependenciesMet = milestonesLoaded
+                  ? areDependenciesCompleted(rawMilestone, userData?.dreams)
+                  : false;
 
                 return (
                   <UpNextHeroCard
@@ -459,9 +464,10 @@ const HomeScreen = ({
                     challengeType={userData.up_next.challenge_type}
                     isLocked={!dependenciesMet}
                     onPress={() => {
-                      if (dependenciesMet) {
+                      if (dependenciesMet && milestoneThreadId) {
                         onNavigate("Milestone", {
                           milestoneId: userData.up_next!.milestone_id,
+                          threadId: milestoneThreadId,
                         });
                       }
                     }}

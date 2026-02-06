@@ -236,7 +236,7 @@ const DreamPage = ({
             justifyContent: "center",
           }}>
           <TouchableOpacity
-            onPress={() => onNavigate("Home")}
+            onPress={() => onNavigate("Back")}
             style={{
               width: 48,
               height: 48,
@@ -345,6 +345,7 @@ const DreamPage = ({
                         if (dependenciesMet) {
                           onNavigate("Milestone", {
                             milestoneId: milestone.milestoneId,
+                            threadId: threadId,
                           });
                         }
                       }}

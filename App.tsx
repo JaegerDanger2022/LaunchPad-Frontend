@@ -43,7 +43,7 @@ export type RootStackParamList = {
   HomeTabs: undefined;
 
   // Modal screens (shown on top of tabs)
-  Milestone: { milestoneId: string };
+  Milestone: { milestoneId: string; threadId: string };
   Dream: { threadId: string };
   StreakStats: undefined;
   ShareVictory: { victory: any };
@@ -116,6 +116,7 @@ const MilestoneScreenWrapper = ({ navigation, route }: any) => (
       }
     }}
     milestoneId={route.params?.milestoneId}
+    dreamThreadId={route.params?.threadId}
   />
 );
 
@@ -138,7 +139,9 @@ const DreamPageWrapper = ({ navigation, route }: any) => (
   <DreamPage
     threadId={route.params?.threadId}
     onNavigate={(screen, params) => {
-      if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Analytics') {
+      if (screen === 'Back') {
+        navigation.goBack();
+      } else if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Analytics') {
         navigation.goBack();
         // Navigate to the tab after closing the modal
         setTimeout(() => {

@@ -36,7 +36,15 @@ export const areDependenciesCompleted = (
   // Milestone not found in any roadmap – LOCK by default to prevent accidental unlocks
   // This prevents all milestones from unlocking when dream data isn't fully loaded
   if (!ownerMilestones || milestoneIndex === -1) {
-    console.warn('[DepChecker] Milestone not found in any roadmap - ID:', milestone?.id);
+    console.warn(
+      '[DepChecker] Milestone not found in roadmap.',
+      'This usually means data is still loading.',
+      {
+        milestoneId: milestone?.id,
+        availableDreams: dreams?.length,
+        dreamsWithMilestones: dreams?.filter(d => d.roadmap?.milestones?.length > 0).length,
+      }
+    );
     console.warn('[DepChecker] Locking milestone until dream data is fully loaded');
     // If we can't find the milestone, default to LOCKED (prevents premature unlocks)
     return false;

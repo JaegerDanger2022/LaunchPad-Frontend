@@ -27,6 +27,7 @@ import { OneTimeGoal } from "../components/milestonescreen/OneTimeGoal";
 import { SuccessAnimationOverlay } from "../components/animations/SuccessAnimationOverlay";
 import { FireworksAnimationOverlay } from "../components/animations/FireworksAnimationOverlay";
 import { UnlockMessageToast } from "../components/UnlockMessageToast";
+import { fetchDreamDetails } from "../config/api";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -55,9 +56,11 @@ const generateGradientColors = (hexColor: string): [string, string] => {
 const MilestoneScreen = ({
   onNavigate,
   milestoneId,
+  dreamThreadId,
 }: {
   onNavigate: (screen: string, params?: any) => void;
   milestoneId?: string;
+  dreamThreadId?: string;
 }) => {
   const getMilestoneCompletions = useAppStore((state) => state.getMilestoneCompletions);
   const setMilestoneCompletions = useAppStore((state) => state.setMilestoneCompletions);
@@ -77,6 +80,9 @@ const MilestoneScreen = ({
     React.useState(false);
   const [showUnlockToast, setShowUnlockToast] = React.useState(false);
   const [unlockMessage, setUnlockMessage] = React.useState<string>("");
+  const [isLoadingMilestone, setIsLoadingMilestone] = React.useState(true);
+  const [currentDream, setCurrentDream] = React.useState<any>(null);
+  const user = useAuthStore((state) => state.user);
 
   // Drag handle hover animation
   const startHandleHover = () => {
@@ -100,71 +106,105 @@ const MilestoneScreen = ({
     startHandleHover();
   }, []);
 
-  // Extract milestone data by milestone ID
+  // Skeleton loading animation
   React.useEffect(() => {
-    if (milestoneId && userData?.dreams) {
-      let foundMilestone: any = null;
-      let foundDream: any = null;
-
-      // Search through all dreams and milestones to find the one with matching ID
-      for (const dream of userData.dreams) {
-        if (dream.roadmap?.milestones) {
-          const milestone = dream.roadmap.milestones.find(
-            (m: any) => m.id === milestoneId,
-          );
-          if (milestone) {
-            foundMilestone = milestone;
-            foundDream = dream;
-            break;
-          }
-        }
-      }
-
-      if (foundMilestone && foundDream) {
-        // Add dream metadata to milestone for victory card creation
-        const enhancedMilestone = {
-          ...foundMilestone,
-          dreamTitle: foundDream.dream || '',
-          dreamCategory: foundDream.category || 'achievement_goals',
-        };
-        console.log('[MilestoneScreen] Found milestone:', {
-          milestoneId,
-          dreamThreadId: foundDream.thread_id,
-          dreamTitle: foundDream.dream,
-          milestoneTitle: enhancedMilestone.title,
-        });
-        setMilestone(enhancedMilestone);
-        setThreadId(foundDream.thread_id || "");
-
-        // Show unlock message toast if available (after 2 second delay)
-        if (foundMilestone.unlock_message) {
-          const messages = Array.isArray(foundMilestone.unlock_message)
-            ? foundMilestone.unlock_message
-            : [foundMilestone.unlock_message];
-
-          if (messages.length > 0) {
-            // Delay showing the toast by 2 seconds
-            const timer = setTimeout(() => {
-              // Pick a random message
-              const randomMessage =
-                messages[Math.floor(Math.random() * messages.length)];
-              setUnlockMessage(randomMessage);
-              setShowUnlockToast(true);
-            }, 2000);
-
-            return () => clearTimeout(timer);
-          }
-        }
-      } else {
-        console.error('[MilestoneScreen] Milestone not found in any dream:', milestoneId);
-        console.error('[MilestoneScreen] Available dreams:', userData.dreams?.map((d: any) => ({
-          threadId: d.thread_id,
-          dream: d.dream,
-          milestoneCount: d.roadmap?.milestones?.length || 0,
-        })));
-      }
+    if (isLoadingMilestone) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(fadeAnim, {
+            toValue: 0.4,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      fadeAnim.setValue(1);
     }
-  }, [milestoneId, userData]);
+  }, [isLoadingMilestone]);
+
+  // Load full dream details and extract milestone data
+  React.useEffect(() => {
+    const loadDreamAndMilestone = async () => {
+      if (!milestoneId || !dreamThreadId || !user?.uid) {
+        setIsLoadingMilestone(false);
+        return;
+      }
+
+      try {
+        // Fetch full dream details to ensure milestones are loaded
+        const dreamDetails = await fetchDreamDetails(user.uid, dreamThreadId);
+
+        if (!dreamDetails || dreamDetails.thread_id !== dreamThreadId) {
+          console.error('[MilestoneScreen] Dream details mismatch or not found');
+          setIsLoadingMilestone(false);
+          return;
+        }
+
+        // Find milestone ONLY in this dream
+        const foundMilestone = dreamDetails.roadmap?.milestones?.find(
+          (m: any) => m.id === milestoneId
+        );
+
+        if (foundMilestone) {
+          // Add dream metadata to milestone for victory card creation
+          const enhancedMilestone = {
+            ...foundMilestone,
+            dreamTitle: dreamDetails.dream || '',
+            dreamCategory: dreamDetails.category || 'achievement_goals',
+          };
+
+          console.log('[MilestoneScreen] Loaded milestone from dream:', {
+            milestoneId,
+            dreamThreadId,
+            dreamTitle: dreamDetails.dream,
+            milestoneTitle: enhancedMilestone.title,
+          });
+
+          setMilestone(enhancedMilestone);
+          setThreadId(dreamDetails.thread_id || "");
+          setCurrentDream(dreamDetails);
+
+          // Show unlock message toast if available (after 2 second delay)
+          if (foundMilestone.unlock_message) {
+            const messages = Array.isArray(foundMilestone.unlock_message)
+              ? foundMilestone.unlock_message
+              : [foundMilestone.unlock_message];
+
+            if (messages.length > 0) {
+              // Delay showing the toast by 2 seconds
+              const timer = setTimeout(() => {
+                // Pick a random message
+                const randomMessage =
+                  messages[Math.floor(Math.random() * messages.length)];
+                setUnlockMessage(randomMessage);
+                setShowUnlockToast(true);
+              }, 2000);
+
+              return () => clearTimeout(timer);
+            }
+          }
+        } else {
+          console.error('[MilestoneScreen] Milestone not found in dream:', {
+            milestoneId,
+            dreamThreadId,
+            availableMilestones: dreamDetails.roadmap?.milestones?.map((m: any) => m.id),
+          });
+        }
+      } catch (error) {
+        console.error('[MilestoneScreen] Error loading milestone:', error);
+      } finally {
+        setIsLoadingMilestone(false);
+      }
+    };
+
+    loadDreamAndMilestone();
+  }, [milestoneId, dreamThreadId, user?.uid]);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -360,75 +400,194 @@ const MilestoneScreen = ({
                   marginTop: 10,
                   paddingBottom: 40,
                 }}>
-                {/* Challenge Type Animation - Above Title */}
-                {milestone?.challenge_type &&
-                challengeTypeAnimations[milestone.challenge_type] ? (
-                  <View
-                    style={{
-                      alignItems: "center",
-                      marginBottom: 8,
-                    }}>
-                    <LottieView
-                      source={challengeTypeAnimations[milestone.challenge_type]}
-                      autoPlay
-                      loop={false}
+                {isLoadingMilestone ? (
+                  // Loading Skeleton
+                  <>
+                    {/* Skeleton Animation Circle */}
+                    <Animated.View
                       style={{
                         width: 80,
                         height: 80,
+                        borderRadius: 40,
+                        backgroundColor: "rgba(255, 255, 255, 0.3)",
+                        marginBottom: 20,
+                        opacity: fadeAnim,
                       }}
                     />
-                  </View>
-                ) : null}
 
-                <Text
-                  style={{
-                    color: Color.colorBlack,
-                    fontSize: 30,
-                    fontWeight: "700",
-                    marginBottom: 12,
-                    textAlign: "center",
-                  }}>
-                  {milestone?.title || milestone?.name || "Untitled Milestone"}
-                </Text>
+                    {/* Skeleton Title */}
+                    <Animated.View
+                      style={{
+                        width: "80%",
+                        height: 36,
+                        borderRadius: 8,
+                        backgroundColor: "rgba(255, 255, 255, 0.3)",
+                        marginBottom: 12,
+                        opacity: fadeAnim,
+                      }}
+                    />
 
-                <Text
-                  style={{
-                    color: Color.colorBlack,
-                    textAlign: "center",
-                    fontSize: 14,
-                    lineHeight: 24,
-                    opacity: 0.95,
-                    marginBottom: 25,
-                  }}>
-                  {milestone?.description || "No description available"}
-                </Text>
+                    {/* Skeleton Description Lines */}
+                    <Animated.View
+                      style={{
+                        width: "90%",
+                        height: 18,
+                        borderRadius: 4,
+                        backgroundColor: "rgba(255, 255, 255, 0.25)",
+                        marginBottom: 8,
+                        opacity: fadeAnim,
+                      }}
+                    />
+                    <Animated.View
+                      style={{
+                        width: "85%",
+                        height: 18,
+                        borderRadius: 4,
+                        backgroundColor: "rgba(255, 255, 255, 0.25)",
+                        marginBottom: 25,
+                        opacity: fadeAnim,
+                      }}
+                    />
 
-                <View
-                  style={{
-                    width: 80,
-                    height: 2,
-                    backgroundColor: "rgba(255, 255, 255, 0.3)",
-                    marginBottom: 25,
-                  }}
-                />
+                    {/* Skeleton Divider */}
+                    <View
+                      style={{
+                        width: 80,
+                        height: 2,
+                        backgroundColor: "rgba(255, 255, 255, 0.2)",
+                        marginBottom: 25,
+                      }}
+                    />
 
-                <Text
-                  style={{
-                    color: Color.colorBlack,
-                    textAlign: "center",
-                    fontSize: 14,
-                    lineHeight: 20,
-                  }}>
-                  {milestone?.motivation_hook ||
-                    "Mark it as complete to progress!"}
-                </Text>
+                    {/* Skeleton Motivation */}
+                    <Animated.View
+                      style={{
+                        width: "70%",
+                        height: 16,
+                        borderRadius: 4,
+                        backgroundColor: "rgba(255, 255, 255, 0.25)",
+                        opacity: fadeAnim,
+                      }}
+                    />
+                  </>
+                ) : (
+                  // Actual Content
+                  <>
+                    {/* Challenge Type Animation - Above Title */}
+                    {milestone?.challenge_type &&
+                    challengeTypeAnimations[milestone.challenge_type] ? (
+                      <View
+                        style={{
+                          alignItems: "center",
+                          marginBottom: 8,
+                        }}>
+                        <LottieView
+                          source={challengeTypeAnimations[milestone.challenge_type]}
+                          autoPlay
+                          loop={false}
+                          style={{
+                            width: 80,
+                            height: 80,
+                          }}
+                        />
+                      </View>
+                    ) : null}
+
+                    <Text
+                      style={{
+                        color: Color.colorBlack,
+                        fontSize: 30,
+                        fontWeight: "700",
+                        marginBottom: 12,
+                        textAlign: "center",
+                      }}>
+                      {milestone?.title || milestone?.name || "Untitled Milestone"}
+                    </Text>
+
+                    <Text
+                      style={{
+                        color: Color.colorBlack,
+                        textAlign: "center",
+                        fontSize: 14,
+                        lineHeight: 24,
+                        opacity: 0.95,
+                        marginBottom: 25,
+                      }}>
+                      {milestone?.description || "No description available"}
+                    </Text>
+
+                    <View
+                      style={{
+                        width: 80,
+                        height: 2,
+                        backgroundColor: "rgba(255, 255, 255, 0.3)",
+                        marginBottom: 25,
+                      }}
+                    />
+
+                    <Text
+                      style={{
+                        color: Color.colorBlack,
+                        textAlign: "center",
+                        fontSize: 14,
+                        lineHeight: 20,
+                      }}>
+                      {milestone?.motivation_hook ||
+                        "Mark it as complete to progress!"}
+                    </Text>
+                  </>
+                )}
               </View>
             </ScrollView>
           </SafeAreaView>
         </LinearGradient>
 
         {/* Bottom Action Section */}
-        {milestone?.streak_eligible ? (
+        {isLoadingMilestone ? (
+          // Skeleton for bottom action section
+          <View
+            style={{
+              flex: 3,
+              backgroundColor: themeColors.bg_secondary,
+              paddingHorizontal: 24,
+              paddingTop: 30,
+              paddingBottom: 20,
+              justifyContent: "center",
+              alignItems: "center",
+            }}>
+            {/* Skeleton Button */}
+            <Animated.View
+              style={{
+                width: "90%",
+                height: 56,
+                borderRadius: 28,
+                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                opacity: fadeAnim,
+                marginBottom: 20,
+              }}
+            />
+            {/* Skeleton Text Lines */}
+            <Animated.View
+              style={{
+                width: "60%",
+                height: 16,
+                borderRadius: 4,
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+                opacity: fadeAnim,
+                marginBottom: 10,
+              }}
+            />
+            <Animated.View
+              style={{
+                width: "50%",
+                height: 16,
+                borderRadius: 4,
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+                opacity: fadeAnim,
+              }}
+            />
+          </View>
+        ) : milestone?.streak_eligible ? (
           <RepeatableGoal
             completedSteps={completedSteps}
             onPress={handlePress}
