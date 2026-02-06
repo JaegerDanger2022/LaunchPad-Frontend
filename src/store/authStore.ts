@@ -81,7 +81,7 @@ interface AuthState {
   updateCouragePoints: (amount: number) => void;
   loadFullDreams: (userId: string) => Promise<void>;
   refreshDreamsFromCrud: (userId: string) => Promise<void>;
-  addCustomMilestone: (threadId: string, title: string, challengeType: string) => Promise<void>;
+  addCustomMilestone: (threadId: string, title: string, challengeType: string, description?: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -627,42 +627,33 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   // Insert a user-created milestone before the last milestone (typically celebration_moment).
-  // Optimistic local update fires immediately; API call persists in the background.
-  addCustomMilestone: async (threadId: string, title: string, challengeType: string) => {
-    const newMilestone = {
-      id: `custom_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-      title,
-      challenge_type: challengeType,
-      status: 'not_started',
-      xp_points: 0,
-      time_estimate: '30 mins',
-      description: 'Custom milestone',
-      motivation_hook: '',
-      streak_eligible: false,
-      is_custom: true,
-    };
-
-    // Optimistic update: splice before the last milestone
-    set((state) => {
-      if (!state.userData?.dreams) return state;
-      const updated = JSON.parse(JSON.stringify(state.userData));
-      const dream = updated.dreams.find((d: any) => d.thread_id === threadId);
-      if (!dream?.roadmap?.milestones) return state;
-
-      const milestones = dream.roadmap.milestones;
-      const insertAt = milestones.length > 0 ? milestones.length - 1 : 0;
-      milestones.splice(insertAt, 0, newMilestone);
-
-      return { userData: updated };
-    });
-
-    // Persist to backend (fire-and-forget)
+  // The backend handles positioning and dependency updates.
+  addCustomMilestone: async (threadId: string, title: string, challengeType: string, description?: string) => {
     try {
-      await addMilestoneToRoadmap(threadId, { title, challenge_type: challengeType });
-      console.log('[addCustomMilestone] Persisted successfully');
+      const result = await addMilestoneToRoadmap(threadId, {
+        title,
+        challenge_type: challengeType,
+        description
+      });
+      console.log('[addCustomMilestone] Persisted successfully:', result);
+
+      // The backend returns the updated milestones array - update local state
+      if (result.success && result.milestones) {
+        set((state) => {
+          if (!state.userData?.dreams) return state;
+          const updated = JSON.parse(JSON.stringify(state.userData));
+          const dream = updated.dreams.find((d: any) => d.thread_id === threadId);
+          if (!dream?.roadmap) return state;
+
+          // Update the milestones with the backend response
+          dream.roadmap.milestones = result.milestones;
+
+          return { userData: updated };
+        });
+      }
     } catch (e) {
       console.error('[addCustomMilestone] Backend persist failed:', e);
-      // Milestone stays in local state for the session — a refresh will reconcile
+      throw e; // Re-throw so UI can handle the error
     }
   },
 }));

@@ -19,7 +19,7 @@ const SELECTABLE_TYPES = (
 interface AddMilestoneModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (title: string, challengeType: string) => void;
+  onSubmit: (title: string, challengeType: string, description?: string) => void;
 }
 
 // Inline overlay instead of <Modal> — avoids the nested-Modal-in-transparentModal
@@ -32,14 +32,16 @@ export const AddMilestoneModal = ({
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [selectedType, setSelectedType] = useState<string>(SELECTABLE_TYPES[0]);
 
   if (!visible) return null;
 
   const handleSubmit = () => {
     if (!title.trim()) return;
-    onSubmit(title.trim(), selectedType);
+    onSubmit(title.trim(), selectedType, description.trim() || undefined);
     setTitle("");
+    setDescription("");
     setSelectedType(SELECTABLE_TYPES[0]);
   };
 
@@ -125,6 +127,41 @@ export const AddMilestoneModal = ({
             autoCapitalize="sentences"
             autoCorrect
             maxLength={60}
+          />
+
+          {/* Description input */}
+          <Text
+            style={{
+              fontSize: 13,
+              color: themeColors.text_secondary,
+              fontFamily: "InstrumentSans-Medium",
+              marginBottom: 8,
+            }}>
+            Description (optional)
+          </Text>
+          <TextInput
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Add details about this milestone..."
+            placeholderTextColor={themeColors.text_secondary}
+            multiline
+            numberOfLines={3}
+            style={{
+              fontSize: 15,
+              color: themeColors.text_primary,
+              fontFamily: "InstrumentSans-Regular",
+              borderWidth: 1,
+              borderColor: themeColors.border,
+              borderRadius: 8,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              marginBottom: 28,
+              minHeight: 80,
+              textAlignVertical: "top",
+            }}
+            autoCapitalize="sentences"
+            autoCorrect
+            maxLength={200}
           />
 
           {/* Color picker */}

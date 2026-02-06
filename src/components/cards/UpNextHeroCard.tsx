@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Animated } from "react-native";
+import { BlurView } from "expo-blur";
 import { Lock } from "lucide-react-native";
 import { ClockIcon, LightningIcon, ArrowRightIcon } from "../icons/SVGIcons";
 import { Color, ChallengeTypeColors } from "../../constants/GlobalStyles";
@@ -57,17 +58,14 @@ export const UpNextHeroCard: React.FC<UpNextHeroCardProps> = ({
     outputRange: [1, 1.02],
   });
 
-  const bgColor = theme === "dark" ? "#2A2A2A" : "#E8E8E8";
+  const isDark = theme === "dark";
 
   return (
     <Animated.View
       style={{
         marginHorizontal: 17,
         marginBottom: 20,
-        borderRadius: 16,
-        overflow: "hidden",
         height: 180,
-        backgroundColor: bgColor,
         opacity: heroOpacity,
         transform: [
           { scale: Animated.multiply(heroScale, isLocked ? 1 : pulseScale) },
@@ -78,12 +76,25 @@ export const UpNextHeroCard: React.FC<UpNextHeroCardProps> = ({
         shadowOpacity: isLocked ? 0.3 : 0.6,
         elevation: 10,
       }}>
-      <View
+      <BlurView
+        intensity={isDark ? 40 : 60}
+        tint={isDark ? "dark" : "light"}
         style={{
           flex: 1,
-          padding: 20,
-          justifyContent: "space-between",
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: cardColor,
+          backgroundColor: isDark
+            ? "rgba(43,45,86,0.6)"
+            : "rgba(255,255,255,0.6)",
+          overflow: "hidden",
         }}>
+        <View
+          style={{
+            flex: 1,
+            padding: 20,
+            justifyContent: "space-between",
+          }}>
         {/* Up Next Badge */}
         <View
           style={{
@@ -207,6 +218,7 @@ export const UpNextHeroCard: React.FC<UpNextHeroCardProps> = ({
           </TouchableOpacity>
         </View>
       </View>
+      </BlurView>
 
       {/* Locked Overlay */}
       {isLocked && (

@@ -405,25 +405,15 @@ const DreamPage = ({
       <AddMilestoneModal
         visible={showAddMilestone}
         onClose={() => setShowAddMilestone(false)}
-        onSubmit={async (title, challengeType) => {
+        onSubmit={async (title, challengeType, description) => {
           setShowAddMilestone(false);
-          console.log('[DreamPage] Adding custom milestone:', { title, challengeType, threadId });
+          console.log('[DreamPage] Adding custom milestone:', { title, challengeType, description, threadId });
 
           try {
-            await addCustomMilestone(threadId, title, challengeType);
-            console.log('[DreamPage] Custom milestone added, waiting 500ms before refresh');
+            await addCustomMilestone(threadId, title, challengeType, description);
+            console.log('[DreamPage] Custom milestone added successfully');
 
-            // Small delay to ensure backend has persisted the data
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            // Force reload from backend by clearing local cache
-            if (user?.uid) {
-              console.log('[DreamPage] Refreshing dream data from backend');
-              await loadFullDreams(user.uid);
-            }
-
-            console.log('[DreamPage] Triggering component refresh');
-            // Trigger a refresh to fetch the updated dream with the new milestone
+            // Trigger a refresh to fetch the updated dream with the new milestone from backend
             setRefreshTrigger(prev => prev + 1);
           } catch (error) {
             console.error('[DreamPage] Error adding custom milestone:', error);

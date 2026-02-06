@@ -1512,6 +1512,7 @@ export async function fetchDreamsList(
 export interface AddMilestoneRequest {
   title: string;
   challenge_type: string;
+  description?: string;
 }
 
 export interface AddMilestoneResponse {
