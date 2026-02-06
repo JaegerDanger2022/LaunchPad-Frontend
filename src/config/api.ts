@@ -1327,7 +1327,7 @@ async function updateDreamDependencies(
     console.log(`[API] Updating dependencies for dream ${threadId}`);
 
     const response = await fetch(`${API_BASE_URL}/dreams-crud/${threadId}`, {
-      method: "PATCH",
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
