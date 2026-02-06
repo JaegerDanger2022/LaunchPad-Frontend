@@ -154,9 +154,9 @@ const SignupScreen = ({ navigation }: any) => {
 
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    // If this is the last step, navigate to pledge screen
+    // If this is the last step, navigate to timezone screen
     if (currentStepIndex === steps.length - 1) {
-      navigation.navigate('Pledge', {
+      navigation.navigate('Timezone', {
         email: formData.email,
         password: formData.password,
         name: formData.name,

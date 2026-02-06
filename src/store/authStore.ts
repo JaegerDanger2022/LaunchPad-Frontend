@@ -65,7 +65,7 @@ interface AuthState {
 
   // Actions
   refreshPremiumStatus: () => Promise<void>;
-  signUp: (email: string, password: string, firstName: string, lastName?: string) => Promise<void>;
+  signUp: (email: string, password: string, firstName: string, lastName?: string, timezone?: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   googleSignIn: () => Promise<void>;
   logout: () => Promise<void>;
@@ -146,7 +146,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 
-  signUp: async (email: string, password: string, firstName: string, lastName?: string) => {
+  signUp: async (email: string, password: string, firstName: string, lastName?: string, timezone?: string) => {
     try {
       set({ loading: true, error: null });
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -158,6 +158,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           firstname: firstName,
           lastname: lastName || '',
           email,
+          pref_timezone: timezone,
         });
 
         // Identify user in RevenueCat

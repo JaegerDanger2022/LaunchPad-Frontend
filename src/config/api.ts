@@ -32,6 +32,7 @@ export interface UserRegistrationData {
   firstname: string;
   lastname: string;
   email: string;
+  pref_timezone?: string;
 }
 
 export interface UserData {

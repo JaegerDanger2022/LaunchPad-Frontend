@@ -19,6 +19,7 @@ import ShareJourneyRecapScreen from './src/screens/ShareJourneyRecapScreen';
 import { PaywallScreen } from './src/screens/PaywallScreen';
 import LoginScreen from './src/screens/auth/LoginScreen';
 import SignupScreen from './src/screens/auth/SignupScreen';
+import TimezoneScreen from './src/screens/auth/TimezoneScreen';
 import PledgeScreen from './src/screens/auth/PledgeScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
 import { ChangePasswordScreen } from './src/screens/auth/ChangePasswordScreen';
@@ -34,7 +35,8 @@ export type RootStackParamList = {
   // Auth screens
   Login: undefined;
   Signup: undefined;
-  Pledge: { email: string; password: string; name: string };
+  Timezone: { email: string; password: string; name: string };
+  Pledge: { email: string; password: string; name: string; timezone: string };
   ForgotPassword: undefined;
 
   // App tab screens
@@ -285,6 +287,7 @@ function AuthNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
+      <Stack.Screen name="Timezone" component={TimezoneScreen} />
       <Stack.Screen name="Pledge" component={PledgeScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     </Stack.Navigator>
