@@ -46,7 +46,7 @@ export interface VictoryCard {
   dreamId: string;
   dreamCategory: DreamCategory;
 
-  evidenceSnippet: string;
+  evidenceSnippet?: string; // Optional - can be blank
   confidenceBoost: number; // XP points
   impactLevel: ImpactLevel;
 
@@ -101,7 +101,7 @@ export interface CommunityFeedResponse {
 
 export interface CreateVictoryRequest {
   milestoneId: string;
-  evidenceSnippet: string;
+  evidenceSnippet?: string; // Optional - can be blank
   isAnonymous: boolean;
   impact?: ImpactLevel;
 }

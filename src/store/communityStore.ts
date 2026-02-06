@@ -67,7 +67,7 @@ export const useCommunityStore = create<CommunityState>((set) => ({
     try {
       const response = await createVictory({
         milestoneId,
-        evidenceSnippet,
+        evidenceSnippet: evidenceSnippet || undefined, // Send undefined if empty
         isAnonymous,
         impact,
       });

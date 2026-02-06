@@ -552,8 +552,18 @@ export const useAuthStore = create<AuthState>((set) => ({
             const updated = JSON.parse(JSON.stringify(prev.userData));
             const target = updated.dreams.find((d: any) => d.thread_id === threadId);
             if (target) {
+              // Verify we're updating the correct dream by checking thread_id match
+              console.log('[loadFullDreams] Updating dream:', {
+                threadId,
+                dreamTitle: target.dream,
+                milestoneCount: fullDream.roadmap.milestones.length,
+              });
               target.roadmap = fullDream.roadmap;
               target.metadata = fullDream.metadata;
+              // Add timestamp to track when data was last updated
+              target._lastUpdated = Date.now();
+            } else {
+              console.error('[loadFullDreams] Target dream not found for thread:', threadId);
             }
             return { userData: updated };
           });
@@ -624,7 +634,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       title,
       challenge_type: challengeType,
       status: 'not_started',
-      xp_points: 10,
+      xp_points: 0,
       time_estimate: '30 mins',
       description: 'Custom milestone',
       motivation_hook: '',

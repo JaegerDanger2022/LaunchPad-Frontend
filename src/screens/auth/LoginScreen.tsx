@@ -77,6 +77,7 @@ const LoginScreen = ({ navigation }: any) => {
       style={{ flex: 1, backgroundColor: DarkTheme.bg_primary }}>
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
         <View style={{ flex: 1, paddingHorizontal: 24 }}>
           {/* Header */}

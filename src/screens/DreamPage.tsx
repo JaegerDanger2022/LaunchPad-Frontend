@@ -97,8 +97,22 @@ const DreamPage = ({
         console.log('[DreamPage] Loading full dream details for thread:', threadId);
         const details = await fetchDreamDetails(user.uid, threadId);
         if (details) {
-          console.log('[DreamPage] Loaded dream with', details.roadmap?.milestones?.length, 'milestones');
-          setFullDreamData(details);
+          // Verify the fetched dream matches the requested threadId
+          if (details.thread_id === threadId) {
+            console.log('[DreamPage] Loaded dream:', {
+              threadId: details.thread_id,
+              dreamTitle: details.dream,
+              milestoneCount: details.roadmap?.milestones?.length || 0,
+            });
+            setFullDreamData(details);
+          } else {
+            console.error('[DreamPage] Thread ID mismatch!', {
+              requested: threadId,
+              received: details.thread_id,
+            });
+          }
+        } else {
+          console.error('[DreamPage] No dream details returned for thread:', threadId);
         }
       } catch (error) {
         console.error('[DreamPage] Error loading dream details:', error);

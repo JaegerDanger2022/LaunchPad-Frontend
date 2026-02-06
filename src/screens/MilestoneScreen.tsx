@@ -103,46 +103,65 @@ const MilestoneScreen = ({
   // Extract milestone data by milestone ID
   React.useEffect(() => {
     if (milestoneId && userData?.dreams) {
+      let foundMilestone: any = null;
+      let foundDream: any = null;
+
       // Search through all dreams and milestones to find the one with matching ID
       for (const dream of userData.dreams) {
         if (dream.roadmap?.milestones) {
-          const foundMilestone = dream.roadmap.milestones.find(
+          const milestone = dream.roadmap.milestones.find(
             (m: any) => m.id === milestoneId,
           );
-          if (foundMilestone) {
-            // Add dream metadata to milestone for victory card creation
-            const enhancedMilestone = {
-              ...foundMilestone,
-              dreamTitle: dream.dream || '',
-              dreamCategory: dream.category || 'achievement_goals',
-            };
-            console.log('[MilestoneScreen] Enhanced milestone:', enhancedMilestone);
-            console.log('[MilestoneScreen] Milestone title:', enhancedMilestone.title);
-            setMilestone(enhancedMilestone);
-            setThreadId(dream?.thread_id || "");
-
-            // Show unlock message toast if available (after 2 second delay)
-            if (foundMilestone.unlock_message) {
-              const messages = Array.isArray(foundMilestone.unlock_message)
-                ? foundMilestone.unlock_message
-                : [foundMilestone.unlock_message];
-
-              if (messages.length > 0) {
-                // Delay showing the toast by 2 seconds
-                const timer = setTimeout(() => {
-                  // Pick a random message
-                  const randomMessage =
-                    messages[Math.floor(Math.random() * messages.length)];
-                  setUnlockMessage(randomMessage);
-                  setShowUnlockToast(true);
-                }, 2000);
-
-                return () => clearTimeout(timer);
-              }
-            }
+          if (milestone) {
+            foundMilestone = milestone;
+            foundDream = dream;
             break;
           }
         }
+      }
+
+      if (foundMilestone && foundDream) {
+        // Add dream metadata to milestone for victory card creation
+        const enhancedMilestone = {
+          ...foundMilestone,
+          dreamTitle: foundDream.dream || '',
+          dreamCategory: foundDream.category || 'achievement_goals',
+        };
+        console.log('[MilestoneScreen] Found milestone:', {
+          milestoneId,
+          dreamThreadId: foundDream.thread_id,
+          dreamTitle: foundDream.dream,
+          milestoneTitle: enhancedMilestone.title,
+        });
+        setMilestone(enhancedMilestone);
+        setThreadId(foundDream.thread_id || "");
+
+        // Show unlock message toast if available (after 2 second delay)
+        if (foundMilestone.unlock_message) {
+          const messages = Array.isArray(foundMilestone.unlock_message)
+            ? foundMilestone.unlock_message
+            : [foundMilestone.unlock_message];
+
+          if (messages.length > 0) {
+            // Delay showing the toast by 2 seconds
+            const timer = setTimeout(() => {
+              // Pick a random message
+              const randomMessage =
+                messages[Math.floor(Math.random() * messages.length)];
+              setUnlockMessage(randomMessage);
+              setShowUnlockToast(true);
+            }, 2000);
+
+            return () => clearTimeout(timer);
+          }
+        }
+      } else {
+        console.error('[MilestoneScreen] Milestone not found in any dream:', milestoneId);
+        console.error('[MilestoneScreen] Available dreams:', userData.dreams?.map((d: any) => ({
+          threadId: d.thread_id,
+          dream: d.dream,
+          milestoneCount: d.roadmap?.milestones?.length || 0,
+        })));
       }
     }
   }, [milestoneId, userData]);

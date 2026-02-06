@@ -109,6 +109,16 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
       setFeedItems(prev => reset ? response.feed : [...prev, ...response.feed]);
       setCurrentPage(response.pagination.page);
       setTotalPages(response.pagination.totalPages);
+
+      // Debug: Log current user and feed items
+      console.log('[CommunityScreen] Current user UID:', user?.uid);
+      console.log('[CommunityScreen] Feed items:', response.feed.map(item => ({
+        id: item.id,
+        type: item.type,
+        userId: item.userId,
+        isOwnPost: item.userId === user?.uid
+      })));
+
       setLoading(false);
     } catch (error) {
       console.error('Error loading feed:', error);
@@ -458,7 +468,13 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
         }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="white"
+            colors={["white"]}
+            progressBackgroundColor="transparent"
+          />
         }
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}>
@@ -575,15 +591,27 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
             </>
           ) : (
             feedItems.map((item) => {
+              const isOwnPost = item.userId === user?.uid;
+
+              // Debug logging
+              console.log('[CommunityScreen] Rendering item:', {
+                id: item.id,
+                type: item.type,
+                userId: item.userId,
+                currentUserUid: user?.uid,
+                isOwnPost,
+                willShowBoost: !isOwnPost
+              });
+
               if (item.type === 'journey_recap') {
                 // Render Journey Recap Card
                 return (
                   <JourneyRecapCard
                     key={item.id}
                     journeyRecap={item}
-                    onBoost={handleBoost}
-                    onMeToo={item.userId !== user?.uid ? handleMeToo : undefined}
-                    onPermission={item.userId !== user?.uid ? handlePermissionClick : undefined}
+                    onBoost={!isOwnPost ? handleBoost : undefined}
+                    onMeToo={!isOwnPost ? handleMeToo : undefined}
+                    onPermission={!isOwnPost ? handlePermissionClick : undefined}
                     onViewPermissions={handleViewPermissions}
                   />
                 );
@@ -593,9 +621,9 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
                   <VictoryCardComponent
                     key={item.id}
                     victory={item}
-                    onBoost={handleBoost}
-                    onMeToo={item.userId !== user?.uid ? handleMeToo : undefined}
-                    onPermission={item.userId !== user?.uid ? handlePermissionClick : undefined}
+                    onBoost={!isOwnPost ? handleBoost : undefined}
+                    onMeToo={!isOwnPost ? handleMeToo : undefined}
+                    onPermission={!isOwnPost ? handlePermissionClick : undefined}
                     onViewPermissions={handleViewPermissions}
                   />
                 );

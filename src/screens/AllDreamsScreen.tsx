@@ -10,7 +10,10 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { Plus } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
@@ -41,12 +44,14 @@ const AllDreamsScreen = ({
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const { width } = useWindowDimensions();
-  const [isCreateDreamModalVisible, setIsCreateDreamModalVisible] = useState(false);
+  const [isCreateDreamModalVisible, setIsCreateDreamModalVisible] =
+    useState(false);
   const [isCreating, setIsCreating] = useState(creatingDream === true);
   const [phraseIndex, setPhraseIndex] = useState(0);
 
   // Get user data from auth store
-  const { userData, addToRecents, user, refreshDreamsFromCrud, isPremium } = useAuthStore();
+  const { userData, addToRecents, user, refreshDreamsFromCrud, isPremium } =
+    useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
@@ -85,7 +90,10 @@ const AllDreamsScreen = ({
 
   useEffect(() => {
     // Update status bar based on theme
-    StatusBar.setBarStyle(theme === "light" ? "dark-content" : "light-content", true);
+    StatusBar.setBarStyle(
+      theme === "light" ? "dark-content" : "light-content",
+      true,
+    );
   }, [theme]);
 
   useEffect(() => {
@@ -106,6 +114,13 @@ const AllDreamsScreen = ({
       }),
     ]).start();
   }, [fadeAnim, slideAnim]);
+
+  // Sync creatingDream prop to isCreating state
+  useEffect(() => {
+    if (creatingDream === true && !isCreating) {
+      setIsCreating(true);
+    }
+  }, [creatingDream]);
 
   // Cycle through phrases while the placeholder card is visible
   useEffect(() => {
@@ -132,8 +147,14 @@ const AllDreamsScreen = ({
 
     const stopPolling = () => {
       cancelled = true;
-      if (pollInterval.current) { clearInterval(pollInterval.current); pollInterval.current = null; }
-      if (pollTimeout.current) { clearTimeout(pollTimeout.current); pollTimeout.current = null; }
+      if (pollInterval.current) {
+        clearInterval(pollInterval.current);
+        pollInterval.current = null;
+      }
+      if (pollTimeout.current) {
+        clearTimeout(pollTimeout.current);
+        pollTimeout.current = null;
+      }
     };
 
     const poll = async () => {
@@ -146,7 +167,9 @@ const AllDreamsScreen = ({
         // keep polling until that count is > 0 so the GoalCard can render
         // progress immediately.
         const newReady = dreams.some(
-          (d) => !knownDreamIds.current.has(d.thread_id) && (d.milestones_count || 0) > 0,
+          (d) =>
+            !knownDreamIds.current.has(d.thread_id) &&
+            (d.milestones_count || 0) > 0,
         );
         if (newReady && !cancelled) {
           stopPolling();
@@ -170,11 +193,11 @@ const AllDreamsScreen = ({
 
       if (cancelled) return;
       pollInterval.current = setInterval(poll, 3000);
-      // Safety: dismiss placeholder after 90 s
+      // Safety: dismiss placeholder after 200 s
       pollTimeout.current = setTimeout(() => {
         stopPolling();
         setIsCreating(false);
-      }, 90000);
+      }, 200000);
     };
 
     init();
@@ -197,8 +220,12 @@ const AllDreamsScreen = ({
     }
 
     // Separate active and non-active dreams
-    const activeDreams = userData.dreams.filter((dream: any) => dream.status === "active");
-    const inactiveDreams = userData.dreams.filter((dream: any) => dream.status !== "active");
+    const activeDreams = userData.dreams.filter(
+      (dream: any) => dream.status === "active",
+    );
+    const inactiveDreams = userData.dreams.filter(
+      (dream: any) => dream.status !== "active",
+    );
 
     // Combine with active first
     const sorted = [...activeDreams, ...inactiveDreams];
@@ -207,7 +234,9 @@ const AllDreamsScreen = ({
       let progress = 0;
       const milestones = dream.roadmap?.milestones;
       if (milestones && milestones.length > 0) {
-        const completed = milestones.filter((m: any) => m.status === "completed").length;
+        const completed = milestones.filter(
+          (m: any) => m.status === "completed",
+        ).length;
         progress = (completed / milestones.length) * 100;
       } else if (dream._metadata) {
         const total = dream._metadata.milestones_count || 0;
@@ -242,8 +271,15 @@ const AllDreamsScreen = ({
   if (!hasDreams) {
     return (
       <>
-        <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 40 }}>
+        <SafeAreaView
+          style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 40,
+            }}>
             {/* Empty State */}
             <View
               style={{
@@ -323,7 +359,8 @@ const AllDreamsScreen = ({
 
   return (
     <>
-      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
         {/* Dreams Grid */}
         <Animated.ScrollView
           style={{ flex: 1 }}
@@ -354,12 +391,19 @@ const AllDreamsScreen = ({
                 Dreams
               </Text>
               {streakData && streakData.current_streak > 0 && (
-                <StreakBadge streakCount={streakData.current_streak} size="medium" />
+                <StreakBadge
+                  streakCount={streakData.current_streak}
+                  size="medium"
+                />
               )}
             </View>
 
             <FlatList
-              data={isCreating ? [{ __placeholder: true } as any, ...sortedDreams] : sortedDreams}
+              data={
+                isCreating
+                  ? [{ __placeholder: true } as any, ...sortedDreams]
+                  : sortedDreams
+              }
               renderItem={({ item }) => {
                 if (item.__placeholder) {
                   return (
@@ -395,12 +439,19 @@ const AllDreamsScreen = ({
                   <View style={{ width: columnWidth }}>
                     <GoalCard
                       data={item}
-                      onPress={() => handleGoalCardPress(item.threadId || "", item.status || "")}
+                      onPress={() =>
+                        handleGoalCardPress(
+                          item.threadId || "",
+                          item.status || "",
+                        )
+                      }
                     />
                   </View>
                 );
               }}
-              keyExtractor={(item, index) => item.__placeholder ? "__placeholder__" : index.toString()}
+              keyExtractor={(item, index) =>
+                item.__placeholder ? "__placeholder__" : index.toString()
+              }
               numColumns={2}
               columnWrapperStyle={{ gap: 14, marginBottom: 14 }}
               scrollEnabled={false}

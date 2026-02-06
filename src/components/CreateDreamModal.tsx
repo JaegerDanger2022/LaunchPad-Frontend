@@ -9,28 +9,24 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
-  ScrollView,
   TouchableWithoutFeedback,
+  Animated,
+  StyleSheet,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { X, Send } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import { Color, getThemeColors } from '../constants/GlobalStyles';
+import { getThemeColors } from '../constants/GlobalStyles';
 import { startConversation, sendConversationTurn } from '../config/api';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
-import { LunaChatHeader } from './LunaChatHeader';
+import { Video, AVPlaybackStatus } from 'expo-av';
 
 interface CreateDreamModalProps {
   visible: boolean;
   onClose: () => void;
   onDreamCreating?: () => void;
-}
-
-interface ChatMessage {
-  role: 'user' | 'assistant';
-  text: string;
 }
 
 type ChatStatus = 'rendering' | 'waiting' | 'sending';
@@ -41,7 +37,8 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
   onDreamCreating,
 }) => {
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [currentAiMessage, setCurrentAiMessage] = useState<string>('');
+  const [currentUserMessage, setCurrentUserMessage] = useState<string>('');
   const [inputText, setInputText] = useState('');
   const [sending, setSending] = useState(false);
   const [creatingDream, setCreatingDream] = useState(false);
@@ -49,17 +46,109 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
   const [fullAiMessage, setFullAiMessage] = useState(''); // Store complete AI message
   const [displayedAiMessage, setDisplayedAiMessage] = useState(''); // Typewriter display
   const typewriterRef = useRef<NodeJS.Timeout | null>(null);
-  const { user } = useAuthStore();
+  const inputRef = useRef<TextInput>(null);
+  const { user, userData } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
-  const scrollRef = useRef<ScrollView>(null);
+
+  // Animation refs for fade transitions
+  const aiMessageOpacity = useRef(new Animated.Value(1)).current;
+  const userMessageOpacity = useRef(new Animated.Value(1)).current;
+
+  // Video ref for Luna header
+  const videoRef = useRef<Video>(null);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [isSeeking, setIsSeeking] = useState(false);
+
+  // Video playback handler for looping segments based on chat status
+  const handlePlaybackStatusUpdate = async (status: AVPlaybackStatus) => {
+    if (!status.isLoaded || !videoRef.current) return;
+
+    if (!isVideoLoaded) {
+      setIsVideoLoaded(true);
+    }
+
+    if (isSeeking) return;
+
+    const positionMillis = status.positionMillis;
+
+    try {
+      switch (chatStatus) {
+        case 'rendering':
+          // Loop 0s - 4.5s while AI is typing
+          if (positionMillis >= 4500) {
+            setIsSeeking(true);
+            await videoRef.current.setPositionAsync(0);
+            setTimeout(() => setIsSeeking(false), 100);
+          }
+          break;
+        case 'waiting':
+          // Loop 5s - 9.5s while waiting for user
+          if (positionMillis >= 9500) {
+            setIsSeeking(true);
+            await videoRef.current.setPositionAsync(5000);
+            setTimeout(() => setIsSeeking(false), 100);
+          }
+          break;
+        case 'sending':
+          // Loop 11s - 14s while processing
+          if (positionMillis >= 14000) {
+            setIsSeeking(true);
+            await videoRef.current.setPositionAsync(11000);
+            setTimeout(() => setIsSeeking(false), 100);
+          }
+          break;
+      }
+    } catch (error) {
+      setIsSeeking(false);
+    }
+  };
+
+  // Handle chat status changes and jump to appropriate video segment
+  useEffect(() => {
+    const jumpToSegment = async () => {
+      if (!videoRef.current || !isVideoLoaded || isSeeking) return;
+
+      setIsSeeking(true);
+      try {
+        switch (chatStatus) {
+          case 'rendering':
+            await videoRef.current.setPositionAsync(0);
+            break;
+          case 'waiting':
+            await videoRef.current.setPositionAsync(5000);
+            break;
+          case 'sending':
+            await videoRef.current.setPositionAsync(11000);
+            break;
+        }
+      } catch (error) {
+        console.debug('[CreateDreamModal] seek interrupted');
+      } finally {
+        setTimeout(() => setIsSeeking(false), 100);
+      }
+    };
+
+    jumpToSegment();
+  }, [chatStatus, isVideoLoaded]);
 
   // Typewriter effect for AI messages
   useEffect(() => {
-    if (!fullAiMessage) return;
+    if (!fullAiMessage) {
+      console.log('[CreateDreamModal] fullAiMessage is empty, skipping typewriter');
+      return;
+    }
 
-    setChatStatus('rendering'); // Start rendering animation
+    console.log('[CreateDreamModal] Starting typewriter for message:', fullAiMessage.substring(0, 50));
+
+    // Clear previous typewriter if any
+    if (typewriterRef.current) {
+      clearTimeout(typewriterRef.current);
+    }
+
+    setChatStatus('rendering');
+    setCurrentAiMessage(fullAiMessage); // Set immediately so condition is true
     setDisplayedAiMessage('');
     let currentIndex = 0;
 
@@ -67,9 +156,13 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
       if (currentIndex < fullAiMessage.length) {
         setDisplayedAiMessage(fullAiMessage.slice(0, currentIndex + 1));
         currentIndex++;
-        typewriterRef.current = setTimeout(typeNextChar, 20); // 20ms per character
+        typewriterRef.current = setTimeout(typeNextChar, 20);
       } else {
-        // Typewriter complete, switch to waiting
+        // Typewriter complete
+        console.log('[CreateDreamModal] Typewriter complete');
+        console.log('[CreateDreamModal] Full message:', fullAiMessage);
+        console.log('[CreateDreamModal] Full message length:', fullAiMessage.length);
+        console.log('[CreateDreamModal] Final currentIndex:', currentIndex);
         setChatStatus('waiting');
       }
     };
@@ -77,29 +170,83 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
     typeNextChar();
 
     return () => {
+      console.log('[CreateDreamModal] Typewriter cleanup called. currentIndex:', currentIndex, 'of', fullAiMessage.length);
       if (typewriterRef.current) {
         clearTimeout(typewriterRef.current);
       }
     };
   }, [fullAiMessage]);
 
+  // Fade out and replace AI message
+  const replaceAiMessage = (newMessage: string) => {
+    console.log('[CreateDreamModal] replaceAiMessage called with:', newMessage.substring(0, 50));
+    console.log('[CreateDreamModal] Current state - currentAiMessage:', currentAiMessage.substring(0, 30), 'displayedAiMessage:', displayedAiMessage.substring(0, 30));
+
+    // Only fade if there's an existing message
+    if (currentAiMessage || displayedAiMessage) {
+      console.log('[CreateDreamModal] Fading out existing message');
+      Animated.timing(aiMessageOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        console.log('[CreateDreamModal] Fade complete, resetting opacity and setting new message');
+        // Use a small delay to ensure the opacity reset is processed before typewriter starts
+        requestAnimationFrame(() => {
+          aiMessageOpacity.setValue(1);
+          // Set the new message which will trigger typewriter
+          setFullAiMessage(newMessage);
+        });
+      });
+    } else {
+      console.log('[CreateDreamModal] First message, no fade');
+      // First message, no fade needed
+      setFullAiMessage(newMessage);
+    }
+  };
+
+  // Fade out user message (called when user starts typing again)
+  const clearUserMessage = () => {
+    if (currentUserMessage) {
+      Animated.timing(userMessageOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setCurrentUserMessage('');
+        userMessageOpacity.setValue(1);
+      });
+    }
+  };
+
+  // Set new user message immediately (no fade in, just appears)
+  const setNewUserMessage = (message: string) => {
+    setCurrentUserMessage(message);
+    userMessageOpacity.setValue(1);
+  };
+
   // Start conversation when modal opens
   useEffect(() => {
     if (visible && user?.uid) {
       setSessionId(null);
-      setMessages([]);
+      setCurrentAiMessage('');
+      setCurrentUserMessage('');
       setInputText('');
       setSending(true);
       setCreatingDream(false);
       setFullAiMessage('');
       setDisplayedAiMessage('');
-      setChatStatus('sending'); // Initial loading state
+      setChatStatus('sending');
+      aiMessageOpacity.setValue(1);
+      userMessageOpacity.setValue(1);
 
-      startConversation(user.uid)
+      startConversation(user.uid, userData?.pref_timezone)
         .then((res) => {
+          console.log('[CreateDreamModal] startConversation response:', res);
+          console.log('[CreateDreamModal] AI greeting message:', res.ai_message);
           setSessionId(res.session_id);
-          setFullAiMessage(res.ai_message); // Trigger typewriter
-          setMessages([{ role: 'assistant', text: '' }]); // Empty bubble for typewriter
+          // Set the initial AI greeting message
+          setFullAiMessage(res.ai_message);
         })
         .catch((err) => {
           console.error('[CreateDreamModal] startConversation failed:', err);
@@ -110,56 +257,61 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
     }
   }, [visible, user?.uid]);
 
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    if (scrollRef.current) {
-      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
-    }
-  }, [messages]);
-
   const handleSend = async () => {
     const text = inputText.trim();
     if (!text || !sessionId || !user?.uid || sending || creatingDream) return;
 
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    // Append user message to display
-    setMessages((prev) => [...prev, { role: 'user', text }]);
+    // Set user message immediately (no fade, just appears)
+    setNewUserMessage(text);
     setInputText('');
     setSending(true);
-    setChatStatus('sending'); // User sent message, AI thinking
+    setChatStatus('sending');
+
+    // Keep keyboard open by refocusing after a brief delay
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
 
     try {
       let accumulatedMessage = '';
+      console.log('[CreateDreamModal] Sending conversation turn:', text);
       const res = await sendConversationTurn(sessionId, user.uid, text, (chunk) => {
-        // Accumulate chunks silently
+        console.log('[CreateDreamModal] Received chunk:', chunk);
         accumulatedMessage += chunk;
       });
 
+      console.log('[CreateDreamModal] Response received. Accumulated message:', accumulatedMessage);
+      console.log('[CreateDreamModal] Response object:', res);
+
       if (res.conversation_complete) {
-        // Show final message with typewriter before completing
-        setMessages((prev) => [...prev, { role: 'assistant', text: '' }]);
-        setFullAiMessage(accumulatedMessage); // Trigger typewriter
+        console.log('[CreateDreamModal] Conversation complete, closing modal and showing loading state');
 
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setCreatingDream(true);
-        // Let the user read the final AI message before dismissing
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+        // Close modal immediately and trigger the loading state on parent screen
         onClose();
         onDreamCreating?.();
       } else {
-        // Add assistant message and trigger typewriter
-        setMessages((prev) => [...prev, { role: 'assistant', text: '' }]);
-        setFullAiMessage(accumulatedMessage); // Trigger typewriter
+        console.log('[CreateDreamModal] Conversation continuing, showing AI response');
+        // Replace AI message with new response
+        replaceAiMessage(accumulatedMessage);
       }
     } catch (err: any) {
       console.error('[CreateDreamModal] sendConversationTurn failed:', err);
-      // Remove the user message
-      setMessages((prev) => prev.slice(0, -1));
       Alert.alert('Error', err.message || 'Something went wrong. Please try again.');
-      setChatStatus('waiting'); // Return to waiting state on error
+      setChatStatus('waiting');
     } finally {
       setSending(false);
+    }
+  };
+
+  // Handle text input change - fade out user message when they start typing again
+  const handleTextChange = (text: string) => {
+    setInputText(text);
+    // If user starts typing and there's an existing message, fade it out
+    if (text.length === 1 && currentUserMessage) {
+      clearUserMessage();
     }
   };
 
@@ -168,7 +320,8 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
       clearTimeout(typewriterRef.current);
     }
     setSessionId(null);
-    setMessages([]);
+    setCurrentAiMessage('');
+    setCurrentUserMessage('');
     setInputText('');
     setSending(false);
     setCreatingDream(false);
@@ -184,162 +337,130 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
       transparent={true}
       animationType="fade"
       onRequestClose={handleClose}>
-      {/* Backdrop */}
       <TouchableWithoutFeedback onPress={handleClose}>
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            justifyContent: 'flex-end',
-          }}>
+        <View style={styles.backdrop}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
             keyboardVerticalOffset={Platform.OS === 'android' ? -insets.bottom : 0}
-            style={{ flex: 1, justifyContent: 'flex-end' }}>
+            style={styles.keyboardView}>
             <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
-              {/* Modal Content */}
               <View
-                style={{
-                  backgroundColor: themeColors.bg_primary,
-                  borderTopLeftRadius: 24,
-                  borderTopRightRadius: 24,
-                  paddingHorizontal: 24,
-                  paddingTop: 24,
-                  paddingBottom: Math.max(insets.bottom + 16, 32),
-                  flex: 1,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: -4 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 12,
-                  elevation: 16,
-                }}>
+                style={[
+                  styles.modalContent,
+                  {
+                    backgroundColor: themeColors.bg_primary,
+                    paddingTop: Math.max(insets.top + 24, 24),
+                    paddingBottom: Math.max(insets.bottom + 16, 32),
+                  },
+                ]}>
                 {/* Close Button */}
-                <TouchableOpacity
-                  onPress={handleClose}
-                  style={{ alignSelf: 'flex-end', marginBottom: 12 }}>
+                <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                   <X size={24} color={themeColors.text_primary} />
                 </TouchableOpacity>
 
-                {/* Luna Chat Header with Video Portal */}
-                <LunaChatHeader
-                  chatStatus={chatStatus}
-                  borderColor={themeColors.border}
-                />
-
-                {/* Chat bubble list */}
-                <ScrollView
-                  ref={scrollRef}
-                  style={{ flex: 1, marginBottom: 12 }}
-                  contentContainerStyle={{ justifyContent: 'flex-end' }}>
-                  {messages.map((msg, i) => {
-                    // Show typewriter text for the last assistant message
-                    const isLastAssistantMsg = msg.role === 'assistant' && i === messages.length - 1;
-                    const displayText = isLastAssistantMsg ? displayedAiMessage : msg.text;
-
-                    return (
-                      <View
-                        key={i}
-                        style={{
-                          alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                          maxWidth: '85%',
-                          marginBottom: 8,
-                        }}>
-                        {msg.role === 'assistant' ? (
-                          <View
-                            style={{
-                              backgroundColor: themeColors.bg_secondary,
-                              borderRadius: 16,
-                              borderTopLeftRadius: 4,
-                              paddingHorizontal: 14,
-                              paddingVertical: 10,
-                            }}>
-                            <Text
-                              style={{
-                                fontSize: 15,
-                                color: themeColors.text_primary,
-                                fontFamily: 'InstrumentSans-Regular',
-                                lineHeight: 22,
-                              }}>
-                              {displayText}
-                            </Text>
-                          </View>
-                      ) : (
-                        <LinearGradient
-                          colors={['#fb6322', '#f79971']}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 0 }}
-                          style={{
-                            borderRadius: 16,
-                            borderTopRightRadius: 4,
-                            paddingHorizontal: 14,
-                            paddingVertical: 10,
-                          }}>
-                          <Text
-                            style={{
-                              fontSize: 15,
-                              color: Color.colorWhite,
-                              fontFamily: 'InstrumentSans-Regular',
-                              lineHeight: 22,
-                            }}>
-                            {msg.text}
-                          </Text>
-                        </LinearGradient>
-                      )}
+                {/* Main Chat Area */}
+                <View style={styles.chatArea}>
+                  {/* Luna Video Header (replaces avatar) */}
+                  <View style={styles.videoHeaderContainer}>
+                    <View style={styles.videoPortal}>
+                      <Video
+                        ref={videoRef}
+                        source={require('../assets/animations/chatbox/Chatbox.mp4')}
+                        style={styles.video}
+                        resizeMode={'cover' as any}
+                        isLooping={false}
+                        shouldPlay={true}
+                        isMuted={true}
+                        onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+                      />
                     </View>
-                    );
-                  })}
+                  </View>
 
-                  {/* Typing indicator — only during the initial /start call (no messages yet) */}
-                  {sending && messages.length === 0 && (
-                    <View style={{ alignSelf: 'flex-start', marginBottom: 8 }}>
-                      <View
-                        style={{
-                          backgroundColor: themeColors.bg_secondary,
-                          borderRadius: 16,
-                          borderTopLeftRadius: 4,
-                          paddingHorizontal: 14,
-                          paddingVertical: 10,
-                        }}>
+                  {/* AI Message Area - No ScrollView, just display all text */}
+                  <View style={styles.aiMessageWrapper}>
+                    {/* AI Message Bubble */}
+                    {(currentAiMessage || displayedAiMessage) && (
+                      <Animated.View
+                        style={[
+                          styles.aiMessageContainer,
+                          { opacity: aiMessageOpacity },
+                        ]}>
+                        <Text
+                          style={[
+                            styles.aiMessageText,
+                            { color: themeColors.text_primary },
+                          ]}>
+                          {displayedAiMessage || currentAiMessage}
+                        </Text>
+                      </Animated.View>
+                    )}
+
+                    {/* Initial loading indicator */}
+                    {sending && !currentAiMessage && !displayedAiMessage && (
+                      <View style={styles.loadingContainer}>
                         <ActivityIndicator size="small" color={themeColors.text_secondary} />
                       </View>
-                    </View>
+                    )}
+                  </View>
+
+                  <View style={styles.spacer} />
+
+                  {/* User Message Bubble */}
+                  {currentUserMessage && (
+                    <Animated.View
+                      style={[
+                        styles.userMessageContainer,
+                        {
+                          backgroundColor: themeColors.bg_secondary,
+                          borderColor: themeColors.border,
+                          opacity: userMessageOpacity,
+                        },
+                      ]}>
+                      <Text
+                        style={[
+                          styles.userMessageText,
+                          { color: themeColors.text_primary },
+                        ]}>
+                        {currentUserMessage}
+                      </Text>
+                      <View style={styles.userInitials}>
+                        <Text style={styles.initialsText}>
+                          {(user as any)?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+                        </Text>
+                      </View>
+                    </Animated.View>
                   )}
-                </ScrollView>
+
+                </View>
 
                 {/* Input row OR "building roadmap" state */}
                 {creatingDream ? (
-                  <View style={{ alignItems: 'center', paddingVertical: 16 }}>
+                  <View style={styles.creatingContainer}>
                     <ActivityIndicator size="large" color="#fb6322" />
                     <Text
-                      style={{
-                        fontSize: 15,
-                        color: themeColors.text_secondary,
-                        fontFamily: 'InstrumentSans-Regular',
-                        marginTop: 10,
-                      }}>
+                      style={[
+                        styles.creatingText,
+                        { color: themeColors.text_secondary },
+                      ]}>
                       Building your roadmap…
                     </Text>
                   </View>
                 ) : (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <View style={styles.inputRow}>
                     <TextInput
-                      style={{
-                        flex: 1,
-                        backgroundColor: themeColors.bg_secondary,
-                        borderWidth: 1,
-                        borderColor: themeColors.border,
-                        borderRadius: 12,
-                        paddingHorizontal: 16,
-                        paddingVertical: 12,
-                        fontSize: 16,
-                        fontFamily: 'InstrumentSans-Regular',
-                        color: themeColors.text_primary,
-                        minHeight: 48,
-                      }}
+                      ref={inputRef}
+                      style={[
+                        styles.input,
+                        {
+                          backgroundColor: themeColors.bg_secondary,
+                          borderColor: themeColors.border,
+                          color: themeColors.text_primary,
+                        },
+                      ]}
                       placeholder="Type a message…"
                       placeholderTextColor={themeColors.text_secondary}
                       value={inputText}
-                      onChangeText={setInputText}
+                      onChangeText={handleTextChange}
                       onSubmitEditing={handleSend}
                       editable={!sending && !creatingDream}
                       returnKeyType="send"
@@ -349,18 +470,15 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                       onPress={handleSend}
                       disabled={!inputText.trim() || sending || creatingDream}
                       activeOpacity={0.7}
-                      style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 12,
-                        overflow: 'hidden',
-                        opacity: !inputText.trim() || sending ? 0.4 : 1,
-                      }}>
+                      style={[
+                        styles.sendButton,
+                        { opacity: !inputText.trim() || sending ? 0.4 : 1 },
+                      ]}>
                       <LinearGradient
                         colors={['#fb6322', '#f79971']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
-                        style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                        style={styles.sendGradient}>
                         {sending ? (
                           <ActivityIndicator size="small" color="#fff" />
                         ) : (
@@ -370,25 +488,6 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                     </TouchableOpacity>
                   </View>
                 )}
-
-                {/* Cancel link */}
-                <TouchableOpacity
-                  onPress={handleClose}
-                  disabled={creatingDream}
-                  activeOpacity={0.7}
-                  style={{ marginTop: 12 }}>
-                  <View style={{ paddingVertical: 8, alignItems: 'center', opacity: creatingDream ? 0.3 : 1 }}>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        color: themeColors.text_secondary,
-                        fontFamily: 'InstrumentSans-Regular',
-                        fontWeight: '500',
-                      }}>
-                      Cancel
-                    </Text>
-                  </View>
-                </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>
           </KeyboardAvoidingView>
@@ -397,3 +496,146 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
     </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  keyboardView: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    flex: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 16,
+  },
+  closeButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+  },
+  chatArea: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingVertical: 20,
+  },
+  videoHeaderContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  videoPortal: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  video: {
+    width: '100%',
+    height: '100%',
+  },
+  aiMessageWrapper: {
+    width: '100%',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  aiMessageContainer: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  aiMessageText: {
+    fontSize: 18,
+    fontFamily: 'InstrumentSans-Regular',
+    textAlign: 'center',
+    lineHeight: 26,
+    width: '100%',
+  },
+  loadingContainer: {
+    alignSelf: 'center',
+    paddingVertical: 20,
+  },
+  spacer: {
+    height: 20, // Fixed spacer instead of flex
+  },
+  userMessageContainer: {
+    alignSelf: 'flex-end',
+    maxWidth: '85%',
+    borderRadius: 20,
+    borderTopLeftRadius: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  userMessageText: {
+    fontSize: 15,
+    fontFamily: 'InstrumentSans-Regular',
+    flex: 1,
+  },
+  userInitials: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  initialsText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#050938',
+    fontFamily: 'InstrumentSans-Bold',
+  },
+  creatingContainer: {
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  creatingText: {
+    fontSize: 15,
+    fontFamily: 'InstrumentSans-Regular',
+    marginTop: 10,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    fontFamily: 'InstrumentSans-Regular',
+    minHeight: 48,
+  },
+  sendButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  sendGradient: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

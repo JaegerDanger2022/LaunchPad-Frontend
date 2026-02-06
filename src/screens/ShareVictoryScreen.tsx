@@ -65,15 +65,6 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
       return;
     }
 
-    if (!evidenceSnippet.trim()) {
-      Toast.show({
-        type: "error",
-        text1: "Evidence Required",
-        text2: "Please add proof of your victory",
-      });
-      return;
-    }
-
     try {
       setIsSaving(true);
       console.log("[ShareVictoryScreen] Creating victory card with milestoneId:", victory.milestoneId);
@@ -218,7 +209,7 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
               textAlignVertical: "top",
               backgroundColor: isDark ? colors.bg_primary : "#FFFFFF",
             }}
-            placeholder="What's your proof? (max 200 chars)"
+            placeholder="Add proof of your victory (optional, max 200 chars)"
             value={evidenceSnippet}
             onChangeText={(text) => setEvidenceSnippet(text.slice(0, 200))}
             multiline

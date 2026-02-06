@@ -42,19 +42,19 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
       activeOpacity={isLocked ? 1 : 0.8}
       disabled={isLocked}
       style={{
-        flex: 1,
-        height: 280,
-        borderRadius: 10,
+        flexDirection: "row",
+        height: 120,
+        borderRadius: 12,
         overflow: "hidden",
         backgroundColor: bgColor,
         opacity: isLocked ? 0.5 : 1,
       }}>
-      {/* Animation or Image */}
+      {/* Animation or Image - Left Side */}
       {animation ? (
         <View
           style={{
-            width: "100%",
-            height: 160,
+            width: 120,
+            height: "100%",
             alignItems: "center",
             justifyContent: "center",
             backgroundColor: bgColor,
@@ -64,8 +64,8 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
             autoPlay
             loop={false}
             style={{
-              width: 120,
-              height: 120,
+              width: 90,
+              height: 90,
             }}
           />
         </View>
@@ -73,20 +73,18 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
         <Image
           source={image}
           style={{
-            width: "100%",
-            height: 160,
+            width: 120,
+            height: "100%",
           }}
         />
       )}
 
-      {/* Card Content with Gradient */}
+      {/* Card Content with Gradient - Right Side */}
       <LinearGradient
         style={{
           flex: 1,
-          paddingHorizontal: 15,
-          paddingVertical: 15,
-          borderBottomLeftRadius: 10,
-          borderBottomRightRadius: 10,
+          paddingHorizontal: 16,
+          paddingVertical: 16,
           justifyContent: "space-between",
         }}
         colors={[bgColor, bgColor]}
@@ -96,54 +94,41 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
         <Text
           style={{
             fontFamily: "InriaSans-Bold",
-            fontSize: 15,
+            fontSize: 16,
             color: Color.colorWhite,
             fontWeight: "700",
-          }}>
+          }}
+          numberOfLines={2}>
           {title}
         </Text>
 
-        {/* Challenge Type and Duration */}
-        <View style={{ gap: 8 }}>
-          {/* Challenge Type Name */}
+        {/* Challenge Type */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 6,
+          }}>
           <View
             style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 6,
-            }}>
-            <View
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 1,
-                backgroundColor: "rgba(255, 255, 255, 0.6)",
-              }}
-            />
-            <Text
-              style={{
-                color: Color.colorWhite,
-                fontSize: 12,
-                fontWeight: "400",
-                fontFamily: "InriaSans-Regular",
-              }}>
-              {challengeType
-                ? ChallengeTypeName[
-                    challengeType as keyof typeof ChallengeTypeName
-                  ]
-                : "Task"}
-            </Text>
-          </View>
-
-          {/* Duration */}
+              width: 6,
+              height: 6,
+              borderRadius: 1,
+              backgroundColor: "rgba(255, 255, 255, 0.6)",
+            }}
+          />
           <Text
             style={{
               color: Color.colorWhite,
-              fontSize: 15,
+              fontSize: 12,
+              fontWeight: "400",
               fontFamily: "InriaSans-Regular",
-              fontWeight: "300",
             }}>
-            {duration}
+            {challengeType
+              ? ChallengeTypeName[
+                  challengeType as keyof typeof ChallengeTypeName
+                ]
+              : "Task"}
           </Text>
         </View>
       </LinearGradient>
@@ -160,7 +145,7 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
             backgroundColor: "rgba(0, 0, 0, 0.6)",
             justifyContent: "center",
             alignItems: "center",
-            borderRadius: 10,
+            borderRadius: 12,
           }}>
           <Lock size={48} color={Color.colorWhite} strokeWidth={1.5} />
         </View>

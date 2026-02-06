@@ -371,7 +371,9 @@ const HomeScreen = ({
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor="#2D5BFF"
+            tintColor="white"
+            colors={["white"]}
+            progressBackgroundColor="transparent"
           />
         }>
         <View

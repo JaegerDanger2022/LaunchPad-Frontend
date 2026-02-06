@@ -263,11 +263,17 @@ export interface ConversationTurnDonePayload {
 
 export async function startConversation(
   userId: string,
+  prefTimezone?: string,
 ): Promise<StartConversationResponse> {
+  const payload: { user_id: string; pref_timezone?: string } = { user_id: userId };
+  if (prefTimezone) {
+    payload.pref_timezone = prefTimezone;
+  }
+
   const response = await fetch(`${API_BASE_URL}/conversation/start`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user_id: userId }),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {

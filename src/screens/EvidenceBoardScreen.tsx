@@ -8,6 +8,8 @@ import {
   useWindowDimensions,
   Animated,
   Easing,
+  StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import {
@@ -53,6 +55,7 @@ const EvidenceBoardScreen = ({
 
   const [expandedDreamId, setExpandedDreamId] = useState<number | null>(null);
   const [showRecap, setShowRecap] = useState(false);
+  const [isLoadingDream, setIsLoadingDream] = useState(false);
   // Cache of fully-fetched dream data keyed by thread_id
   const [fullDreamsCache, setFullDreamsCache] = useState<Record<string, any>>(
     {},
@@ -61,13 +64,29 @@ const EvidenceBoardScreen = ({
   // Animation values for expand/collapse
   const expandAnim = useRef(new Animated.Value(0)).current;
 
+  // Update status bar based on theme
+  useEffect(() => {
+    StatusBar.setBarStyle(
+      theme === "light" ? "dark-content" : "light-content",
+      true,
+    );
+    StatusBar.setBackgroundColor(themeColors.bg_primary, true);
+  }, [theme, themeColors.bg_primary]);
+
   // Fetch full dream data when a card is expanded
   useEffect(() => {
-    if (expandedDreamId == null || !user?.uid) return;
+    if (expandedDreamId == null || !user?.uid) {
+      setIsLoadingDream(false);
+      return;
+    }
     // Already cached?
-    if (fullDreamsCache[expandedDreamId as any]) return;
+    if (fullDreamsCache[expandedDreamId as any]) {
+      setIsLoadingDream(false);
+      return;
+    }
 
     const load = async () => {
+      setIsLoadingDream(true);
       try {
         const fullDream = await fetchDreamDetails(
           user.uid,
@@ -81,6 +100,8 @@ const EvidenceBoardScreen = ({
         }
       } catch (e) {
         console.error("[EvidenceBoard] Failed to fetch full dream:", e);
+      } finally {
+        setIsLoadingDream(false);
       }
     };
     load();
@@ -321,7 +342,32 @@ const EvidenceBoardScreen = ({
                               ? "rgba(255,255,255,0.1)"
                               : EvidenceBoardColors.gray300,
                           }}>
+                          {/* Loading Indicator */}
+                          {isLoadingDream && (
+                            <View
+                              style={{
+                                paddingVertical: 40,
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}>
+                              <ActivityIndicator
+                                size="large"
+                                color={isDark ? "#A855F7" : "#8B5CF6"}
+                              />
+                              <Text
+                                style={{
+                                  marginTop: 12,
+                                  fontSize: 14,
+                                  color: isDark ? "#b0b0b0" : EvidenceBoardColors.text.secondary,
+                                }}>
+                                Loading details...
+                              </Text>
+                            </View>
+                          )}
+
                           {/* Progress Overview */}
+                          {!isLoadingDream && (
+                          <>
                           <View
                             style={{
                               marginBottom: 32,
@@ -775,6 +821,8 @@ const EvidenceBoardScreen = ({
                               — Gabby Beckford
                             </Text>
                           </LinearGradient>
+                          </>
+                          )}
                         </View>
                       )}
                     </View>

@@ -11,7 +11,7 @@ import { formatDate } from "../../utils/communityUtils";
 
 interface JourneyRecapCardProps {
   journeyRecap: JourneyRecap;
-  onBoost: (journeyId: string) => void;
+  onBoost?: (journeyId: string) => void;
   onMeToo?: (journeyId: string) => void;
   onPermission?: (journeyId: string) => void;
   onViewPermissions?: (journeyId: string) => void;
@@ -32,7 +32,7 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
     ? "Someone"
     : `${journeyRecap.userDisplayName}${journeyRecap.userAge ? ", " + journeyRecap.userAge : ""}${journeyRecap.userLocation ? ", " + journeyRecap.userLocation : ""}`;
 
-  const formattedDate = formatDate(journeyRecap.completedDate);
+  const formattedDate = formatDate(journeyRecap.createdAt);
 
   return (
     <TouchableOpacity
@@ -103,12 +103,14 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
 
         {/* Action footer */}
         <View style={styles.actionRow}>
-          <CourageBoostButton
-            boostCount={journeyRecap.courageBoosts}
-            hasUserBoosted={journeyRecap.hasUserBoosted}
-            onPress={() => onBoost(journeyRecap.id)}
-            size="medium"
-          />
+          {onBoost && (
+            <CourageBoostButton
+              boostCount={journeyRecap.courageBoosts}
+              hasUserBoosted={journeyRecap.hasUserBoosted}
+              onPress={() => onBoost(journeyRecap.id)}
+              size="medium"
+            />
+          )}
 
           {onMeToo && (
             <MeTooButton

@@ -67,15 +67,6 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
   }, [victory, visible]);
 
   const handleShare = async () => {
-    if (!evidenceSnippet.trim()) {
-      Toast.show({
-        type: "error",
-        text1: "Evidence Required",
-        text2: "Please add proof of your victory",
-      });
-      return;
-    }
-
     try {
       setIsSaving(true);
       await onShare(evidenceSnippet.trim(), isAnonymous, selectedImpact);
@@ -198,7 +189,7 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
                 textAlignVertical: "top",
                 backgroundColor: isDark ? colors.bg_primary : "#FFFFFF",
               }}
-              placeholder="What's your proof? (max 200 chars)"
+              placeholder="Add proof of your victory (optional, max 200 chars)"
               value={evidenceSnippet}
               onChangeText={(text) => setEvidenceSnippet(text.slice(0, 200))}
               multiline

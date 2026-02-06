@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-  Animated,
-} from "react-native";
+import { View, Text, TouchableOpacity, Alert, Animated } from "react-native";
 import Svg, { Line } from "react-native-svg";
 import { Color, getThemeColors } from "../../constants/GlobalStyles";
 import { useThemeStore } from "../../store/themeStore";
@@ -43,7 +37,9 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
   const [showStreakToast, setShowStreakToast] = useState(false);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [showAchievementModal, setShowAchievementModal] = useState(false);
-  const [achievementType, setAchievementType] = useState<'3_day' | '7_day' | '30_day' | null>(null);
+  const [achievementType, setAchievementType] = useState<
+    "3_day" | "7_day" | "30_day" | null
+  >(null);
 
   // Victory Wall share flow
   const [showShareButton, setShowShareButton] = useState(false);
@@ -97,14 +93,18 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
 
         // Update local state in Zustand
         if (response.success) {
-          const { updateMilestoneStatusLocal, loadUserData, updateUpNext } = useAuthStore.getState();
+          const { updateMilestoneStatusLocal, loadUserData, updateUpNext } =
+            useAuthStore.getState();
 
           // 1. Update milestone status immediately (no flash, instant UI update)
           updateMilestoneStatusLocal(threadId, milestoneId, "completed");
 
           // 2. Check if dream is complete (new Journey Recap flow)
           if (response.dreamCompleted) {
-            console.log("Dream complete! dreamCompleted:", response.dreamCompleted);
+            console.log(
+              "Dream complete! dreamCompleted:",
+              response.dreamCompleted,
+            );
             console.log("Dream stats:", response.dreamStats);
             setIsDreamCompleted(true);
             setDreamStats(response.dreamStats);
@@ -123,11 +123,34 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
             console.error("Failed to refetch user data:", error.message);
           });
 
+          // 3.5. Verify milestone is actually completed in backend before allowing share
+          const freshUserData = useAuthStore.getState().userData;
+          const freshDream = freshUserData?.dreams?.find(
+            (d: any) => d.thread_id === threadId
+          );
+          const freshMilestone = freshDream?.roadmap?.milestones?.find(
+            (m: any) => m.milestone_id === milestoneId
+          );
+
+          if (freshMilestone?.status !== "completed") {
+            console.warn(
+              "[OneTimeGoal] Milestone not yet marked as completed in backend, will retry"
+            );
+            // If not completed yet, poll once more after a brief delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await loadUserData(user.uid).catch((error: any) => {
+              console.error("Failed to refetch user data (retry):", error.message);
+            });
+          }
+
           // 4. Trigger up_next recalculation after fresh data is in store
           updateUpNext();
 
           // 5. Update streak for all milestone completions
-          console.log("[OneTimeGoal] Updating streak for milestone:", milestoneId);
+          console.log(
+            "[OneTimeGoal] Updating streak for milestone:",
+            milestoneId,
+          );
           const streakResponse = await updateStreak(user.uid, {
             milestone_id: milestoneId,
             completion_date: new Date().toISOString(),
@@ -145,14 +168,20 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
             if (streakResponse.streak_increased) {
               setCurrentStreak(streakResponse.streak_data.current_streak);
               setShowStreakToast(true);
-              console.log("[OneTimeGoal] Showing streak toast:", streakResponse.streak_data.current_streak);
+              console.log(
+                "[OneTimeGoal] Showing streak toast:",
+                streakResponse.streak_data.current_streak,
+              );
             }
 
             // Show achievement modal if milestone reached
             if (streakResponse.milestone_achieved) {
               setAchievementType(streakResponse.milestone_achieved);
               setShowAchievementModal(true);
-              console.log("[OneTimeGoal] Showing achievement modal:", streakResponse.milestone_achieved);
+              console.log(
+                "[OneTimeGoal] Showing achievement modal:",
+                streakResponse.milestone_achieved,
+              );
             }
           }
         }
@@ -179,22 +208,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
         paddingTop: 30,
         alignItems: "center",
       }}>
-      {/* Drag Handle */}
-      <View style={{ marginBottom: 20 }}>
-        <Svg width="40" height="4" viewBox="0 0 40 4">
-          <Line
-            x1="0"
-            y1="2"
-            x2="40"
-            y2="2"
-            stroke={themeColors.text_secondary}
-            strokeWidth="4"
-            strokeLinecap="round"
-          />
-        </Svg>
-      </View>
-
-      <Text
+      {/* <Text
         style={{
           fontSize: 18,
           fontWeight: "700",
@@ -202,14 +216,16 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
           marginBottom: 40,
         }}>
         Complete this goal to succeed
-      </Text>
+      </Text> */}
 
       <TouchableOpacity
         onPress={handlePress}
         disabled={isLoading || isCompleted}
         activeOpacity={0.8}
         accessibilityRole="button"
-        accessibilityLabel={isCompleted ? "Goal completed" : "Mark goal as complete"}
+        accessibilityLabel={
+          isCompleted ? "Goal completed" : "Mark goal as complete"
+        }
         style={{
           width: "100%",
           height: 60,
@@ -252,11 +268,11 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
 
             // Show journey complete toast if dream is complete
             if (isDreamCompleted) {
-              const Toast = require('react-native-toast-message').default;
+              const Toast = require("react-native-toast-message").default;
               Toast.show({
-                type: 'success',
-                text1: '🎉 Dream Complete!',
-                text2: 'Share your journey with the community',
+                type: "success",
+                text1: "🎉 Dream Complete!",
+                text2: "Share your journey with the community",
                 visibilityTime: 4000,
               });
             }
@@ -300,24 +316,23 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
       {showShareButton && (
         <Animated.View
           style={{
-            position: 'absolute',
+            position: "absolute",
             bottom: 80,
             left: 0,
             right: 0,
-            alignItems: 'center',
+            alignItems: "center",
             opacity: shareButtonOpacity,
-          }}
-        >
+          }}>
           <TouchableOpacity
             style={{
-              backgroundColor: '#2D5BFF',
+              backgroundColor: "#2D5BFF",
               paddingHorizontal: 24,
               paddingVertical: 14,
               borderRadius: 12,
-              flexDirection: 'row',
-              alignItems: 'center',
+              flexDirection: "row",
+              alignItems: "center",
               gap: 8,
-              shadowColor: '#000',
+              shadowColor: "#000",
               shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.3,
               shadowRadius: 6,
@@ -326,27 +341,32 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
             onPress={() => {
               if (onNavigate && milestone) {
                 // Dismiss any active toasts before navigating
-                const Toast = require('react-native-toast-message').default;
+                const Toast = require("react-native-toast-message").default;
                 Toast.hide();
 
                 // If dream is completed, navigate to ShareJourneyRecap instead
                 if (isDreamCompleted && dreamStats) {
-                  console.log('[OneTimeGoal] Dream completed - Navigating to ShareJourneyRecap');
-                  onNavigate('ShareJourneyRecap', {
+                  console.log(
+                    "[OneTimeGoal] Dream completed - Navigating to ShareJourneyRecap",
+                  );
+                  onNavigate("ShareJourneyRecap", {
                     journeyRecap: {
-                      id: '',
-                      userId: user?.uid || '',
-                      userDisplayName: userData?.firstname || 'User',
+                      id: "",
+                      userId: user?.uid || "",
+                      userDisplayName: userData?.firstname || "User",
                       userLocation: userData?.communityProfile?.location,
                       userAge: userData?.communityProfile?.age,
-                      dreamId: threadId || '',
-                      dreamTitle: milestone?.dreamTitle || '',
-                      dreamCategory: milestone?.dreamCategory || 'achievement_goals',
-                      journeyStory: '',
+                      dreamId: threadId || "",
+                      dreamTitle: milestone?.dreamTitle || "",
+                      dreamCategory:
+                        milestone?.dreamCategory || "achievement_goals",
+                      journeyStory: "",
                       totalMilestones: dreamStats.totalMilestones || 0,
                       durationDays: dreamStats.durationDays || 0,
-                      keyMoment: '',
-                      completedDate: dreamStats.dreamCompletedDate || new Date().toISOString(),
+                      keyMoment: "",
+                      completedDate:
+                        dreamStats.dreamCompletedDate ||
+                        new Date().toISOString(),
                       createdAt: new Date().toISOString(),
                       courageBoosts: 0,
                       hasUserBoosted: false,
@@ -358,21 +378,25 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
                   });
                 } else {
                   // Regular milestone - navigate to ShareVictory
-                  console.log('[OneTimeGoal] Navigating to ShareVictory with milestone:', milestone);
-                  onNavigate('ShareVictory', {
+                  console.log(
+                    "[OneTimeGoal] Navigating to ShareVictory with milestone:",
+                    milestone,
+                  );
+                  onNavigate("ShareVictory", {
                     victory: {
-                      id: '',
-                      userId: user?.uid || '',
-                      userDisplayName: userData?.firstname || 'User',
+                      id: "",
+                      userId: user?.uid || "",
+                      userDisplayName: userData?.firstname || "User",
                       userLocation: userData?.communityProfile?.location,
                       userAge: userData?.communityProfile?.age,
-                      milestoneId: milestoneId || '',
-                      milestoneTitle: milestone?.title || milestone?.name || '',
-                      dreamId: threadId || '',
-                      dreamCategory: milestone?.dreamCategory || 'achievement_goals',
-                      evidenceSnippet: milestone?.evidence || '',
+                      milestoneId: milestoneId || "",
+                      milestoneTitle: milestone?.title || milestone?.name || "",
+                      dreamId: threadId || "",
+                      dreamCategory:
+                        milestone?.dreamCategory || "achievement_goals",
+                      evidenceSnippet: milestone?.evidence || "",
                       confidenceBoost: milestone?.xp_points || 10,
-                      impactLevel: (milestone?.impact as ImpactLevel) || 'high',
+                      impactLevel: (milestone?.impact as ImpactLevel) || "high",
                       completedDate: new Date().toISOString(),
                       createdAt: new Date().toISOString(),
                       courageBoosts: 0,
@@ -385,17 +409,17 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
                   });
                 }
               }
-            }}
-          >
-            <Text style={{ fontSize: 20 }}>{isDreamCompleted ? '⭐' : '🏆'}</Text>
+            }}>
+            <Text style={{ fontSize: 20 }}>
+              {isDreamCompleted ? "⭐" : "🏆"}
+            </Text>
             <Text
               style={{
-                color: '#FFFFFF',
+                color: "#FFFFFF",
                 fontSize: 16,
-                fontWeight: '600',
-              }}
-            >
-              {isDreamCompleted ? 'Share your journey?' : 'Share your victory?'}
+                fontWeight: "600",
+              }}>
+              {isDreamCompleted ? "Share your journey?" : "Share your victory?"}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -407,8 +431,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
             onPress={() => {
               setShowShareButton(false);
               shareButtonOpacity.setValue(0);
-            }}
-          >
+            }}>
             <Text style={{ color: themeColors.text_secondary, fontSize: 14 }}>
               Skip for now
             </Text>

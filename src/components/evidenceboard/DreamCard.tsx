@@ -108,7 +108,7 @@ export const DreamCard: React.FC<DreamCardProps> = ({
       style={{
         fontSize: 18,
         fontWeight: "bold",
-        color: "#000000",
+        color: isSelected ? "#ffffff" : "#000000",
         marginBottom: 12,
       }}>
       {dream.title}
@@ -117,7 +117,7 @@ export const DreamCard: React.FC<DreamCardProps> = ({
       <Text
         style={{
           fontSize: 14,
-          color: "#000000",
+          color: isSelected ? "#ffffff" : "#000000",
         }}>
         🏆 {dream.couragePoints} courage points
       </Text>

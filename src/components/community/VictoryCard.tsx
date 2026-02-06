@@ -11,7 +11,7 @@ import { formatDate, getConfidenceText } from "../../utils/communityUtils";
 
 interface VictoryCardProps {
   victory: VictoryCardType;
-  onBoost: (victoryId: string) => void;
+  onBoost?: (victoryId: string) => void;
   onMeToo?: (victoryId: string) => void;
   onPermission?: (victoryId: string) => void;
   onViewPermissions?: (victoryId: string) => void;
@@ -32,7 +32,7 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
     ? "Someone"
     : `${victory.userDisplayName}${victory.userAge ? ", " + victory.userAge : ""}${victory.userLocation ? ", " + victory.userLocation : ""}`;
 
-  const formattedDate = formatDate(victory.completedDate);
+  const formattedDate = formatDate(victory.createdAt);
   const confidenceText = getConfidenceText(victory.confidenceBoost);
 
   return (
@@ -64,8 +64,10 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
           {(victory.milestoneTitle || "MILESTONE").toUpperCase()}
         </Text>
 
-        {/* Evidence quote */}
-        <Text style={styles.evidenceText}>"{victory.evidenceSnippet}"</Text>
+        {/* Evidence quote - only show if provided */}
+        {victory.evidenceSnippet && (
+          <Text style={styles.evidenceText}>"{victory.evidenceSnippet}"</Text>
+        )}
 
         {/* Meta row: confidence + date + author */}
         <View style={styles.metaRow}>
@@ -82,12 +84,14 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
 
         {/* Action footer */}
         <View style={styles.actionRow}>
-          <CourageBoostButton
-            boostCount={victory.courageBoosts}
-            hasUserBoosted={victory.hasUserBoosted}
-            onPress={() => onBoost(victory.id)}
-            size="medium"
-          />
+          {onBoost && (
+            <CourageBoostButton
+              boostCount={victory.courageBoosts}
+              hasUserBoosted={victory.hasUserBoosted}
+              onPress={() => onBoost(victory.id)}
+              size="medium"
+            />
+          )}
 
           {onMeToo && (
             <MeTooButton
