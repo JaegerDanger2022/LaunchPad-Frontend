@@ -15,7 +15,6 @@ import {
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import { useAuthStore } from '../../store/authStore';
 
 type Step = {
   id: 'name' | 'email' | 'password';
@@ -67,7 +66,6 @@ const SignupScreen = ({ navigation }: any) => {
   const [showPassword, setShowPassword] = useState(false);
   const [fieldError, setFieldError] = useState('');
   const [displayedText, setDisplayedText] = useState('');
-  const { signUp, loading, error, clearError } = useAuthStore();
   const inputRef = useRef<TextInput>(null);
 
   // Setup video player for Luna background
@@ -146,7 +144,6 @@ const SignupScreen = ({ navigation }: any) => {
   const handleNext = async () => {
     // Clear any previous errors
     setFieldError('');
-    if (error) clearError();
 
     // Validate current field
     if (currentStep.validation && !currentStep.validation(currentValue)) {
@@ -157,14 +154,13 @@ const SignupScreen = ({ navigation }: any) => {
 
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    // If this is the last step, submit the form
+    // If this is the last step, navigate to pledge screen
     if (currentStepIndex === steps.length - 1) {
-      try {
-        await signUp(formData.email, formData.password, formData.name);
-        // Success - auth store will handle navigation
-      } catch (err) {
-        // Error is handled by the store
-      }
+      navigation.navigate('Pledge', {
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
+      });
     } else {
       // Move to next step
       setCurrentStepIndex(currentStepIndex + 1);
@@ -178,17 +174,15 @@ const SignupScreen = ({ navigation }: any) => {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setCurrentStepIndex(currentStepIndex - 1);
       setFieldError('');
-      if (error) clearError();
     }
   };
 
   const handleChangeText = (text: string) => {
     setFormData({ ...formData, [currentStep.id]: text });
     if (fieldError) setFieldError('');
-    if (error) clearError();
   };
 
-  const isNextDisabled = !currentValue.trim() || loading;
+  const isNextDisabled = !currentValue.trim();
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -253,7 +247,6 @@ const SignupScreen = ({ navigation }: any) => {
                 keyboardType={currentStep.keyboardType || 'default'}
                 autoCapitalize={currentStep.autoCapitalize || 'none'}
                 secureTextEntry={currentStep.secureTextEntry && !showPassword}
-                editable={!loading}
                 selectionColor="#FF5A36"
                 returnKeyType={currentStepIndex === steps.length - 1 ? 'done' : 'next'}
                 onSubmitEditing={handleNext}
@@ -261,8 +254,7 @@ const SignupScreen = ({ navigation }: any) => {
               {currentStep.secureTextEntry && (
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
-                  style={styles.eyeIcon}
-                  disabled={loading}>
+                  style={styles.eyeIcon}>
                   {showPassword ? (
                     <EyeOffIcon size={22} color="#A0A0A0" />
                   ) : (
@@ -273,9 +265,9 @@ const SignupScreen = ({ navigation }: any) => {
             </View>
 
             {/* Error Message */}
-            {(fieldError || error) && (
+            {fieldError && (
               <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{fieldError || error}</Text>
+                <Text style={styles.errorText}>{fieldError}</Text>
               </View>
             )}
 
@@ -285,7 +277,6 @@ const SignupScreen = ({ navigation }: any) => {
                 <TouchableOpacity
                   onPress={handleBack}
                   style={styles.backButton}
-                  disabled={loading}
                   activeOpacity={0.7}>
                   <Text style={styles.backButtonText}>Back</Text>
                 </TouchableOpacity>
@@ -299,13 +290,9 @@ const SignupScreen = ({ navigation }: any) => {
                   isNextDisabled && styles.nextButtonDisabled,
                 ]}
                 activeOpacity={0.8}>
-                {loading ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.nextButtonText}>
-                    {currentStepIndex === steps.length - 1 ? 'Create Account' : 'Next'}
-                  </Text>
-                )}
+                <Text style={styles.nextButtonText}>
+                  {currentStepIndex === steps.length - 1 ? 'Continue' : 'Next'}
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -313,8 +300,7 @@ const SignupScreen = ({ navigation }: any) => {
             <View style={styles.loginLinkContainer}>
               <Text style={styles.loginLinkText}>Already have an account? </Text>
               <TouchableOpacity
-                onPress={() => navigation.navigate('Login')}
-                disabled={loading}>
+                onPress={() => navigation.navigate('Login')}>
                 <Text style={styles.loginLinkButton}>Log In</Text>
               </TouchableOpacity>
             </View>
