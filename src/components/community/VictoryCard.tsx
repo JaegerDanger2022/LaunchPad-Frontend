@@ -26,7 +26,7 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
   onViewPermissions,
   onPress,
 }) => {
-  const categoryColor = CATEGORY_COLORS[victory.dreamCategory];
+  const categoryColor = '#10B981'; // Green for all victory cards
 
   const userInfo = victory.isAnonymous
     ? "Someone"
@@ -84,15 +84,6 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
 
         {/* Action footer */}
         <View style={styles.actionRow}>
-          {onBoost && (
-            <CourageBoostButton
-              boostCount={victory.courageBoosts}
-              hasUserBoosted={victory.hasUserBoosted}
-              onPress={() => onBoost(victory.id)}
-              size="medium"
-            />
-          )}
-
           {onMeToo && (
             <MeTooButton
               meTooCount={victory.meTooCount}

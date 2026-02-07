@@ -1,7 +1,8 @@
 import React from "react";
 import { Modal, View, Text, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { EvidenceBoardColors } from "../../constants/GlobalStyles";
+import { EvidenceBoardColors, getThemeColors } from "../../constants/GlobalStyles";
+import { useThemeStore } from "../../store/themeStore";
 
 // Helper function to calculate duration between two dates
 const calculateDuration = (startDate: string, endDate: string): string => {
@@ -58,6 +59,10 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
   dream,
   onClose,
 }) => {
+  const { theme } = useThemeStore();
+  const colors = getThemeColors(theme);
+  const isDark = theme === "dark";
+
   if (!dream) return null;
 
   return (
@@ -87,10 +92,26 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
             style={{
               width: "100%",
               maxWidth: 400,
+              backgroundColor: isDark ? colors.bg_secondary : EvidenceBoardColors.white,
               borderRadius: 32,
               overflow: "hidden",
               position: "relative",
             }}>
+          {!isDark && (
+          <LinearGradient
+            colors={["#FEE2E2", "#FEF3C7"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          />
+          )}
+
           <TouchableOpacity
             style={{
               position: "absolute",
@@ -106,21 +127,20 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
             <Text
               style={{
                 fontSize: 32,
-                color: EvidenceBoardColors.text.secondary,
+                color: isDark ? colors.text_secondary : EvidenceBoardColors.text.secondary,
                 fontWeight: "300",
               }}>
               ×
             </Text>
           </TouchableOpacity>
 
-          <LinearGradient
-            colors={["#FEE2E2", "#FEF3C7"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{ padding: 32 }}>
+          <View style={{ padding: 32 }}>
             <View style={{ alignItems: "center", marginBottom: 24 }}>
               <LinearGradient
-                colors={["#FBBF24", "#FB7185"]}
+                colors={isDark
+                  ? ["rgba(168, 85, 247, 0.3)", "rgba(99, 102, 241, 0.3)"]
+                  : ["#FBBF24", "#FB7185"]
+                }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
@@ -142,7 +162,7 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                 style={{
                   fontSize: 28,
                   fontWeight: "bold",
-                  color: EvidenceBoardColors.text.primary,
+                  color: isDark ? colors.text_primary : EvidenceBoardColors.text.primary,
                   marginBottom: 4,
                 }}>
                 You Did It!
@@ -150,7 +170,7 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
               <Text
                 style={{
                   fontSize: 16,
-                  color: EvidenceBoardColors.text.secondary,
+                  color: isDark ? colors.text_secondary : EvidenceBoardColors.text.secondary,
                 }}>
                 Journey Complete
               </Text>
@@ -158,7 +178,7 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
 
             <View
               style={{
-                backgroundColor: EvidenceBoardColors.white,
+                backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : EvidenceBoardColors.white,
                 borderRadius: 24,
                 padding: 24,
                 marginBottom: 24,
@@ -167,6 +187,8 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                 shadowOpacity: 0.05,
                 shadowRadius: 4,
                 elevation: 2,
+                borderWidth: isDark ? 1 : 0,
+                borderColor: isDark ? colors.border : "transparent",
               }}>
               <View
                 style={{
@@ -178,7 +200,7 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                 <Text
                   style={{
                     fontSize: 14,
-                    color: EvidenceBoardColors.text.secondary,
+                    color: isDark ? colors.text_secondary : EvidenceBoardColors.text.secondary,
                   }}>
                   Time taken
                 </Text>
@@ -186,7 +208,7 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                   style={{
                     fontSize: 16,
                     fontWeight: "bold",
-                    color: EvidenceBoardColors.text.primary,
+                    color: isDark ? colors.text_primary : EvidenceBoardColors.text.primary,
                   }}>
                   {dream.completedDate
                     ? calculateDuration(dream.startDate, dream.completedDate)
@@ -203,7 +225,7 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                 <Text
                   style={{
                     fontSize: 14,
-                    color: EvidenceBoardColors.text.secondary,
+                    color: isDark ? colors.text_secondary : EvidenceBoardColors.text.secondary,
                   }}>
                   Missions completed
                 </Text>
@@ -211,7 +233,7 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                   style={{
                     fontSize: 16,
                     fontWeight: "bold",
-                    color: EvidenceBoardColors.text.primary,
+                    color: isDark ? colors.text_primary : EvidenceBoardColors.text.primary,
                   }}>
                   {dream.proofPoints.length} actions
                 </Text>
@@ -226,7 +248,7 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                 <Text
                   style={{
                     fontSize: 14,
-                    color: EvidenceBoardColors.text.secondary,
+                    color: isDark ? colors.text_secondary : EvidenceBoardColors.text.secondary,
                   }}>
                   Courage earned
                 </Text>
@@ -234,7 +256,7 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                   style={{
                     fontSize: 16,
                     fontWeight: "bold",
-                    color: "#B45309",
+                    color: isDark ? "#FBBF24" : "#B45309",
                   }}>
                   {dream.couragePoints} points
                 </Text>
@@ -252,7 +274,7 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                 style={{
                   fontSize: 14,
                   fontStyle: "italic",
-                  color: "#374151",
+                  color: isDark ? colors.text_secondary : "#374151",
                   lineHeight: 22,
                   marginBottom: 12,
                 }}>
@@ -264,7 +286,7 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                 style={{
                   fontSize: 12,
                   fontWeight: "600",
-                  color: EvidenceBoardColors.text.secondary,
+                  color: isDark ? colors.text_tertiary : EvidenceBoardColors.text.secondary,
                   textAlign: "right",
                 }}>
                 — Gabby
@@ -275,8 +297,31 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
               <TouchableOpacity
                 style={{
                   flex: 1,
-                  backgroundColor: "transparent",
+                  backgroundColor: isDark ? "rgba(168, 85, 247, 0.2)" : "transparent",
                   borderRadius: 12,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderWidth: isDark ? 1 : 0,
+                  borderColor: isDark ? "rgba(168, 85, 247, 0.3)" : "transparent",
+                }}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "600",
+                    color: isDark ? "#A855F7" : EvidenceBoardColors.text.primary,
+                  }}>
+                  Share Victory
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : EvidenceBoardColors.white,
+                  borderRadius: 12,
+                  borderWidth: isDark ? 1 : 2,
+                  borderColor: isDark ? colors.border : EvidenceBoardColors.gray400,
                   paddingVertical: 12,
                   paddingHorizontal: 16,
                   justifyContent: "center",
@@ -286,30 +331,13 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                   style={{
                     fontSize: 14,
                     fontWeight: "600",
-                    color: EvidenceBoardColors.text.primary,
+                    color: isDark ? colors.text_primary : "#374151"
                   }}>
-                  Share Victory
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{
-                  flex: 1,
-                  backgroundColor: EvidenceBoardColors.white,
-                  borderRadius: 12,
-                  borderWidth: 2,
-                  borderColor: EvidenceBoardColors.gray400,
-                  paddingVertical: 12,
-                  paddingHorizontal: 16,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}>
-                <Text
-                  style={{ fontSize: 14, fontWeight: "600", color: "#374151" }}>
                   Save
                 </Text>
               </TouchableOpacity>
             </View>
-          </LinearGradient>
+          </View>
         </View>
         </TouchableOpacity>
       </TouchableOpacity>

@@ -633,7 +633,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       const result = await addMilestoneToRoadmap(threadId, {
         title,
         challenge_type: challengeType,
-        description
+        description,
+        streak_eligible: false,  // ✅ ALWAYS false for custom milestones
       });
       console.log('[addCustomMilestone] Persisted successfully:', result);
 

@@ -23,7 +23,7 @@ export const CATEGORY_LABELS: Record<DreamCategory, string> = {
   finance_security: 'FINANCE',
   lifestyle_hobbies: 'LIFESTYLE',
   courage_challenges: 'COURAGE',
-  achievement_goals: 'ACHIEVEMENT',
+  achievement_goals: 'VICTORY',
 };
 
 export const getCategoryColor = (category: DreamCategory): string => {

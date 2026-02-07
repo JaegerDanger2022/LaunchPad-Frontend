@@ -15,6 +15,8 @@ import { JourneyRecapCard } from '../components/community/JourneyRecapCard';
 import Toast from 'react-native-toast-message';
 import { useAuthStore } from '../store/authStore';
 import { useCommunityStore } from '../store/communityStore';
+import { useThemeStore } from '../store/themeStore';
+import { getThemeColors } from '../constants/GlobalStyles';
 
 interface ShareJourneyRecapScreenProps {
   onNavigate: (screen: string) => void;
@@ -27,6 +29,9 @@ const ShareJourneyRecapScreen: React.FC<ShareJourneyRecapScreenProps> = ({
 }) => {
   console.log('[ShareJourneyRecapScreen] Received journeyRecap:', journeyRecap);
 
+  const { theme } = useThemeStore();
+  const colors = getThemeColors(theme);
+  const isDark = theme === 'dark';
   const insets = useSafeAreaInsets();
   const [journeyStory, setJourneyStory] = useState('');
   const [keyMoment, setKeyMoment] = useState('');
@@ -131,22 +136,32 @@ const ShareJourneyRecapScreen: React.FC<ShareJourneyRecapScreenProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg_primary }]}>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <View style={[styles.header, {
+        paddingTop: insets.top + 12,
+        backgroundColor: colors.bg_secondary,
+        borderBottomColor: colors.border
+      }]}>
         <TouchableOpacity onPress={() => onNavigate('Home')} disabled={isSaving}>
-          <Text style={styles.closeButton}>✕</Text>
+          <Text style={[styles.closeButton, { color: colors.text_secondary }]}>✕</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Share Your Journey</Text>
+        <Text style={[styles.headerTitle, { color: colors.text_primary }]}>Share Your Journey</Text>
         <View style={styles.spacer} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} scrollEnabled={true} bounces={false}>
         {/* Celebration Message */}
-        <View style={styles.celebrationSection}>
+        <View style={[styles.celebrationSection, {
+          backgroundColor: isDark ? 'rgba(168, 85, 247, 0.15)' : '#FEF3C7'
+        }]}>
           <Text style={styles.celebrationEmoji}>🎉</Text>
-          <Text style={styles.celebrationTitle}>Dream Complete!</Text>
-          <Text style={styles.celebrationText}>
+          <Text style={[styles.celebrationTitle, {
+            color: isDark ? colors.text_primary : '#78350F'
+          }]}>Dream Complete!</Text>
+          <Text style={[styles.celebrationText, {
+            color: isDark ? colors.text_secondary : '#92400E'
+          }]}>
             You completed "{journeyRecap.dreamTitle}" with {journeyRecap.totalMilestones} milestones
             {journeyRecap.durationDays === 0
               ? ' today'
@@ -158,63 +173,71 @@ const ShareJourneyRecapScreen: React.FC<ShareJourneyRecapScreenProps> = ({
 
         {/* Preview */}
         {journeyStory.trim() && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Preview</Text>
+          <View style={[styles.section, { backgroundColor: colors.bg_secondary }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text_primary }]}>Preview</Text>
             <JourneyRecapCard journeyRecap={previewJourneyRecap} onBoost={() => {}} />
           </View>
         )}
 
         {/* Journey Story Input */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: colors.bg_secondary }]}>
           <View style={styles.labelRow}>
-            <Text style={styles.label}>Your Journey Story *</Text>
+            <Text style={[styles.label, { color: colors.text_primary }]}>Your Journey Story *</Text>
             <Text style={[styles.charCounter, journeyStory.length < 10 && styles.charCounterWarning]}>
               {journeyStory.length}/500 (min 10)
             </Text>
           </View>
-          <Text style={styles.helperText}>
+          <Text style={[styles.helperText, { color: colors.text_secondary }]}>
             Reflect on your journey. What did you learn? How did it changed you?
           </Text>
           <TextInput
-            style={styles.textArea}
+            style={[styles.textArea, {
+              borderColor: colors.border,
+              color: colors.text_primary,
+              backgroundColor: isDark ? colors.bg_primary : '#FFFFFF'
+            }]}
             placeholder="Example: This dream taught me that I'm capable of more than I thought. The hardest part was..."
             value={journeyStory}
             onChangeText={(text) => setJourneyStory(text.slice(0, 500))}
             multiline
             maxLength={500}
             editable={!isSaving}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.text_secondary}
           />
         </View>
 
         {/* Key Moment Input */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: colors.bg_secondary }]}>
           <View style={styles.labelRow}>
-            <Text style={styles.label}>Most Memorable Moment (Optional)</Text>
+            <Text style={[styles.label, { color: colors.text_primary }]}>Most Memorable Moment (Optional)</Text>
             <Text style={styles.charCounter}>{keyMoment.length}/200</Text>
           </View>
-          <Text style={styles.helperText}>
+          <Text style={[styles.helperText, { color: colors.text_secondary }]}>
             What's one moment you'll never forget from this journey?
           </Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, {
+              borderColor: colors.border,
+              color: colors.text_primary,
+              backgroundColor: isDark ? colors.bg_primary : '#FFFFFF'
+            }]}
             placeholder="Example: The day I realized I could actually do this..."
             value={keyMoment}
             onChangeText={(text) => setKeyMoment(text.slice(0, 200))}
             multiline
             maxLength={200}
             editable={!isSaving}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.text_secondary}
           />
         </View>
 
         {/* Anonymous Toggle */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: colors.bg_secondary }]}>
           <View style={styles.anonymousRow}>
-            <Text style={styles.label}>Share Anonymously</Text>
+            <Text style={[styles.label, { color: colors.text_primary }]}>Share Anonymously</Text>
             <Switch value={isAnonymous} onValueChange={setIsAnonymous} disabled={isSaving} />
           </View>
-          <Text style={styles.helperText}>
+          <Text style={[styles.helperText, { color: colors.text_secondary }]}>
             {isAnonymous
               ? 'Your journey will show as "Someone"'
               : 'Your name will be visible to the community'}
@@ -224,11 +247,14 @@ const ShareJourneyRecapScreen: React.FC<ShareJourneyRecapScreenProps> = ({
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={styles.buttonSecondary}
+            style={[styles.buttonSecondary, {
+              borderColor: colors.border,
+              backgroundColor: isDark ? colors.bg_primary : '#FFFFFF'
+            }]}
             onPress={() => onNavigate('Home')}
             disabled={isSaving}
           >
-            <Text style={styles.buttonSecondaryText}>Skip for Now</Text>
+            <Text style={[styles.buttonSecondaryText, { color: colors.text_primary }]}>Skip for Now</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.buttonPrimary, isSaving && styles.buttonDisabled]}

@@ -226,7 +226,7 @@ const EvidenceBoardScreen = ({
       edges={["left", "right"]}>
       <ParallaxHeader
         backgroundColor={themeColors.bg_primary}
-        backgroundLottie={require("../assets/animations/evidence board.json")}
+        backgroundImage={require("../assets/images/evidence board.png")}
         title="✨ Evidence Board"
         subtitle={`${totalStats.totalActions} Actions • ${totalStats.totalCourage} Courage Points • ${displayDreams.length} Dreams`}
         titleStyle={{

@@ -249,9 +249,11 @@ const AllDreamsScreen = ({
 
       return {
         title: dream.dream || "",
-        bgImage: dream.dream_image_bytes
-          ? { uri: convertBinaryToImage(dream.dream_image_bytes) }
-          : require("../assets/images/goal-podcast.png"),
+        bgImage: dream.is_custom
+          ? require("../assets/images/customDream.png")
+          : dream.dream_image_bytes
+            ? { uri: convertBinaryToImage(dream.dream_image_bytes) }
+            : require("../assets/images/goal-podcast.png"),
         bgColor: dream.dream_card_bg || Color.colorBurlywood,
         progressColor: "#A855F7",
         progress,

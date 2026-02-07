@@ -17,16 +17,37 @@ The frontend now supports two ways to create dreams:
 {
   "user_id": "string",
   "dream_title": "string",
+  "card_color": "string (optional, hex color like #A855F7)",
   "milestones": [
     {
       "title": "string",
       "description": "string (optional)",
-      "challenge_type": "action" | "research" | "reflection",
+      "challenge_type": "power_move" | "knowledge_quest" | "prep_ritual" | "courage_check" | "skill_flex" | "decision_point" | "celebration_moment",
       "order": 1
     }
   ]
 }
 ```
+
+**Card Color Options:**
+Users can select from 8 predefined colors for their dream card:
+- `#A855F7` - Purple (default)
+- `#14B8A6` - Teal
+- `#F43F5E` - Rose
+- `#F59E0B` - Amber
+- `#6366F1` - Indigo
+- `#EC4899` - Pink
+- `#06B6D4` - Cyan
+- `#F97316` - Orange
+
+**Valid Challenge Types:**
+- `power_move` - Power Move (⚡)
+- `knowledge_quest` - Knowledge Quest (📚)
+- `prep_ritual` - Prep Ritual (🎯)
+- `courage_check` - Courage Check (💪)
+- `skill_flex` - Skill Flex (🔥)
+- `decision_point` - Decision Point (🤔)
+- `celebration_moment` - Celebration Moment (🎉)
 
 **Response:**
 ```json
@@ -46,6 +67,7 @@ dream_doc = {
     "dream": dream_title,
     "status": "active",
     "category": "custom",  # or determine from title
+    "dream_card_bg": card_color,  # User-selected hex color (optional)
     "created_at": datetime.utcnow(),
     "updated_at": datetime.utcnow(),
     "is_custom": True,  # Flag to indicate DIY dream
@@ -69,18 +91,19 @@ milestone = {
     "order": milestone_data["order"],
     "time_estimate": "30 min",  # Default for custom milestones
     "xp_points": 10,  # Default XP
-    "streak_eligible": True,
+    "streak_eligible": False,  # Custom milestones are NOT streak-eligible
     "dependencies": [],  # Sequential: previous milestone's ID
     "created_at": datetime.utcnow(),
     "updated_at": datetime.utcnow()
 }
 ```
 
-**Important:** Set dependencies sequentially:
-- Milestone 1: `dependencies: []` (unlocked)
-- Milestone 2: `dependencies: [milestone_1_id]`
-- Milestone 3: `dependencies: [milestone_2_id]`
-- etc.
+**Important:** Custom dream milestones have NO dependencies:
+- All milestones: `dependencies: []` (all unlocked from the start)
+- User can tackle them in any order they prefer
+- This gives users full control over their custom dreams
+
+**Note:** Custom milestones have `streak_eligible: False` because they are user-created and not AI-verified.
 
 ### 3. Update User Document
 Add dream metadata to user's `dream_metadata` array:
@@ -121,7 +144,7 @@ if not user.get("up_next"):
         "time_estimate": "30 min",
         "xp_points": 10,
         "challenge_type": milestones[0]["challenge_type"],
-        "streak_eligible": True,
+        "streak_eligible": False,  # Custom milestones are NOT streak-eligible
         "updated_at": datetime.utcnow()
     }
     db.users.update_one(
@@ -147,12 +170,21 @@ router = APIRouter()
 class CustomMilestone(BaseModel):
     title: str
     description: str = ""
-    challenge_type: Literal["action", "research", "reflection"]
+    challenge_type: Literal[
+        "power_move",
+        "knowledge_quest",
+        "prep_ritual",
+        "courage_check",
+        "skill_flex",
+        "decision_point",
+        "celebration_moment"
+    ]
     order: int
 
 class CreateCustomDreamRequest(BaseModel):
     user_id: str
     dream_title: str
+    card_color: str | None = None
     milestones: List[CustomMilestone]
 
 @router.post("/dreams/create-custom")
@@ -179,7 +211,7 @@ async def create_custom_dream(request: CreateCustomDreamRequest):
             "order": milestone_data.order,
             "time_estimate": "30 min",
             "xp_points": 10,
-            "streak_eligible": True,
+            "streak_eligible": False,  # Custom milestones are NOT streak-eligible
             "dependencies": [prev_milestone_id] if prev_milestone_id else [],
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow()
@@ -194,6 +226,7 @@ async def create_custom_dream(request: CreateCustomDreamRequest):
         "dream": request.dream_title,
         "status": "active",
         "category": "custom",
+        "dream_card_bg": request.card_color,
         "is_custom": True,
         "created_at": datetime.utcnow(),
         "updated_at": datetime.utcnow(),
@@ -237,7 +270,7 @@ async def create_custom_dream(request: CreateCustomDreamRequest):
             "time_estimate": first_milestone["time_estimate"],
             "xp_points": first_milestone["xp_points"],
             "challenge_type": first_milestone["challenge_type"],
-            "streak_eligible": first_milestone["streak_eligible"],
+            "streak_eligible": False,  # Custom milestones are NOT streak-eligible
             "updated_at": datetime.utcnow()
         }
         db.users.update_one(
@@ -262,6 +295,9 @@ async def create_custom_dream(request: CreateCustomDreamRequest):
 
 - Custom dreams are marked with `is_custom: True` flag
 - Default values for custom milestones: 30 min time estimate, 10 XP points
+- **Custom milestones have `streak_eligible: False`** - they are user-created and not AI-verified, so they don't count toward streaks
 - Milestones are sequential by default (each depends on the previous one)
 - The first milestone becomes `up_next` if the user doesn't have one already
 - Category can be "custom" or you can implement logic to categorize based on title/description
+- `card_color` is optional - if not provided, the frontend will use default theme colors
+- The `dream_card_bg` field is used throughout the app (Evidence Board, All Dreams, Home Screen, Dream Page) to display the card with the user's chosen color

@@ -81,10 +81,10 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
     extrapolate: 'clamp',
   });
 
-  // Sticky header animation
-  const headerOpacity = scrollY.interpolate({
+  // Sticky header animation - using translateY for better performance
+  const headerTranslateY = scrollY.interpolate({
     inputRange: [parallaxHeight - headerHeight - 40, parallaxHeight - headerHeight],
-    outputRange: [0, 1],
+    outputRange: [-headerHeight, 0],
     extrapolate: 'clamp',
   });
 
@@ -219,7 +219,7 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
           justifyContent: 'center',
           paddingHorizontal: 20,
           paddingTop: 40,
-          opacity: headerOpacity,
+          transform: [{ translateY: headerTranslateY }],
         }}>
         <Text
           style={[
@@ -236,7 +236,7 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
 
       <Animated.ScrollView
         {...scrollViewProps}
-        scrollEventThrottle={16}
+        scrollEventThrottle={1}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           {
@@ -244,6 +244,8 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
             listener: handleScroll,
           }
         )}
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews={true}
         contentContainerStyle={[{ paddingTop: parallaxHeight + 20 }, contentContainerStyle]}>
         {/* Content starts after the header */}
         {children}

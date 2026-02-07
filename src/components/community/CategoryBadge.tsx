@@ -6,13 +6,15 @@ import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../constants/communityColor
 interface CategoryBadgeProps {
   category: DreamCategory;
   size?: 'small' | 'medium' | 'large';
+  color?: string; // Optional override color
 }
 
 export const CategoryBadge: React.FC<CategoryBadgeProps> = ({
   category,
   size = 'medium',
+  color: overrideColor,
 }) => {
-  const color = CATEGORY_COLORS[category];
+  const color = overrideColor || CATEGORY_COLORS[category];
   const label = CATEGORY_LABELS[category];
 
   const sizeStyles = {

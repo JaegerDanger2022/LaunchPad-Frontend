@@ -305,21 +305,21 @@ function StreakCard({
           <LinearGradient
             colors={["#A855F7", "#6366F1"]}
             style={[styles.statPill, { flex: 1 }]}>
-            <Image source={require("../assets/animations/fire.gif")} style={styles.statPillIcon} />
+            <Text style={styles.statPillIcon}>{'\u{1F525}'}</Text>
             <Text style={styles.statPillNum}>{streakData.current_streak}</Text>
             <Text style={styles.statPillSub}>Current</Text>
           </LinearGradient>
           <LinearGradient
             colors={["#A855F7", "#6366F1"]}
             style={[styles.statPill, { flex: 1 }]}>
-            <Image source={require("../assets/animations/trophy.gif")} style={styles.statPillIcon} />
+            <Text style={styles.statPillIcon}>{'\u{1F3C6}'}</Text>
             <Text style={styles.statPillNum}>{streakData.longest_streak}</Text>
             <Text style={styles.statPillSub}>Best</Text>
           </LinearGradient>
           <LinearGradient
             colors={["#A855F7", "#6366F1"]}
             style={[styles.statPill, { flex: 1 }]}>
-            <Image source={require("../assets/animations/verified.gif")} style={styles.statPillIcon} />
+            <Text style={styles.statPillIcon}>{'\u{2705}'}</Text>
             <Text style={styles.statPillNum}>
               {streakData.total_completions}
             </Text>
@@ -331,17 +331,17 @@ function StreakCard({
           {
             label: "3-Day Streaks",
             count: streakData.milestone_achievements.three_day_count,
-            icon: require("../assets/animations/fire.gif"),
+            icon: '\u{1F525}',
           },
           {
             label: "7-Day Streaks",
             count: streakData.milestone_achievements.seven_day_count,
-            icon: require("../assets/animations/trophy.gif"),
+            icon: '\u{1F3C6}',
           },
           {
             label: "30-Day Streaks",
             count: streakData.milestone_achievements.thirty_day_count,
-            icon: require("../assets/animations/crown.gif"),
+            icon: '\u{1F451}',
           },
         ].map((a) => (
           <View
@@ -354,7 +354,7 @@ function StreakCard({
                 borderBottomWidth: 1,
               },
             ]}>
-            <Image source={a.icon} style={{ width: 24, height: 24 }} />
+            <Text style={{ fontSize: 24 }}>{a.icon}</Text>
             <Text
               style={[
                 styles.achievementLabel,
@@ -847,8 +847,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   statPillIcon: {
-    width: 22,
-    height: 22,
+    fontSize: 22,
   },
   statPillNum: {
     fontSize: 22,

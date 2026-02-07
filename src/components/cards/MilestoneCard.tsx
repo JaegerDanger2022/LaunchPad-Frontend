@@ -1,7 +1,6 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import LottieView from "lottie-react-native";
 import { Lock } from "lucide-react-native";
 import { Color, ChallengeTypeName } from "../../constants/GlobalStyles";
 
@@ -14,14 +13,20 @@ interface MilestoneCardProps {
   animation?: any;
   challengeType?: string;
   isLocked?: boolean;
+  status?: string;
   onPress: () => void;
 }
 
-// Challenge type animation mapping
+// Challenge type animation mapping (using PNGs for all types)
 const challengeTypeAnimations: Record<string, any> = {
-  power_move: require("../../assets/animations/power_move.json"),
-  knowledge_quest: require("../../assets/animations/knowledge_quest.json"),
-  // Add other animations as they become available
+  power_move: require("../../assets/animations/PowerMove.png"),
+  knowledge_quest: require("../../assets/animations/KnowledgeQuest.png"),
+  courage_check: require("../../assets/animations/courageCheck.png"),
+  skill_flex: require("../../assets/animations/SkillFlex.png"),
+  decision_point: require("../../assets/animations/DecisionPoint.png"),
+  celebration_moment: require("../../assets/animations/Celebration Moment.png"),
+  prep_ritual: require("../../assets/animations/PrepRitual.png"),
+  custom_dream: require("../../assets/images/customDream.png"), // Custom dream uses static image
 };
 
 export const MilestoneCard: React.FC<MilestoneCardProps> = ({
@@ -33,8 +38,14 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
   animation,
   challengeType,
   isLocked = false,
+  status,
   onPress,
 }) => {
+  // Determine which animation to use (priority: prop > challengeType mapping > fallback to image)
+  const animationSource =
+    animation ||
+    (challengeType ? challengeTypeAnimations[challengeType] : null);
+
   return (
     <TouchableOpacity
       key={id}
@@ -43,38 +54,39 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
       disabled={isLocked}
       style={{
         flexDirection: "row",
-        height: 120,
+        height: 100,
         borderRadius: 12,
         overflow: "hidden",
-        backgroundColor: bgColor,
+        backgroundColor: "#2B2D56",
+        borderWidth: 2,
+        borderColor: bgColor,
         opacity: isLocked ? 0.5 : 1,
       }}>
       {/* Animation or Image - Left Side */}
-      {animation ? (
+      {animationSource || image ? (
         <View
           style={{
-            width: 120,
+            width: 100,
             height: "100%",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: bgColor,
+            backgroundColor: "#2B2D56",
           }}>
-          <LottieView
-            source={animation}
-            autoPlay
-            loop={false}
+          <Image
+            source={animationSource || image}
             style={{
-              width: 90,
-              height: 90,
+              width: 48,
+              height: 48,
+              resizeMode: "contain",
             }}
           />
         </View>
       ) : (
-        <Image
-          source={image}
+        <View
           style={{
-            width: 120,
+            width: 100,
             height: "100%",
+            backgroundColor: "#2B2D56",
           }}
         />
       )}
@@ -87,20 +99,66 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
           paddingVertical: 16,
           justifyContent: "space-between",
         }}
-        colors={[bgColor, bgColor]}
+        colors={["#2B2D56", "#2B2D56"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}>
-        {/* Title */}
-        <Text
-          style={{
-            fontFamily: "InriaSans-Bold",
-            fontSize: 16,
-            color: Color.colorWhite,
-            fontWeight: "700",
-          }}
-          numberOfLines={2}>
-          {title}
-        </Text>
+        {/* Title and Status Badge */}
+        <View
+          style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
+          <Text
+            style={{
+              fontFamily: "InriaSans-Bold",
+              fontSize: 16,
+              color: "#FFFFFF",
+              fontWeight: "700",
+              flex: 1,
+            }}
+            numberOfLines={2}>
+            {title}
+          </Text>
+          {status === "pending" && (
+            <View
+              style={{
+                backgroundColor: "rgba(255, 165, 0, 0.2)",
+                paddingHorizontal: 8,
+                paddingVertical: 4,
+                borderRadius: 6,
+                borderWidth: 1,
+                borderColor: "rgba(255, 165, 0, 0.4)",
+              }}>
+              <Text
+                style={{
+                  color: "#FFA500",
+                  fontSize: 10,
+                  fontWeight: "600",
+                  fontFamily: "InriaSans-Bold",
+                }}>
+                PENDING
+              </Text>
+            </View>
+          )}
+          {status === "completed" && (
+            <View
+              style={{
+                backgroundColor: "rgba(34, 197, 94, 0.2)",
+                paddingHorizontal: 8,
+                paddingVertical: 4,
+                borderRadius: 6,
+                borderWidth: 1,
+                borderColor: "rgba(34, 197, 94, 0.4)",
+              }}>
+              <Text
+                style={{
+                  color: "#22C55E",
+                  fontSize: 10,
+                  fontWeight: "600",
+                  fontFamily: "InriaSans-Bold",
+                }}>
+                COMPLETED
+              </Text>
+            </View>
+          )}
+        </View>
 
         {/* Challenge Type */}
         <View
@@ -114,12 +172,12 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
               width: 6,
               height: 6,
               borderRadius: 1,
-              backgroundColor: "rgba(255, 255, 255, 0.6)",
+              backgroundColor: bgColor,
             }}
           />
           <Text
             style={{
-              color: Color.colorWhite,
+              color: "#B0B0B0",
               fontSize: 12,
               fontWeight: "400",
               fontFamily: "InriaSans-Regular",

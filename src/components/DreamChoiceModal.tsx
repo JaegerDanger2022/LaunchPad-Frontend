@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
-import { Sparkles, Pencil } from 'lucide-react-native';
+import { Pencil } from 'lucide-react-native';
 import { getThemeColors } from '../constants/GlobalStyles';
 import { useThemeStore } from '../store/themeStore';
+import { Video, AVPlaybackStatus } from 'expo-av';
 
 interface DreamChoiceModalProps {
   visible: boolean;
@@ -30,6 +31,67 @@ export const DreamChoiceModal: React.FC<DreamChoiceModalProps> = ({
   const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
   const isDark = theme === 'dark';
+
+  // Luna video state
+  const videoRef = useRef<Video>(null);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [isSeeking, setIsSeeking] = useState(false);
+  const [playingForward, setPlayingForward] = useState(true);
+
+  // Video looping logic: 2s-6s forward, then 6s-2s backward
+  const handlePlaybackStatusUpdate = async (status: AVPlaybackStatus) => {
+    if (!status.isLoaded || !videoRef.current || isSeeking) return;
+
+    if (!isVideoLoaded) {
+      setIsVideoLoaded(true);
+    }
+
+    const positionMillis = status.positionMillis;
+
+    try {
+      if (playingForward) {
+        // Playing forward: 2s to 6s
+        if (positionMillis >= 6000) {
+          setIsSeeking(true);
+          setPlayingForward(false);
+          await videoRef.current.setPositionAsync(6000);
+          await videoRef.current.setRateAsync(-1, true); // Play backward at 1x speed
+          setTimeout(() => setIsSeeking(false), 100);
+        }
+      } else {
+        // Playing backward: 6s to 2s
+        if (positionMillis <= 2000) {
+          setIsSeeking(true);
+          setPlayingForward(true);
+          await videoRef.current.setPositionAsync(2000);
+          await videoRef.current.setRateAsync(1, true); // Play forward at 1x speed
+          setTimeout(() => setIsSeeking(false), 100);
+        }
+      }
+    } catch (error) {
+      setIsSeeking(false);
+    }
+  };
+
+  // Initialize video when modal opens
+  useEffect(() => {
+    const initVideo = async () => {
+      if (visible && videoRef.current) {
+        setIsSeeking(true);
+        setPlayingForward(true);
+        try {
+          await videoRef.current.setPositionAsync(2000);
+          await videoRef.current.setRateAsync(1, true);
+        } catch (error) {
+          console.debug('[DreamChoiceModal] Video init error');
+        } finally {
+          setTimeout(() => setIsSeeking(false), 100);
+        }
+      }
+    };
+
+    initVideo();
+  }, [visible]);
 
   return (
     <Modal
@@ -91,16 +153,17 @@ export const DreamChoiceModal: React.FC<DreamChoiceModalProps> = ({
                           : 'rgba(251, 99, 34, 0.1)',
                       },
                     ]}>
-                    <View
-                      style={[
-                        styles.iconCircle,
-                        {
-                          backgroundColor: isDark
-                            ? 'rgba(251, 99, 34, 0.3)'
-                            : 'rgba(251, 99, 34, 0.2)',
-                        },
-                      ]}>
-                      <Sparkles size={32} color="#fb6322" strokeWidth={2} />
+                    <View style={styles.iconCircle}>
+                      <Video
+                        ref={videoRef}
+                        source={require('../assets/animations/ondoarding/Luna floating.mp4')}
+                        style={styles.lunaVideo}
+                        resizeMode={'cover' as any}
+                        isLooping={false}
+                        shouldPlay={visible}
+                        isMuted={true}
+                        onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+                      />
                     </View>
                     <Text
                       style={[
@@ -255,6 +318,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
+    overflow: 'hidden',
+  },
+  lunaVideo: {
+    width: '100%',
+    height: '100%',
   },
   choiceTitle: {
     fontSize: 20,

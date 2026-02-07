@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   Dimensions,
-  ScrollView,
   PanResponder,
   ActivityIndicator,
 } from "react-native";
@@ -14,7 +13,6 @@ import {
   ChallengeTypeColors,
 } from "../constants/GlobalStyles";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Path } from "react-native-svg";
 import { ChevronLeft, Plus } from "lucide-react-native";
 import { MilestoneCard } from "../components/cards/MilestoneCard";
 import { BottomNavbar } from "../components/BottomNavbar";
@@ -23,6 +21,7 @@ import { useAuthStore } from "../store/authStore";
 import { areDependenciesCompleted } from "../utils/dependencyChecker";
 import { AddMilestoneModal } from "../components/AddMilestoneModal";
 import { fetchDreamDetails } from "../config/api";
+import { ParallaxHeader } from "../components/ParallaxHeader";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -36,14 +35,19 @@ interface Milestone {
   challengeType?: string;
   roadmapId?: string;
   milestoneId?: string;
+  status?: string;
   rawMilestone?: any; // Store raw milestone object for dependency checking
 }
 
-// Animation mapping for challenge types
+// Animation mapping for challenge types (using PNGs for all types)
 const challengeTypeAnimations: Record<string, any> = {
-  power_move: require("../assets/animations/power_move.json"),
-  knowledge_quest: require("../assets/animations/knowledge_quest.json"),
-  // Add other animations as they become available
+  power_move: require("../assets/animations/PowerMove.png"),
+  knowledge_quest: require("../assets/animations/KnowledgeQuest.png"),
+  courage_check: require("../assets/animations/courageCheck.png"),
+  skill_flex: require("../assets/animations/SkillFlex.png"),
+  decision_point: require("../assets/animations/DecisionPoint.png"),
+  celebration_moment: require("../assets/animations/Celebration Moment.png"),
+  prep_ritual: require("../assets/animations/PrepRitual.png"),
 };
 
 // Fallback placeholder images
@@ -53,8 +57,19 @@ const placeholderImages = [
   require("../assets/images/placeholder-feedback.png"),
 ];
 
+// Custom dream image
+const customDreamImage = require("../assets/images/customDream.png");
+
 // Helper function to get animation or fallback to image
-const getAnimationOrImage = (challengeType: string, fallbackImageIndex: number) => {
+const getAnimationOrImage = (challengeType: string, fallbackImageIndex: number, isCustomDream: boolean) => {
+  // If it's a custom dream, always use the custom dream image
+  if (isCustomDream) {
+    return {
+      animation: null,
+      image: customDreamImage,
+    };
+  }
+
   return {
     animation: challengeTypeAnimations[challengeType] || null,
     image: placeholderImages[fallbackImageIndex % placeholderImages.length],
@@ -84,17 +99,26 @@ const DreamPage = ({
   );
 
   // Use dreamFromStore if it has more milestones (indicates a recent update),
-  // otherwise use fullDreamData, or fall back to dreamFromStore
+  // or if it has a more recent timestamp, otherwise use fullDreamData
   const dream = useMemo(() => {
     if (!dreamFromStore && !fullDreamData) return null;
     if (!fullDreamData) return dreamFromStore;
     if (!dreamFromStore) return fullDreamData;
 
-    // If dreamFromStore has more milestones, it's fresher (e.g., custom milestone was just added)
+    // Check for freshness indicators
+    const storeTimestamp = dreamFromStore?._lastUpdated || 0;
+    const fullDataTimestamp = fullDreamData?._lastUpdated || 0;
     const storeMilestoneCount = dreamFromStore?.roadmap?.milestones?.length || 0;
     const fullDataMilestoneCount = fullDreamData?.roadmap?.milestones?.length || 0;
 
-    return storeMilestoneCount > fullDataMilestoneCount ? dreamFromStore : fullDreamData;
+    // Use store data if:
+    // 1. It has a more recent timestamp (updated after milestone completion)
+    // 2. It has more milestones (custom milestone was just added)
+    if (storeTimestamp > fullDataTimestamp || storeMilestoneCount > fullDataMilestoneCount) {
+      return dreamFromStore;
+    }
+
+    return fullDreamData;
   }, [dreamFromStore, fullDreamData]);
 
   // Load full dream details on mount and when refreshTrigger changes
@@ -156,11 +180,20 @@ const DreamPage = ({
     }),
   ).current;
 
+  const convertBinaryToImage = (binaryData: string) => {
+    try {
+      return `data:image/jpeg;base64,${binaryData}`;
+    } catch (error) {
+      console.error("Error converting binary to image:", error);
+      return null;
+    }
+  };
+
   const dreamField = dream?.dream || "Dream";
   const dreamCardBg = dream?.dream_card_bg || "#4FA9DB";
-
-  const curveDepth = 200;
-  const elasticPath = `M 0 0 L ${screenWidth} 0 L ${screenWidth} ${curveDepth} Q ${screenWidth / 2} ${curveDepth + 50} 0 ${curveDepth} Z`;
+  const dreamImageUri = dream?.dream_image_bytes
+    ? convertBinaryToImage(dream.dream_image_bytes)
+    : null;
 
   const dreamScore = dream?.metadata?.score ??
     (dream?.roadmap?.milestones || []).reduce((sum: number, m: any) => sum + (m.status === "completed" ? (m.xp_points || 0) : 0), 0);
@@ -173,28 +206,38 @@ const DreamPage = ({
       return [];
     }
 
+    // Check if this is a custom dream
+    const isCustomDream = dream.is_custom === true;
+
     return dream.roadmap.milestones.map((milestone: any, milestoneIndex: number) => {
       const { animation, image } = getAnimationOrImage(
         milestone.challenge_type,
-        milestoneIndex
+        milestoneIndex,
+        isCustomDream
       );
 
-      return {
-        id: `${milestoneIndex}`,
-        title: milestone.title || milestone.name || "Untitled Milestone",
-        bgColor:
-          ChallengeTypeColors[
+      // For custom dreams, prioritize dream_card_bg (user's chosen color)
+      // For AI dreams, use challenge type color
+      const bgColor = isCustomDream
+        ? dream.dream_card_bg || "#537787"
+        : ChallengeTypeColors[
             milestone.challenge_type as keyof typeof ChallengeTypeColors
           ] ||
           milestone.bgColor ||
           dream.dream_card_bg ||
-          "#537787",
+          "#537787";
+
+      return {
+        id: `${milestoneIndex}`,
+        title: milestone.title || milestone.name || "Untitled Milestone",
+        bgColor,
         duration: milestone.time_estimate || "60 mins",
         image,
         animation,
         challengeType: milestone.challenge_type,
         roadmapId: dream.thread_id,
         milestoneId: milestone.id,
+        status: milestone.status,
         rawMilestone: milestone,
       };
     });
@@ -230,25 +273,17 @@ const DreamPage = ({
           />
         </View>
 
-        {/* SVG Curve */}
-        <Svg
-          width={screenWidth}
-          height={320}
-          style={{ position: "absolute", top: 0, zIndex: 5 }}>
-          <Path d={elasticPath} fill={dreamCardBg} stroke="none" />
-        </Svg>
-
         {/* Back Button - Fixed Position with Semi-transparent Background */}
         <View
           style={{
             position: "absolute",
             top: 50,
             left: 22,
-            zIndex: 10,
+            zIndex: 110,
             width: 48,
             height: 48,
             borderRadius: 12,
-            backgroundColor: "rgba(255, 255, 255, 0.2)",
+            backgroundColor: "rgba(0, 0, 0, 0.3)",
             alignItems: "center",
             justifyContent: "center",
           }}>
@@ -260,119 +295,103 @@ const DreamPage = ({
               alignItems: "center",
               justifyContent: "center",
             }}>
-            <ChevronLeft size={24} color={Color.colorBlack} strokeWidth={2.5} />
+            <ChevronLeft size={24} color={Color.colorWhite} strokeWidth={2.5} />
           </TouchableOpacity>
         </View>
-        {/* Header Content */}
-        <View style={{ paddingHorizontal: 22, paddingTop: 100, zIndex: 6 }}>
-          {/* Title */}
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "700",
-              color: Color.colorBlack,
-              fontFamily: "InstrumentSans-Bold",
-              marginBottom: 8,
-              textAlign: "center",
-            }}>
-            {dreamField}
-          </Text>
 
-          {/* Score Display */}
-          <View style={{ alignItems: "center", marginTop: 8 }}>
-            <View
-              style={{
-                paddingHorizontal: 14,
-                paddingVertical: 6,
-                borderRadius: 20,
-                backgroundColor: "rgba(255, 255, 255, 0.25)",
-              }}>
-              <Text
-                style={{
+        {/* ParallaxHeader with Dream Content */}
+        <ParallaxHeader
+          title={dreamField}
+          subtitle={`${dreamScore}/${dreamTotalXp} Courage Points`}
+          backgroundImage={dreamImageUri ? { uri: dreamImageUri } : undefined}
+          backgroundColor={dreamCardBg}
+          parallaxHeight={280}
+          headerHeight={90}
+          titleStyle={{
+            fontSize: 28,
+            fontFamily: "InstrumentSans-Bold",
+            color: Color.colorWhite,
+          }}
+          subtitleStyle={{
+            fontSize: 16,
+            fontFamily: "InstrumentSans-Bold",
+            color: "rgba(255, 255, 255, 0.9)",
+          }}
+          stickyHeaderTitleStyle={{
+            fontSize: 20,
+            fontFamily: "InstrumentSans-Bold",
+            color: Color.colorBlack,
+          }}>
+          <View
+            style={{
+              paddingHorizontal: 22,
+              paddingBottom: 40,
+            }}>
+            {/* Loading indicator */}
+            {isLoadingDream && milestones.length === 0 ? (
+              <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: 40 }}>
+                <ActivityIndicator size="large" color={themeColors.text_primary} />
+                <Text style={{
+                  color: themeColors.text_secondary,
+                  fontFamily: "InstrumentSans-Regular",
                   fontSize: 14,
-                  color: Color.colorBlack,
-                  fontFamily: "InstrumentSans-Bold",
-                  fontWeight: "700",
+                  marginTop: 12,
                 }}>
-                {dreamScore}/{dreamTotalXp} Points
-              </Text>
+                  Loading milestones...
+                </Text>
+              </View>
+            ) : null}
+
+            {/* Milestones List - One Item Per Row */}
+            <View style={{ gap: 16 }}>
+              {milestones.map((milestone, index) => {
+                // For dependency checking, pass all dreams but with the current dream's FRESH data
+                // Use 'dream' (which picks the freshest between store and fullDreamData)
+                // This handles both intra-dream and cross-dream dependencies
+                const dreamsForDepCheck = userData?.dreams?.map((d: any) =>
+                  d.thread_id === threadId && dream ? dream : d
+                ) || [];
+
+                const dependenciesMet = areDependenciesCompleted(
+                  milestone.rawMilestone,
+                  dreamsForDepCheck,
+                );
+
+                // Debug logging - log all milestones for debugging
+                if (index < 3) {
+                  console.log(`[DreamPage] Milestone ${index + 1} debug:`, {
+                    milestoneId: milestone.milestoneId,
+                    milestoneTitle: milestone.title?.substring(0, 30),
+                    hasDependencies: !!milestone.rawMilestone?.dependencies,
+                    dependencies: milestone.rawMilestone?.dependencies,
+                    status: milestone.rawMilestone?.status,
+                    dependenciesMet,
+                    isLocked: !dependenciesMet,
+                    dreamSource: dream === dreamFromStore ? 'store' : 'fullData',
+                    storeTimestamp: dreamFromStore?._lastUpdated,
+                    fullDataTimestamp: fullDreamData?._lastUpdated,
+                  });
+                }
+
+                return (
+                  <MilestoneCard
+                    key={milestone.id}
+                    {...milestone}
+                    isLocked={!dependenciesMet}
+                    onPress={() => {
+                      if (dependenciesMet) {
+                        onNavigate("Milestone", {
+                          milestoneId: milestone.milestoneId,
+                          threadId: threadId,
+                        });
+                      }
+                    }}
+                  />
+                );
+              })}
             </View>
           </View>
-
-        </View>
-
-        <View style={{ flex: 1, overflow: "hidden" }}>
-          <ScrollView>
-            <View
-              style={{
-                paddingHorizontal: 22,
-                paddingTop: 120,
-                paddingBottom: 40,
-              }}>
-              {/* Loading indicator */}
-              {isLoadingDream && milestones.length === 0 ? (
-                <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: 40 }}>
-                  <ActivityIndicator size="large" color={themeColors.text_primary} />
-                  <Text style={{
-                    color: themeColors.text_secondary,
-                    fontFamily: "InstrumentSans-Regular",
-                    fontSize: 14,
-                    marginTop: 12,
-                  }}>
-                    Loading milestones...
-                  </Text>
-                </View>
-              ) : null}
-
-              {/* Milestones List - One Item Per Row */}
-              <View style={{ gap: 16 }}>
-                {milestones.map((milestone, index) => {
-                  // For dependency checking, pass all dreams but with the current dream's full data
-                  // This handles both intra-dream and cross-dream dependencies
-                  const dreamsForDepCheck = userData?.dreams?.map((d: any) =>
-                    d.thread_id === threadId && fullDreamData ? fullDreamData : d
-                  ) || [];
-
-                  const dependenciesMet = areDependenciesCompleted(
-                    milestone.rawMilestone,
-                    dreamsForDepCheck,
-                  );
-
-                  // Debug logging
-                  // if (index === 0) {
-                  //   console.log('[DreamPage] First milestone debug:', {
-                  //     milestoneId: milestone.milestoneId,
-                  //     milestoneTitle: milestone.title,
-                  //     hasDependencies: milestone.rawMilestone?.dependencies,
-                  //     dependencies: milestone.rawMilestone?.dependencies,
-                  //     status: milestone.rawMilestone?.status,
-                  //     dependenciesMet,
-                  //     currentDreamMilestones: dream?.roadmap?.milestones?.length,
-                  //     allDreams: userData?.dreams?.length,
-                  //     usingFullData: !!fullDreamData,
-                  //   });
-                  // }
-
-                  return (
-                    <MilestoneCard
-                      key={milestone.id}
-                      {...milestone}
-                      isLocked={!dependenciesMet}
-                      onPress={() => {
-                        if (dependenciesMet) {
-                          onNavigate("Milestone", {
-                            milestoneId: milestone.milestoneId,
-                            threadId: threadId,
-                          });
-                        }
-                      }}
-                    />
-                  );
-                })}
-              </View>
-            </View>
-          </ScrollView>
-        </View>
+        </ParallaxHeader>
 
       </View>
 

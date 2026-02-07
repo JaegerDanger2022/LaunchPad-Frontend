@@ -223,10 +223,21 @@ const ShareVictoryScreenWrapper = ({ navigation, route }: any) => (
       if (screen === 'Home') {
         navigation.goBack();
       } else if (screen === 'EvidenceBoard') {
-        // Navigate to Evidence Board tab
-        navigation.navigate('HomeTabs', {
-          screen: 'EvidenceBoard',
-        });
+        // Close the ShareVictory modal first
+        navigation.goBack();
+        // Then close the Milestone modal after a brief delay
+        setTimeout(() => {
+          // Check if we can go back (to close Milestone screen if it's open)
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          }
+          // Then navigate to Evidence Board
+          setTimeout(() => {
+            navigation.navigate('HomeTabs', {
+              screen: 'EvidenceBoard',
+            });
+          }, 300);
+        }, 300);
       } else {
         navigation.navigate(screen as keyof RootStackParamList);
       }
@@ -241,10 +252,21 @@ const ShareJourneyRecapScreenWrapper = ({ navigation, route }: any) => (
       if (screen === 'Home') {
         navigation.goBack();
       } else if (screen === 'EvidenceBoard') {
-        // Navigate to Evidence Board tab
-        navigation.navigate('HomeTabs', {
-          screen: 'EvidenceBoard',
-        });
+        // Close the ShareJourneyRecap modal first
+        navigation.goBack();
+        // Then close the Milestone modal after a brief delay
+        setTimeout(() => {
+          // Check if we can go back (to close Milestone screen if it's open)
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          }
+          // Then navigate to Evidence Board
+          setTimeout(() => {
+            navigation.navigate('HomeTabs', {
+              screen: 'EvidenceBoard',
+            });
+          }, 300);
+        }, 300);
       } else {
         navigation.navigate(screen as keyof RootStackParamList);
       }

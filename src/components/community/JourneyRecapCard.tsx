@@ -26,7 +26,7 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
   onViewPermissions,
   onPress,
 }) => {
-  const categoryColor = CATEGORY_COLORS[journeyRecap.dreamCategory];
+  const categoryColor = '#10B981'; // Green for all journey cards
 
   const userInfo = journeyRecap.isAnonymous
     ? "Someone"
@@ -55,7 +55,7 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
             <Text style={[styles.star, { color: categoryColor }]}>⭐</Text>
             <Text style={styles.journeyLabel}>JOURNEY COMPLETE</Text>
           </View>
-          <CategoryBadge category={journeyRecap.dreamCategory} size="small" />
+          <CategoryBadge category={journeyRecap.dreamCategory} size="small" color={categoryColor} />
         </View>
 
         {/* Dream title */}
@@ -103,15 +103,6 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
 
         {/* Action footer */}
         <View style={styles.actionRow}>
-          {onBoost && (
-            <CourageBoostButton
-              boostCount={journeyRecap.courageBoosts}
-              hasUserBoosted={journeyRecap.hasUserBoosted}
-              onPress={() => onBoost(journeyRecap.id)}
-              size="medium"
-            />
-          )}
-
           {onMeToo && (
             <MeTooButton
               meTooCount={journeyRecap.meTooCount}

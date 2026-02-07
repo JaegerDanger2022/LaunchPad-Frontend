@@ -9,11 +9,11 @@ import {
   Dimensions,
   ScrollView,
   Modal,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path } from "react-native-svg";
-import LottieView from "lottie-react-native";
 import {
   Color,
   getThemeColors,
@@ -25,17 +25,21 @@ import { useThemeStore } from "../store/themeStore";
 import { RepeatableGoal } from "../components/milestonescreen/RepeatableGoal";
 import { OneTimeGoal } from "../components/milestonescreen/OneTimeGoal";
 import { SuccessAnimationOverlay } from "../components/animations/SuccessAnimationOverlay";
-import { FireworksAnimationOverlay } from "../components/animations/FireworksAnimationOverlay";
+import { DreamCompleteVideoOverlay } from "../components/animations/DreamCompleteVideoOverlay";
 import { UnlockMessageToast } from "../components/UnlockMessageToast";
 import { fetchDreamDetails } from "../config/api";
 
 const { height: screenHeight } = Dimensions.get("window");
 
-// Challenge type animation mapping
+// Challenge type animation mapping (using PNGs for all types)
 const challengeTypeAnimations: Record<string, any> = {
-  power_move: require("../assets/animations/power_move.json"),
-  knowledge_quest: require("../assets/animations/knowledge_quest.json"),
-  // Add other animations as they become available
+  power_move: require("../assets/animations/PowerMove.png"),
+  knowledge_quest: require("../assets/animations/KnowledgeQuest.png"),
+  courage_check: require("../assets/animations/courageCheck.png"),
+  skill_flex: require("../assets/animations/SkillFlex.png"),
+  decision_point: require("../assets/animations/DecisionPoint.png"),
+  celebration_moment: require("../assets/animations/Celebration Moment.png"),
+  prep_ritual: require("../assets/animations/PrepRitual.png"),
 };
 
 // Helper function to generate gradient colors from a hex color
@@ -481,14 +485,13 @@ const MilestoneScreen = ({
                           alignItems: "center",
                           marginBottom: 8,
                         }}>
-                        <LottieView
+                        <Image
                           source={challengeTypeAnimations[milestone.challenge_type]}
-                          autoPlay
-                          loop={false}
                           style={{
-                            width: 80,
-                            height: 80,
+                            width: 64,
+                            height: 64,
                           }}
+                          resizeMode="contain"
                         />
                       </View>
                     ) : null}
@@ -610,16 +613,15 @@ const MilestoneScreen = ({
           />
         )}
 
-        {/* Dream Complete Animation Modal - Fireworks for 4 seconds */}
+        {/* Dream Complete Animation Modal - FinalCelebration.mp4 */}
         {showDreamCompleteAnimation && (
           <Modal
             visible={showDreamCompleteAnimation}
             transparent
             animationType="fade">
-            <FireworksAnimationOverlay
+            <DreamCompleteVideoOverlay
               visible={showDreamCompleteAnimation}
               onComplete={() => setShowDreamCompleteAnimation(false)}
-              duration={4000}
             />
           </Modal>
         )}

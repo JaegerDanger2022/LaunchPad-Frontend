@@ -93,7 +93,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
 
         // Update local state in Zustand
         if (response.success) {
-          const { updateMilestoneStatusLocal, loadUserData, updateUpNext } =
+          const { updateMilestoneStatusLocal, updateUpNext } =
             useAuthStore.getState();
 
           // 1. Update milestone status immediately (no flash, instant UI update)
@@ -118,18 +118,64 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
             onDreamComplete?.();
           }
 
-          // 3. Refetch user data from backend and wait for completion
-          await loadUserData(user.uid).catch((error: any) => {
-            console.error("Failed to refetch user data:", error.message);
-          });
+          // 3. Force refetch the specific dream to get updated milestone statuses and dependencies
+          console.log("[OneTimeGoal] Force refetching dream details after milestone completion");
+          const { fetchDreamDetails } = require("../../config/api");
 
-          // 3.5. Verify milestone is actually completed in backend before allowing share
+          try {
+            // Fetch the updated dream with fresh dependency data
+            const updatedDream = await fetchDreamDetails(user.uid, threadId);
+
+            if (updatedDream && updatedDream.thread_id === threadId) {
+              console.log("[OneTimeGoal] Fetched updated dream from backend:", {
+                threadId: updatedDream.thread_id,
+                milestoneCount: updatedDream.roadmap?.milestones?.length,
+                milestones: updatedDream.roadmap?.milestones?.map((m: any) => ({
+                  id: m.id,
+                  title: m.title?.substring(0, 30),
+                  status: m.status,
+                  dependencies: m.dependencies
+                }))
+              });
+
+              // Update the dream in the store with fresh data using setState
+              const currentState = useAuthStore.getState();
+              if (currentState.userData?.dreams) {
+                const updated = JSON.parse(JSON.stringify(currentState.userData));
+                const dreamIndex = updated.dreams.findIndex((d: any) => d.thread_id === threadId);
+
+                if (dreamIndex !== -1) {
+                  // Replace the entire dream with fresh data from backend
+                  updated.dreams[dreamIndex] = {
+                    ...updated.dreams[dreamIndex],
+                    roadmap: updatedDream.roadmap,
+                    metadata: updatedDream.metadata,
+                    _lastUpdated: Date.now(),
+                  };
+                  console.log("[OneTimeGoal] Dream updated in Zustand store with fresh milestone data");
+                  console.log("[OneTimeGoal] Updated milestones in store:",
+                    updated.dreams[dreamIndex].roadmap?.milestones?.map((m: any) => ({
+                      id: m.id,
+                      title: m.title?.substring(0, 30),
+                      status: m.status,
+                      dependencies: m.dependencies
+                    }))
+                  );
+                  useAuthStore.setState({ userData: updated });
+                }
+              }
+            }
+          } catch (error) {
+            console.error("[OneTimeGoal] Failed to refetch dream details:", error);
+          }
+
+          // 3.5. Verify milestone is actually completed in backend
           const freshUserData = useAuthStore.getState().userData;
           const freshDream = freshUserData?.dreams?.find(
             (d: any) => d.thread_id === threadId
           );
           const freshMilestone = freshDream?.roadmap?.milestones?.find(
-            (m: any) => m.milestone_id === milestoneId
+            (m: any) => m.id === milestoneId
           );
 
           if (freshMilestone?.status !== "completed") {
@@ -138,9 +184,18 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
             );
             // If not completed yet, poll once more after a brief delay
             await new Promise(resolve => setTimeout(resolve, 1000));
-            await loadUserData(user.uid).catch((error: any) => {
-              console.error("Failed to refetch user data (retry):", error.message);
-            });
+            const retryDream = await fetchDreamDetails(user.uid, threadId);
+            if (retryDream) {
+              const retryState = useAuthStore.getState();
+              if (retryState.userData?.dreams) {
+                const updated = JSON.parse(JSON.stringify(retryState.userData));
+                const dreamIndex = updated.dreams.findIndex((d: any) => d.thread_id === threadId);
+                if (dreamIndex !== -1) {
+                  updated.dreams[dreamIndex].roadmap = retryDream.roadmap;
+                  useAuthStore.setState({ userData: updated });
+                }
+              }
+            }
           }
 
           // 4. Trigger up_next recalculation after fresh data is in store
@@ -205,8 +260,8 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
       style={{
         flex: 1,
         paddingHorizontal: 24,
-        paddingTop: 30,
         alignItems: "center",
+        justifyContent: "center",
       }}>
       {/* <Text
         style={{
@@ -227,14 +282,14 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
           isCompleted ? "Goal completed" : "Mark goal as complete"
         }
         style={{
-          width: "100%",
           height: 60,
           backgroundColor: isCompleted ? "#CCCCCC" : "#00D4AA",
           borderRadius: 20,
           alignItems: "center",
           justifyContent: "center",
-          marginBottom: 12,
           opacity: isLoading || isCompleted ? 0.6 : 1,
+          paddingHorizontal: 32,
+          alignSelf: "center",
         }}>
         <Text
           style={{
@@ -249,12 +304,13 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
       {/* Home Indicator Spacer */}
       <View
         style={{
+          position: "absolute",
+          bottom: 8,
           width: 130,
           height: 5,
           backgroundColor: Color.colorBlack,
           borderRadius: 10,
-          marginTop: "auto",
-          marginBottom: 8,
+          alignSelf: "center",
         }}
       />
 

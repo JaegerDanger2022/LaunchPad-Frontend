@@ -38,7 +38,8 @@
       "WebFetch(domain:launchpad-backend.railway.app)",
       "Bash(node -e:*)",
       "Bash(npx tsc:*)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(python -c:*)"
     ]
   }
 }

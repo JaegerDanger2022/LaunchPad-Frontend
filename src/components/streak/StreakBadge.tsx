@@ -26,7 +26,7 @@ export const StreakBadge: React.FC<StreakBadgeProps> = ({
       tint="dark"
       style={[styles.badge, { width, height }]}
     >
-      <Image source={require('../../assets/animations/fire.gif')} style={{ width: fontSize, height: fontSize }} />
+      <Text style={{ fontSize }}>{'\u{1F525}'}</Text>
       <Text style={[styles.text, { fontSize }]}>{streakCount}</Text>
     </BlurView>
   );

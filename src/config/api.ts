@@ -252,27 +252,38 @@ export async function createDream(
 export interface CustomMilestoneInput {
   title: string;
   description?: string;
-  challengeType: 'action' | 'research' | 'reflection';
+  challengeType:
+    | 'power_move'
+    | 'knowledge_quest'
+    | 'prep_ritual'
+    | 'courage_check'
+    | 'skill_flex'
+    | 'decision_point'
+    | 'celebration_moment';
 }
 
 export async function createCustomDream(
   userId: string,
   dreamTitle: string,
-  milestones: CustomMilestoneInput[]
+  milestones: CustomMilestoneInput[],
+  cardColor?: string
 ): Promise<string> {
   try {
     console.log('[API] Creating custom dream for userId:', userId);
     console.log('[API] Dream title:', dreamTitle);
     console.log('[API] Milestones:', milestones);
+    console.log('[API] Card color:', cardColor);
 
     const payload = {
       user_id: userId,
       dream_title: dreamTitle,
+      card_color: cardColor,
       milestones: milestones.map((m, index) => ({
         title: m.title,
         description: m.description || '',
         challenge_type: m.challengeType,
         order: index + 1,
+        streak_eligible: false,  // ✅ ALWAYS false for custom milestones
       })),
     };
 
@@ -1432,7 +1443,8 @@ export async function fetchDreamDetails(
       }
     }
 
-    console.log(`Fetching dream details for threadId: ${threadId}`);
+    console.log(`[fetchDreamDetails] Fetching dream details for threadId: ${threadId}`);
+    console.log(`[fetchDreamDetails] URL: ${API_BASE_URL}/dreams-crud/${threadId}`);
 
     // Fetch from dreams CRUD collection endpoint
     const response = await fetch(`${API_BASE_URL}/dreams-crud/${threadId}`, {
@@ -1442,24 +1454,42 @@ export async function fetchDreamDetails(
       },
     });
 
-    console.log(`Response status: ${response.status} ${response.statusText}`);
+    console.log(`[fetchDreamDetails] Response status: ${response.status} ${response.statusText}`);
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      let errorDetail = null;
       try {
         const errorData = await response.json();
+        errorDetail = errorData;
+        console.error("[fetchDreamDetails] Error response data:", JSON.stringify(errorData, null, 2));
         errorMessage = errorData.detail || errorData.message || errorMessage;
       } catch (parseError) {
-        // Silent fail
+        console.error("[fetchDreamDetails] Could not parse error response");
+        // Try to get raw text
+        try {
+          const rawText = await response.text();
+          console.error("[fetchDreamDetails] Raw error response:", rawText);
+        } catch (textError) {
+          console.error("[fetchDreamDetails] Could not get raw text");
+        }
       }
       throw new Error(errorMessage);
     }
 
     const dreamData = await response.json();
-    console.log("Dream details fetched successfully");
+    console.log("[fetchDreamDetails] Dream details fetched successfully");
+    console.log("[fetchDreamDetails] Dream structure:", {
+      thread_id: dreamData.thread_id,
+      dream: dreamData.dream,
+      status: dreamData.status,
+      is_custom: dreamData.is_custom,
+      roadmap_exists: !!dreamData.roadmap,
+      milestones_count: dreamData.roadmap?.milestones?.length || 0,
+    });
 
-    // Auto-generate sequential dependencies if needed
-    if (dreamData?.roadmap?.milestones) {
+    // Auto-generate sequential dependencies if needed (skip for custom dreams)
+    if (dreamData?.roadmap?.milestones && !dreamData.is_custom) {
       const milestones = dreamData.roadmap.milestones;
 
       if (needsSequentialDependencies(milestones)) {
@@ -1483,7 +1513,11 @@ export async function fetchDreamDetails(
             dependencies: m.dependencies,
           })),
         });
+      } else {
+        console.log(`[API] Dream ${threadId} already has dependencies - skipping auto-generation`);
       }
+    } else if (dreamData?.is_custom) {
+      console.log(`[API] Dream ${threadId} is a custom dream - skipping dependency auto-generation`);
     }
 
     return dreamData;
@@ -1582,6 +1616,7 @@ export interface AddMilestoneRequest {
   title: string;
   challenge_type: string;
   description?: string;
+  streak_eligible?: boolean;  // Optional, but always set to false for custom milestones
 }
 
 export interface AddMilestoneResponse {
@@ -1601,7 +1636,10 @@ export async function addMilestoneToRoadmap(
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        streak_eligible: false,  // ✅ ALWAYS false for custom milestones
+      }),
     });
 
     console.log("[addMilestoneToRoadmap] Response status:", response.status);
