@@ -25,6 +25,8 @@ import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { AvatarIcon } from "../components/icons/SVGIcons";
 import { GoalCard, type GoalCardData } from "../components/GoalCard";
 import { CreateDreamModal } from "../components/CreateDreamModal";
+import { DreamChoiceModal } from "../components/DreamChoiceModal";
+import { DIYDreamModal } from "../components/DIYDreamModal";
 import { UpNextHeroCard } from "../components/cards/UpNextHeroCard";
 import { UpNextHeroSkeleton } from "../components/cards/UpNextHeroSkeleton";
 import { TopNavbar } from "../components/TopNavbar";
@@ -54,7 +56,9 @@ const HomeScreen = ({
   onNavigate: (screen: string, params?: any) => void;
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>("recents");
+  const [isDreamChoiceModalVisible, setIsDreamChoiceModalVisible] = useState(false);
   const [isCreateDreamModalVisible, setIsCreateDreamModalVisible] = useState(false);
+  const [isDIYDreamModalVisible, setIsDIYDreamModalVisible] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [recentVictories, setRecentVictories] = useState<CommunityFeedItem[]>(
@@ -102,7 +106,7 @@ const HomeScreen = ({
       }
       return;
     }
-    setIsCreateDreamModalVisible(true);
+    setIsDreamChoiceModalVisible(true);
   };
 
   // Calculate column width (2 columns with 17px margins on each side and 14px gap)
@@ -722,12 +726,36 @@ const HomeScreen = ({
             )}
           </View>
 
-          {/* Create Dream Modal (triggered from empty state) */}
+          {/* Dream Choice Modal */}
+          <DreamChoiceModal
+            visible={isDreamChoiceModalVisible}
+            onClose={() => setIsDreamChoiceModalVisible(false)}
+            onSelectLuna={() => {
+              setIsDreamChoiceModalVisible(false);
+              setIsCreateDreamModalVisible(true);
+            }}
+            onSelectDIY={() => {
+              setIsDreamChoiceModalVisible(false);
+              setIsDIYDreamModalVisible(true);
+            }}
+          />
+
+          {/* Create Dream Modal (Luna chatbot) */}
           <CreateDreamModal
             visible={isCreateDreamModalVisible}
             onClose={() => setIsCreateDreamModalVisible(false)}
             onDreamCreating={() => {
               setIsCreateDreamModalVisible(false);
+              onNavigate("AllDreams", { creatingDream: true });
+            }}
+          />
+
+          {/* DIY Dream Modal */}
+          <DIYDreamModal
+            visible={isDIYDreamModalVisible}
+            onClose={() => setIsDIYDreamModalVisible(false)}
+            onDreamCreating={() => {
+              setIsDIYDreamModalVisible(false);
               onNavigate("AllDreams", { creatingDream: true });
             }}
           />

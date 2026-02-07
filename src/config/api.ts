@@ -245,6 +245,75 @@ export async function createDream(
   }
 }
 
+/**
+ * Create a custom dream with user-defined title and milestones.
+ * The backend will create a dream document and add custom milestones to it.
+ */
+export interface CustomMilestoneInput {
+  title: string;
+  description?: string;
+  challengeType: 'action' | 'research' | 'reflection';
+}
+
+export async function createCustomDream(
+  userId: string,
+  dreamTitle: string,
+  milestones: CustomMilestoneInput[]
+): Promise<string> {
+  try {
+    console.log('[API] Creating custom dream for userId:', userId);
+    console.log('[API] Dream title:', dreamTitle);
+    console.log('[API] Milestones:', milestones);
+
+    const payload = {
+      user_id: userId,
+      dream_title: dreamTitle,
+      milestones: milestones.map((m, index) => ({
+        title: m.title,
+        description: m.description || '',
+        challenge_type: m.challengeType,
+        order: index + 1,
+      })),
+    };
+
+    const response = await fetch(`${API_BASE_URL}/dreams/create-custom`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    console.log(`[API] Response status: ${response.status} ${response.statusText}`);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        console.error('[API] Error response data:', errorData);
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        console.error('[API] Could not parse error response as JSON');
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log('[API] Custom dream created successfully:', result);
+    const threadId = result?.thread_id || null;
+    console.log('[API] Thread ID:', threadId);
+
+    if (!threadId) {
+      throw new Error('No thread_id returned from server');
+    }
+
+    return threadId;
+  } catch (error: any) {
+    console.error('[API] Error creating custom dream:', error);
+    throw error;
+  }
+}
+
 // ============================================================================
 // CONVERSATION ENDPOINTS (dream chat before roadmap creation)
 // ============================================================================

@@ -20,6 +20,8 @@ import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { GoalCard, type GoalCardData } from "../components/GoalCard";
 import { BottomNavbar } from "../components/BottomNavbar";
 import { CreateDreamModal } from "../components/CreateDreamModal";
+import { DreamChoiceModal } from "../components/DreamChoiceModal";
+import { DIYDreamModal } from "../components/DIYDreamModal";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { StreakBadge } from "../components/streak/StreakBadge";
@@ -44,8 +46,9 @@ const AllDreamsScreen = ({
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const { width } = useWindowDimensions();
-  const [isCreateDreamModalVisible, setIsCreateDreamModalVisible] =
-    useState(false);
+  const [isDreamChoiceModalVisible, setIsDreamChoiceModalVisible] = useState(false);
+  const [isCreateDreamModalVisible, setIsCreateDreamModalVisible] = useState(false);
+  const [isDIYDreamModalVisible, setIsDIYDreamModalVisible] = useState(false);
   const [isCreating, setIsCreating] = useState(creatingDream === true);
   const [phraseIndex, setPhraseIndex] = useState(0);
 
@@ -78,7 +81,7 @@ const AllDreamsScreen = ({
       }
       return;
     }
-    setIsCreateDreamModalVisible(true);
+    setIsDreamChoiceModalVisible(true);
   };
 
   // Calculate column width (2 columns with 17px margins on each side and 14px gap)
@@ -345,11 +348,37 @@ const AllDreamsScreen = ({
           </View>
         </SafeAreaView>
         <BottomNavbar onNavigate={onNavigate} activeTab="dreams" />
+
+        {/* Dream Choice Modal */}
+        <DreamChoiceModal
+          visible={isDreamChoiceModalVisible}
+          onClose={() => setIsDreamChoiceModalVisible(false)}
+          onSelectLuna={() => {
+            setIsDreamChoiceModalVisible(false);
+            setIsCreateDreamModalVisible(true);
+          }}
+          onSelectDIY={() => {
+            setIsDreamChoiceModalVisible(false);
+            setIsDIYDreamModalVisible(true);
+          }}
+        />
+
+        {/* Create Dream Modal (Luna chatbot) */}
         <CreateDreamModal
           visible={isCreateDreamModalVisible}
           onClose={() => setIsCreateDreamModalVisible(false)}
           onDreamCreating={() => {
             setIsCreateDreamModalVisible(false);
+            setIsCreating(true);
+          }}
+        />
+
+        {/* DIY Dream Modal */}
+        <DIYDreamModal
+          visible={isDIYDreamModalVisible}
+          onClose={() => setIsDIYDreamModalVisible(false)}
+          onDreamCreating={() => {
+            setIsDIYDreamModalVisible(false);
             setIsCreating(true);
           }}
         />
@@ -489,11 +518,37 @@ const AllDreamsScreen = ({
         </View>
       </SafeAreaView>
       <BottomNavbar onNavigate={onNavigate} activeTab="dreams" />
+
+      {/* Dream Choice Modal */}
+      <DreamChoiceModal
+        visible={isDreamChoiceModalVisible}
+        onClose={() => setIsDreamChoiceModalVisible(false)}
+        onSelectLuna={() => {
+          setIsDreamChoiceModalVisible(false);
+          setIsCreateDreamModalVisible(true);
+        }}
+        onSelectDIY={() => {
+          setIsDreamChoiceModalVisible(false);
+          setIsDIYDreamModalVisible(true);
+        }}
+      />
+
+      {/* Create Dream Modal (Luna chatbot) */}
       <CreateDreamModal
         visible={isCreateDreamModalVisible}
         onClose={() => setIsCreateDreamModalVisible(false)}
         onDreamCreating={() => {
           setIsCreateDreamModalVisible(false);
+          setIsCreating(true);
+        }}
+      />
+
+      {/* DIY Dream Modal */}
+      <DIYDreamModal
+        visible={isDIYDreamModalVisible}
+        onClose={() => setIsDIYDreamModalVisible(false)}
+        onDreamCreating={() => {
+          setIsDIYDreamModalVisible(false);
           setIsCreating(true);
         }}
       />
