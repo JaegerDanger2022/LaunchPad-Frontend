@@ -20,12 +20,13 @@ interface PledgeScreenProps {
       password: string;
       name: string;
       timezone: string;
+      notificationTime?: string | null;
     };
   };
 }
 
 const PledgeScreen = ({ navigation, route }: PledgeScreenProps) => {
-  const { email, password, name, timezone } = route.params;
+  const { email, password, name, timezone, notificationTime } = route.params;
   const [accepted, setAccepted] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,7 +70,7 @@ const PledgeScreen = ({ navigation, route }: PledgeScreenProps) => {
 
     // Create the user account first
     try {
-      await signUp(email, password, name, undefined, timezone);
+      await signUp(email, password, name, undefined, timezone, notificationTime);
 
       // On success, fade out pledge card and show animation
       Animated.timing(fadeAnim, {

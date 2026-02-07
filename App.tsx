@@ -20,6 +20,7 @@ import { PaywallScreen } from './src/screens/PaywallScreen';
 import LoginScreen from './src/screens/auth/LoginScreen';
 import SignupScreen from './src/screens/auth/SignupScreen';
 import TimezoneScreen from './src/screens/auth/TimezoneScreen';
+import NotificationTimeScreen from './src/screens/auth/NotificationTimeScreen';
 import PledgeScreen from './src/screens/auth/PledgeScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
 import { ChangePasswordScreen } from './src/screens/auth/ChangePasswordScreen';
@@ -36,7 +37,8 @@ export type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
   Timezone: { email: string; password: string; name: string };
-  Pledge: { email: string; password: string; name: string; timezone: string };
+  NotificationTime: { email: string; password: string; name: string; timezone: string };
+  Pledge: { email: string; password: string; name: string; timezone: string; notificationTime?: string | null };
   ForgotPassword: undefined;
 
   // App tab screens
@@ -252,20 +254,21 @@ const ShareJourneyRecapScreenWrapper = ({ navigation, route }: any) => (
       if (screen === 'Home') {
         navigation.goBack();
       } else if (screen === 'EvidenceBoard') {
-        // Close the ShareJourneyRecap modal first
+        // Step 1: Close the ShareJourneyRecap modal (goes back to Milestone screen)
         navigation.goBack();
-        // Then close the Milestone modal after a brief delay
+
         setTimeout(() => {
-          // Check if we can go back (to close Milestone screen if it's open)
+          // Step 2: Close the Milestone modal (goes back to Dream screen)
           if (navigation.canGoBack()) {
             navigation.goBack();
           }
-          // Then navigate to Evidence Board
+
+          // Step 3: Wait a bit, then navigate to Evidence Board from Dream screen
           setTimeout(() => {
             navigation.navigate('HomeTabs', {
               screen: 'EvidenceBoard',
             });
-          }, 300);
+          }, 400);
         }, 300);
       } else {
         navigation.navigate(screen as keyof RootStackParamList);
@@ -313,6 +316,7 @@ function AuthNavigator() {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
       <Stack.Screen name="Timezone" component={TimezoneScreen} />
+      <Stack.Screen name="NotificationTime" component={NotificationTimeScreen} />
       <Stack.Screen name="Pledge" component={PledgeScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     </Stack.Navigator>

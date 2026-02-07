@@ -102,6 +102,7 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
     userAge: isAnonymous ? undefined : (userData?.age || victory?.userAge),
     milestoneId: victory?.milestoneId || '',
     milestoneTitle: victory?.milestoneTitle || '',
+    challengeType: victory?.challengeType,
     dreamId: victory?.dreamId || '',
     dreamCategory: victory?.dreamCategory || 'achievement_goals',
     evidenceSnippet,
@@ -140,7 +141,7 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
             fontWeight: "600",
             color: colors.text_primary,
           }}>
-          Share Your Victory
+          Share Your Milestone
         </Text>
         <View style={{ width: 24 }} />
       </View>

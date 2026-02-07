@@ -15,11 +15,12 @@ import { ProfileHeader } from "../components/settings/ProfileHeader";
 import { SettingRow } from "../components/settings/SettingRow";
 import { StatsRings } from "../components/settings/StatsRings";
 import { TimezonePickerModal } from "../components/settings/TimezonePickerModal";
+import { NotificationTimePickerModal } from "../components/settings/NotificationTimePickerModal";
 import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { getThemeColors } from "../constants/GlobalStyles";
 import { showManageSubscriptions } from "../config/revenuecat";
-import { updateUserTimezone } from "../config/api";
+import { updateUserTimezone, updateUserNotificationPreferences } from "../config/api";
 import Toast from "react-native-toast-message";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -36,6 +37,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const { theme, toggleTheme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const [showTimezoneModal, setShowTimezoneModal] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
 
   const translateY = useRef(new Animated.Value(0)).current;
   const backdropOpacity = useRef(new Animated.Value(1)).current;
@@ -181,6 +183,56 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         visibilityTime: 2000,
       });
     }
+  };
+
+  const handleNotificationChange = async (time: string | null, enabled: boolean) => {
+    if (!user?.uid) return;
+
+    try {
+      await updateUserNotificationPreferences(user.uid, time);
+
+      // Reload user data to get updated preferences
+      await loadUserData(user.uid);
+
+      Toast.show({
+        type: "success",
+        text1: enabled ? "Notifications Enabled" : "Notifications Disabled",
+        text2: enabled && time ? `Daily reminder set for ${getNotificationTimeLabel(time)}` : "You won't receive daily reminders",
+        visibilityTime: 2000,
+      });
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Update Failed",
+        text2: "Could not update notification preferences. Please try again.",
+        visibilityTime: 2000,
+      });
+    }
+  };
+
+  const getNotificationTimeLabel = (time: string | null): string => {
+    if (!time) return "Off";
+
+    // Convert 24-hour time to 12-hour format
+    const timeMap: Record<string, string> = {
+      '06:00': '6:00 AM',
+      '07:00': '7:00 AM',
+      '08:00': '8:00 AM',
+      '09:00': '9:00 AM',
+      '10:00': '10:00 AM',
+      '12:00': '12:00 PM',
+      '13:00': '1:00 PM',
+      '14:00': '2:00 PM',
+      '15:00': '3:00 PM',
+      '16:00': '4:00 PM',
+      '17:00': '5:00 PM',
+      '18:00': '6:00 PM',
+      '19:00': '7:00 PM',
+      '20:00': '8:00 PM',
+      '21:00': '9:00 PM',
+    };
+
+    return timeMap[time] || time;
   };
 
   const getTimezoneLabel = (timezone: string | null): string => {
@@ -398,6 +450,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     showArrow
                     onPress={() => setShowTimezoneModal(true)}
                   />
+                  <SettingRow
+                    icon="🔔"
+                    label="Daily Reminders"
+                    value={getNotificationTimeLabel(userData?.pref_notification_time || null)}
+                    showArrow
+                    onPress={() => setShowNotificationModal(true)}
+                  />
                 </BlurView>
               </View>
             </View>
@@ -408,6 +467,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               currentTimezone={userData?.pref_timezone || null}
               onSelect={handleTimezoneChange}
               onClose={() => setShowTimezoneModal(false)}
+              theme={theme}
+            />
+
+            {/* Notification Time Picker Modal */}
+            <NotificationTimePickerModal
+              visible={showNotificationModal}
+              currentTime={userData?.pref_notification_time || null}
+              currentEnabled={!!userData?.pref_notification_time}
+              onSelect={handleNotificationChange}
+              onClose={() => setShowNotificationModal(false)}
               theme={theme}
             />
 

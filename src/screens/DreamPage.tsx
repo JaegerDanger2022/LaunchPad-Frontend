@@ -50,18 +50,11 @@ const challengeTypeAnimations: Record<string, any> = {
   prep_ritual: require("../assets/animations/PrepRitual.png"),
 };
 
-// Fallback placeholder images
-const placeholderImages = [
-  require("../assets/images/placeholder-flights.png"),
-  require("../assets/images/placeholder-lodging.png"),
-  require("../assets/images/placeholder-feedback.png"),
-];
-
 // Custom dream image
 const customDreamImage = require("../assets/images/customDream.png");
 
 // Helper function to get animation or fallback to image
-const getAnimationOrImage = (challengeType: string, fallbackImageIndex: number, isCustomDream: boolean) => {
+const getAnimationOrImage = (challengeType: string, isCustomDream: boolean) => {
   // If it's a custom dream, always use the custom dream image
   if (isCustomDream) {
     return {
@@ -72,7 +65,7 @@ const getAnimationOrImage = (challengeType: string, fallbackImageIndex: number, 
 
   return {
     animation: challengeTypeAnimations[challengeType] || null,
-    image: placeholderImages[fallbackImageIndex % placeholderImages.length],
+    image: customDreamImage, // Use custom dream image as fallback
   };
 };
 
@@ -191,9 +184,14 @@ const DreamPage = ({
 
   const dreamField = dream?.dream || "Dream";
   const dreamCardBg = dream?.dream_card_bg || "#4FA9DB";
-  const dreamImageUri = dream?.dream_image_bytes
-    ? convertBinaryToImage(dream.dream_image_bytes)
-    : null;
+
+  // Determine background image: custom dream uses customDream.png, AI dreams use generated image
+  const isCustomDream = dream?.is_custom === true;
+  const dreamImageUri = isCustomDream
+    ? customDreamImage
+    : dream?.dream_image_bytes
+      ? convertBinaryToImage(dream.dream_image_bytes)
+      : null;
 
   const dreamScore = dream?.metadata?.score ??
     (dream?.roadmap?.milestones || []).reduce((sum: number, m: any) => sum + (m.status === "completed" ? (m.xp_points || 0) : 0), 0);
@@ -212,7 +210,6 @@ const DreamPage = ({
     return dream.roadmap.milestones.map((milestone: any, milestoneIndex: number) => {
       const { animation, image } = getAnimationOrImage(
         milestone.challenge_type,
-        milestoneIndex,
         isCustomDream
       );
 
@@ -303,7 +300,13 @@ const DreamPage = ({
         <ParallaxHeader
           title={dreamField}
           subtitle={`${dreamScore}/${dreamTotalXp} Courage Points`}
-          backgroundImage={dreamImageUri ? { uri: dreamImageUri } : undefined}
+          backgroundImage={
+            dreamImageUri
+              ? isCustomDream
+                ? dreamImageUri // customDreamImage is a require() - use directly
+                : { uri: dreamImageUri } // AI dream image is a base64 URI
+              : undefined
+          }
           backgroundColor={dreamCardBg}
           parallaxHeight={280}
           headerHeight={90}
@@ -395,8 +398,8 @@ const DreamPage = ({
 
       </View>
 
-      {/* FAB – add custom milestone (hide only for completed dreams) */}
-      {dream?.status !== "completed" && (
+      {/* FAB – add custom milestone (hide for completed dreams OR completed custom dreams) */}
+      {dream?.status !== "completed" && !(isCustomDream && dream?.status === "completed") && (
         <TouchableOpacity
           onPress={() => setShowAddMilestone(true)}
           style={{

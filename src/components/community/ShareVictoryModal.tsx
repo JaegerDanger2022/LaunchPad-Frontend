@@ -124,7 +124,7 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
                 fontWeight: "600",
                 color: colors.text_primary,
               }}>
-              Share Your Victory
+              Share Your Milestone
             </Text>
             <View style={{ width: 24 }} />
           </View>

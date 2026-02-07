@@ -36,13 +36,13 @@ const mapDreamsSummaryToDreams = (userData: UserData): UserData => {
       status: summary.status,
       dream_image_bytes: summary.dream_image_bytes, // Already base64 from backend
       dream_card_bg: summary.dream_card_bg, // Card background color
-      category: summary.category,
       created_at: summary.created_at,
       updated_at: summary.updated_at,
       isComplete: summary.isComplete,
       // Add placeholder roadmap structure with milestone counts
       roadmap: {
         status: summary.status,
+        category: summary.category, // Category moved to roadmap
         milestones: [] // Empty array - full data loaded separately when needed
       },
       // Add milestone count metadata for UI display
@@ -65,7 +65,7 @@ interface AuthState {
 
   // Actions
   refreshPremiumStatus: () => Promise<void>;
-  signUp: (email: string, password: string, firstName: string, lastName?: string, timezone?: string) => Promise<void>;
+  signUp: (email: string, password: string, firstName: string, lastName?: string, timezone?: string, notificationTime?: string | null) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   googleSignIn: () => Promise<void>;
   logout: () => Promise<void>;
@@ -146,7 +146,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 
-  signUp: async (email: string, password: string, firstName: string, lastName?: string, timezone?: string) => {
+  signUp: async (email: string, password: string, firstName: string, lastName?: string, timezone?: string, notificationTime?: string | null) => {
     try {
       set({ loading: true, error: null });
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -159,6 +159,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           lastname: lastName || '',
           email,
           pref_timezone: timezone,
+          pref_notification_time: notificationTime,
         });
 
         // Identify user in RevenueCat
@@ -588,12 +589,12 @@ export const useAuthStore = create<AuthState>((set) => ({
         status: d.status,
         dream_image_bytes: d.dream_image_bytes,
         dream_card_bg: d.dream_card_bg,
-        category: d.category,
         created_at: d.created_at,
         updated_at: d.updated_at,
         isComplete: d.isComplete,
         roadmap: {
           status: d.status,
+          category: d.category, // Category moved to roadmap
           milestones: [],
         },
         _metadata: {

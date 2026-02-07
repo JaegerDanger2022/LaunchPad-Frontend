@@ -160,7 +160,7 @@ const MilestoneScreen = ({
           const enhancedMilestone = {
             ...foundMilestone,
             dreamTitle: dreamDetails.dream || '',
-            dreamCategory: dreamDetails.category || 'achievement_goals',
+            dreamCategory: dreamDetails.roadmap?.category || 'achievement_goals',
           };
 
           console.log('[MilestoneScreen] Loaded milestone from dream:', {
@@ -507,17 +507,27 @@ const MilestoneScreen = ({
                       {milestone?.title || milestone?.name || "Untitled Milestone"}
                     </Text>
 
-                    <Text
+                    {/* Scrollable Description */}
+                    <ScrollView
                       style={{
-                        color: Color.colorBlack,
-                        textAlign: "center",
-                        fontSize: 14,
-                        lineHeight: 24,
-                        opacity: 0.95,
+                        maxHeight: 120,
+                        width: "100%",
                         marginBottom: 25,
-                      }}>
-                      {milestone?.description || "No description available"}
-                    </Text>
+                      }}
+                      showsVerticalScrollIndicator={true}
+                      persistentScrollbar={true}
+                      nestedScrollEnabled={true}>
+                      <Text
+                        style={{
+                          color: Color.colorBlack,
+                          textAlign: "center",
+                          fontSize: 14,
+                          lineHeight: 24,
+                          opacity: 0.95,
+                        }}>
+                        {milestone?.description || "No description available"}
+                      </Text>
+                    </ScrollView>
 
                     <View
                       style={{

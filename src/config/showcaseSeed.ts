@@ -32,13 +32,13 @@ const dreams: any[] = [
     thread_id: "showcase_dream_1",
     dream: "Launch my SaaS product",
     status: "active",
-    category: "career",
     created_at: daysAgo(60),
     updated_at: daysAgo(0),
     dream_card_bg: "#374151",
     metadata: { score: 240, total_xp: 340 },
     roadmap: {
       status: "active",
+      category: "career",
       milestones: [
         { id: "m1_1", title: "Define target audience & value prop", challenge_type: "knowledge_quest", status: "completed", xp_points: 40, updated_at: daysAgo(55), streak_eligible: true },
         { id: "m1_2", title: "Sketch wireframes for core flow", challenge_type: "skill_flex", status: "completed", xp_points: 35, updated_at: daysAgo(48), streak_eligible: true },
@@ -57,12 +57,12 @@ const dreams: any[] = [
     thread_id: "showcase_dream_2",
     dream: "Run a half marathon",
     status: "completed",
-    category: "health",
     created_at: daysAgo(90),
     updated_at: daysAgo(5),
     dream_card_bg: "#1e3a5f",
     metadata: { score: 310, total_xp: 310 },
     roadmap: {
+      category: "health",
       status: "completed",
       milestones: [
         { id: "m2_1", title: "Research training plans", challenge_type: "knowledge_quest", status: "completed", xp_points: 30, updated_at: daysAgo(85), streak_eligible: true },
@@ -81,12 +81,12 @@ const dreams: any[] = [
     thread_id: "showcase_dream_3",
     dream: "Learn Spanish to conversational level",
     status: "active",
-    category: "learning",
     created_at: daysAgo(45),
     updated_at: daysAgo(0),
     dream_card_bg: "#2d1b69",
     metadata: { score: 120, total_xp: 270 },
     roadmap: {
+      category: "learning",
       status: "active",
       milestones: [
         { id: "m3_1", title: "Set up Anki deck & daily habit", challenge_type: "prep_ritual", status: "completed", xp_points: 30, updated_at: daysAgo(42), streak_eligible: true },
@@ -104,12 +104,12 @@ const dreams: any[] = [
     thread_id: "showcase_dream_4",
     dream: "Save $5,000 emergency fund",
     status: "active",
-    category: "financial",
     created_at: daysAgo(75),
     updated_at: daysAgo(0),
     dream_card_bg: "#1a3c2a",
     metadata: { score: 195, total_xp: 235 },
     roadmap: {
+      category: "financial",
       status: "active",
       milestones: [
         { id: "m4_1", title: "Audit monthly expenses", challenge_type: "knowledge_quest", status: "completed", xp_points: 35, updated_at: daysAgo(72), streak_eligible: true },
@@ -126,12 +126,12 @@ const dreams: any[] = [
     thread_id: "showcase_dream_5",
     dream: "Read 12 books this year",
     status: "active",
-    category: "personal",
     created_at: daysAgo(35),
     updated_at: daysAgo(0),
     dream_card_bg: "#3b1f5e",
     metadata: { score: 110, total_xp: 240 },
     roadmap: {
+      category: "personal",
       status: "active",
       milestones: [
         { id: "m5_1", title: "Pick books for Q1", challenge_type: "decision_point", status: "completed", xp_points: 30, updated_at: daysAgo(33), streak_eligible: true },
@@ -148,12 +148,12 @@ const dreams: any[] = [
     thread_id: "showcase_dream_6",
     dream: "Travel to Japan solo",
     status: "active",
-    category: "travel",
     created_at: daysAgo(20),
     updated_at: daysAgo(0),
     dream_card_bg: "#1e1b4b",
     metadata: { score: 70, total_xp: 190 },
     roadmap: {
+      category: "travel",
       status: "active",
       milestones: [
         { id: "m6_1", title: "Research visa & flight options", challenge_type: "knowledge_quest", status: "completed", xp_points: 35, updated_at: daysAgo(18), streak_eligible: true },
@@ -217,7 +217,7 @@ export function getShowcaseDreamsList(): any {
       thread_id: d.thread_id,
       dream: d.dream,
       status: d.status,
-      category: d.category,
+      category: d.roadmap.category, // Category is now in roadmap
       created_at: d.created_at,
       updated_at: d.updated_at,
       dream_card_bg: d.dream_card_bg,

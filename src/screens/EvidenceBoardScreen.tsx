@@ -171,7 +171,7 @@ const EvidenceBoardScreen = ({
       return {
         id: dreamData.thread_id,
         title: dreamData.dream,
-        category: (dreamData.category || "") as unknown as
+        category: (dreamData.roadmap?.category || "") as unknown as
           | "travel"
           | "career"
           | "financial"

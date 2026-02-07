@@ -447,6 +447,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
                       userAge: userData?.communityProfile?.age,
                       milestoneId: milestoneId || "",
                       milestoneTitle: milestone?.title || milestone?.name || "",
+                      challengeType: milestone?.challenge_type,
                       dreamId: threadId || "",
                       dreamCategory:
                         milestone?.dreamCategory || "achievement_goals",

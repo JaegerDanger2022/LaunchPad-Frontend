@@ -131,7 +131,7 @@ const TimezoneScreen = ({ navigation, route }: TimezoneScreenProps) => {
     if (!selectedTimezone) return;
 
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    navigation.navigate('Pledge', {
+    navigation.navigate('NotificationTime', {
       email,
       password,
       name,

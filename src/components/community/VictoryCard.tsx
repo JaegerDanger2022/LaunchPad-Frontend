@@ -4,9 +4,10 @@ import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { VictoryCard as VictoryCardType } from "../../types/community";
 import { CATEGORY_COLORS } from "../../constants/communityColors";
+import { ChallengeTypeColors } from "../../constants/GlobalStyles";
 import { CategoryBadge } from "./CategoryBadge";
 import { CourageBoostButton } from "./CourageBoostButton";
-import { MeTooButton } from "./MeTooButton";
+import { ResonanceIndicator } from "./ResonanceIndicator";
 import { formatDate, getConfidenceText } from "../../utils/communityUtils";
 
 interface VictoryCardProps {
@@ -26,14 +27,27 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
   onViewPermissions,
   onPress,
 }) => {
-  const categoryColor = '#10B981'; // Green for all victory cards
+  // Use challenge type color if available, fallback to green
+  const categoryColor = victory.challengeType && ChallengeTypeColors[victory.challengeType as keyof typeof ChallengeTypeColors]
+    ? ChallengeTypeColors[victory.challengeType as keyof typeof ChallengeTypeColors]
+    : '#10B981';
+
+  // Format challenge type for display (e.g., "power_move" -> "Power Move")
+  const formatChallengeType = (type?: string) => {
+    if (!type) return null;
+    return type
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
   const userInfo = victory.isAnonymous
-    ? "Someone"
+    ? `Someone${victory.userTimezone ? " in " + victory.userTimezone : ""}`
     : `${victory.userDisplayName}${victory.userAge ? ", " + victory.userAge : ""}${victory.userLocation ? ", " + victory.userLocation : ""}`;
 
   const formattedDate = formatDate(victory.createdAt);
   const confidenceText = getConfidenceText(victory.confidenceBoost);
+  const challengeTypeLabel = formatChallengeType(victory.challengeType);
 
   return (
     <TouchableOpacity
@@ -54,9 +68,15 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
         <View style={styles.topRow}>
           <View style={[styles.victoryBadge, { borderColor: categoryColor + "66" }]}>
             <Text style={[styles.checkmark, { color: categoryColor }]}>✓</Text>
-            <Text style={styles.victoryLabel}>VICTORY</Text>
+            <Text style={styles.victoryLabel}>MILESTONE</Text>
           </View>
-          <CategoryBadge category={victory.dreamCategory} size="small" />
+          {challengeTypeLabel && (
+            <View style={[styles.challengeTypeBadge, { backgroundColor: categoryColor + "33", borderColor: categoryColor + "66" }]}>
+              <Text style={[styles.challengeTypeText, { color: categoryColor }]}>
+                {challengeTypeLabel}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Milestone title */}
@@ -84,14 +104,13 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
 
         {/* Action footer */}
         <View style={styles.actionRow}>
-          {onMeToo && (
-            <MeTooButton
-              meTooCount={victory.meTooCount}
-              hasUserMeTooed={victory.hasUserMeTooed}
-              onPress={() => onMeToo(victory.id)}
-              size="medium"
-            />
-          )}
+          <ResonanceIndicator
+            meTooCount={victory.meTooCount}
+            hasUserMeTooed={victory.hasUserMeTooed}
+            onPress={onMeToo ? () => onMeToo(victory.id) : undefined}
+            size="medium"
+            disabled={!onMeToo}
+          />
 
           {onPermission && (
             <TouchableOpacity
@@ -103,10 +122,10 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
             </TouchableOpacity>
           )}
 
-          {victory.permissionsCount > 0 && onViewPermissions && (
+          {victory.permissionsCount > 0 && (
             <TouchableOpacity
               style={[styles.ghostButton, styles.ghostButtonAccent]}
-              onPress={() => onViewPermissions(victory.id)}
+              onPress={() => onViewPermissions?.(victory.id)}
               activeOpacity={0.6}>
               <Text style={styles.ghostIcon}>💬</Text>
               <Text style={[styles.ghostText, { color: categoryColor }]}>
@@ -169,6 +188,17 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 1.2,
     color: "rgba(255, 255, 255, 0.85)",
+  },
+  challengeTypeBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  challengeTypeText: {
+    fontSize: 10,
+    fontWeight: "600",
+    letterSpacing: 0.5,
   },
   // Title
   milestoneTitle: {

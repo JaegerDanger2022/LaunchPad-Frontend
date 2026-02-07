@@ -40,9 +40,11 @@ export interface VictoryCard {
   userDisplayName: string; // "Sarah" or "Anonymous"
   userLocation?: string;
   userAge?: number;
+  userTimezone?: string; // IANA timezone (e.g., "America/New_York")
 
   milestoneId: string;
   milestoneTitle: string;
+  challengeType?: string; // Optional - milestone challenge type
   dreamId: string;
   dreamCategory: DreamCategory;
 
@@ -161,6 +163,7 @@ export interface JourneyRecap {
   userDisplayName: string; // "Sarah" or "Anonymous"
   userLocation?: string;
   userAge?: number;
+  userTimezone?: string; // IANA timezone (e.g., "America/New_York")
 
   dreamId: string;
   dreamTitle: string;

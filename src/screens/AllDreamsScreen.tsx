@@ -51,6 +51,7 @@ const AllDreamsScreen = ({
   const [isDIYDreamModalVisible, setIsDIYDreamModalVisible] = useState(false);
   const [isCreating, setIsCreating] = useState(creatingDream === true);
   const [phraseIndex, setPhraseIndex] = useState(0);
+  const [showInitialMessage, setShowInitialMessage] = useState(true);
 
   // Get user data from auth store
   const { userData, addToRecents, user, refreshDreamsFromCrud, isPremium } =
@@ -122,19 +123,36 @@ const AllDreamsScreen = ({
   useEffect(() => {
     if (creatingDream === true && !isCreating) {
       setIsCreating(true);
+      setShowInitialMessage(true);
     }
   }, [creatingDream]);
 
-  // Cycle through phrases while the placeholder card is visible
+  // Show initial message for 3 seconds, then cycle through phrases
   useEffect(() => {
     if (!isCreating) {
       setPhraseIndex(0);
+      setShowInitialMessage(true);
       return;
     }
-    const interval = setInterval(() => {
-      setPhraseIndex((prev) => (prev + 1) % dreamCreatingPhrases.length);
-    }, 1800);
-    return () => clearInterval(interval);
+
+    // Show initial message for 3 seconds
+    const initialTimeout = setTimeout(() => {
+      setShowInitialMessage(false);
+    }, 3000);
+
+    // Start cycling through phrases after initial message
+    let interval: ReturnType<typeof setInterval> | null = null;
+    const delayedInterval = setTimeout(() => {
+      interval = setInterval(() => {
+        setPhraseIndex((prev) => (prev + 1) % dreamCreatingPhrases.length);
+      }, 1800);
+    }, 3000);
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearTimeout(delayedInterval);
+      if (interval) clearInterval(interval);
+    };
   }, [isCreating]);
 
   // Poll for the new dream; dismiss placeholder once it appears
@@ -253,7 +271,7 @@ const AllDreamsScreen = ({
           ? require("../assets/images/customDream.png")
           : dream.dream_image_bytes
             ? { uri: convertBinaryToImage(dream.dream_image_bytes) }
-            : require("../assets/images/goal-podcast.png"),
+            : require("../assets/images/customDream.png"),
         bgColor: dream.dream_card_bg || Color.colorBurlywood,
         progressColor: "#A855F7",
         progress,
@@ -460,7 +478,9 @@ const AllDreamsScreen = ({
                             textAlign: "center",
                             paddingHorizontal: 12,
                           }}>
-                          {dreamCreatingPhrases[phraseIndex]}
+                          {showInitialMessage
+                            ? "Luna is setting your milestones up. You'll receive a notification once she's done"
+                            : dreamCreatingPhrases[phraseIndex]}
                         </Text>
                       </LinearGradient>
                     </View>

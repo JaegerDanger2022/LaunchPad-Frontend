@@ -29,7 +29,7 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
   const categoryColor = '#10B981'; // Green for all journey cards
 
   const userInfo = journeyRecap.isAnonymous
-    ? "Someone"
+    ? `Someone${journeyRecap.userTimezone ? " in " + journeyRecap.userTimezone : ""}`
     : `${journeyRecap.userDisplayName}${journeyRecap.userAge ? ", " + journeyRecap.userAge : ""}${journeyRecap.userLocation ? ", " + journeyRecap.userLocation : ""}`;
 
   const formattedDate = formatDate(journeyRecap.createdAt);

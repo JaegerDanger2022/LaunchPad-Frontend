@@ -352,7 +352,7 @@ const HomeScreen = ({
           ? require("../assets/images/customDream.png")
           : dream.dream_image_bytes
             ? { uri: convertBinaryToImage(dream.dream_image_bytes) }
-            : require("../assets/images/goal-podcast.png"),
+            : require("../assets/images/customDream.png"),
         bgColor: dream.dream_card_bg || Color.colorBurlywood,
         progressColor: "#A855F7",
         progress,

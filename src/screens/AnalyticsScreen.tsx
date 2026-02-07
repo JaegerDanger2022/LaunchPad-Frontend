@@ -52,7 +52,7 @@ function getCompletedMilestones(dreams: any[], days: number) {
       if (ts >= cutoff) {
         results.push({
           ...m,
-          _dreamCategory: dream.category,
+          _dreamCategory: dream.roadmap?.category,
           _dreamCreatedAt: dream.created_at,
           _dreamTitle: dream.dream,
         });
@@ -495,7 +495,7 @@ function DreamDurationCard({ dreams }: { dreams: any[] }) {
         title: d.dream || "Dream",
         days,
         status: d.status,
-        category: d.category,
+        category: d.roadmap?.category,
       };
     });
   }, [dreams]);

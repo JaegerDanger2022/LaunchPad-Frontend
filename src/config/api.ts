@@ -33,6 +33,7 @@ export interface UserRegistrationData {
   lastname: string;
   email: string;
   pref_timezone?: string;
+  pref_notification_time?: string | null;
 }
 
 export interface UserData {
@@ -796,6 +797,29 @@ export async function updateUserTimezone(
     console.log(`[updateUserTimezone] Timezone updated to: ${timezone}`);
   } catch (error: any) {
     console.error("[updateUserTimezone] Error:", error.message);
+    throw error;
+  }
+}
+
+export async function updateUserNotificationPreferences(
+  userId: string,
+  notificationTime: string | null
+): Promise<void> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/notification-preferences`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pref_notification_time: notificationTime }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP ${response.status}`);
+    }
+
+    console.log(`[updateUserNotificationPreferences] Notification time updated to: ${notificationTime}`);
+  } catch (error: any) {
+    console.error("[updateUserNotificationPreferences] Error:", error.message);
     throw error;
   }
 }
