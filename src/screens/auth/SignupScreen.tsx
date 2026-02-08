@@ -92,12 +92,13 @@ const SignupScreen = ({ navigation }: any) => {
     const fullText = getLunaDialogue();
     setDisplayedText('');
     let currentIndex = 0;
+    let typingInterval: ReturnType<typeof setInterval>;
 
     // Delay before starting typewriter (only on initial mount)
     const initialDelay = currentStepIndex === 0 ? 800 : 0;
 
     const typewriterTimer = setTimeout(() => {
-      const typingInterval = setInterval(() => {
+      typingInterval = setInterval(() => {
         if (currentIndex < fullText.length) {
           setDisplayedText(fullText.slice(0, currentIndex + 1));
           currentIndex++;
@@ -105,12 +106,13 @@ const SignupScreen = ({ navigation }: any) => {
           clearInterval(typingInterval);
         }
       }, 30); // 30ms per character for smooth typewriter effect
-
-      return () => clearInterval(typingInterval);
     }, initialDelay);
 
-    return () => clearTimeout(typewriterTimer);
-  }, [currentStepIndex, formData.name]);
+    return () => {
+      clearTimeout(typewriterTimer);
+      if (typingInterval) clearInterval(typingInterval);
+    };
+  }, [currentStepIndex]);
 
   // Animate in when component mounts or step changes
   useEffect(() => {
