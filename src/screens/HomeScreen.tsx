@@ -396,11 +396,39 @@ const HomeScreen = ({
       {/* <TopNavbar name="Ready to win, Kyla-Marie?" /> */}
       <BottomNavbar onNavigate={onNavigate} activeTab="home" />
       {/* <DebugOverlay /> */}
+
+      {/* Fixed Top row: Settings gear (left) + Streak badge (right) */}
+      <View
+        style={{
+          position: "absolute",
+          top: insets.top,
+          left: 0,
+          right: 0,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingHorizontal: 20,
+          paddingTop: 8,
+          paddingBottom: 8,
+          zIndex: 100,
+          backgroundColor: themeColors.bg_primary,
+        }}>
+        <TouchableOpacity onPress={() => onNavigate("Settings")} activeOpacity={0.6} style={{ padding: 4 }}>
+          <Settings size={30} color={themeColors.text_secondary} strokeWidth={2} />
+        </TouchableOpacity>
+        {userData?.streak && userData.streak.current_streak > 0 ? (
+          <StreakBadge
+            streakCount={userData.streak.current_streak}
+            size="medium"
+          />
+        ) : <View />}
+      </View>
+
       <Animated.ScrollView
         onScroll={handleScroll}
         scrollEventThrottle={16}
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: bottomPadding }}
+        contentContainerStyle={{ paddingBottom: bottomPadding, paddingTop: 60 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -428,26 +456,6 @@ const HomeScreen = ({
               height: 941,
             }}
           />
-
-          {/* Top row: Settings gear (left) + Streak badge (right) */}
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingHorizontal: 20,
-              marginBottom: 16,
-            }}>
-            <TouchableOpacity onPress={() => onNavigate("Settings")} activeOpacity={0.6} style={{ padding: 4 }}>
-              <Settings size={30} color={themeColors.text_secondary} strokeWidth={2} />
-            </TouchableOpacity>
-            {userData?.streak && userData.streak.current_streak > 0 ? (
-              <StreakBadge
-                streakCount={userData.streak.current_streak}
-                size="medium"
-              />
-            ) : <View />}
-          </View>
 
           {/* Hero Card Section - Show skeleton during refresh or actual card */}
           {isRefreshing && userData?.up_next ? (

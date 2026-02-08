@@ -407,42 +407,51 @@ const AllDreamsScreen = ({
     <>
       <SafeAreaView
         style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
+
+        {/* Fixed Header row: title + streak chip */}
+        <View
+          style={{
+            position: "absolute",
+            top: insets.top,
+            left: 0,
+            right: 0,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingHorizontal: 20,
+            paddingTop: 20,
+            paddingBottom: 12,
+            zIndex: 100,
+            backgroundColor: themeColors.bg_primary,
+          }}>
+          <Text
+            style={{
+              fontSize: 28,
+              fontWeight: "800",
+              fontFamily: "InstrumentSans-Bold",
+              color: themeColors.text_primary,
+            }}>
+            Dreams
+          </Text>
+          {streakData && streakData.current_streak > 0 && (
+            <StreakBadge
+              streakCount={streakData.current_streak}
+              size="medium"
+            />
+          )}
+        </View>
+
         {/* Dreams Grid */}
         <Animated.ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: bottomPadding }}
+          contentContainerStyle={{ paddingBottom: bottomPadding, paddingTop: 80 }}
           showsVerticalScrollIndicator={false}>
           <Animated.View
             style={{
               opacity: fadeAnim,
               transform: [{ translateY: slideAnim }],
               marginHorizontal: 17,
-              marginTop: 20,
             }}>
-            {/* Header row: title + streak chip */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 20,
-              }}>
-              <Text
-                style={{
-                  fontSize: 28,
-                  fontWeight: "800",
-                  fontFamily: "InstrumentSans-Bold",
-                  color: themeColors.text_primary,
-                }}>
-                Dreams
-              </Text>
-              {streakData && streakData.current_streak > 0 && (
-                <StreakBadge
-                  streakCount={streakData.current_streak}
-                  size="medium"
-                />
-              )}
-            </View>
 
             <FlatList
               data={

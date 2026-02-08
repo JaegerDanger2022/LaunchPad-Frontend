@@ -717,33 +717,42 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
       <BottomNavbar onNavigate={onNavigate} activeTab="analytics" />
 
+      {/* Fixed Header row: title + streak chip */}
+      <View
+        style={{
+          position: "absolute",
+          top: insets.top,
+          left: 0,
+          right: 0,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingHorizontal: 20,
+          paddingTop: 16,
+          paddingBottom: 12,
+          zIndex: 100,
+          backgroundColor: themeColors.bg_primary,
+        }}>
+        <Text
+          style={[styles.screenTitle, { color: themeColors.text_primary }]}>
+          Analytics
+        </Text>
+        {streakData && streakData.current_streak > 0 && (
+          <StreakBadge
+            streakCount={streakData.current_streak}
+            size="medium"
+          />
+        )}
+      </View>
+
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: 20,
-          paddingTop: 16,
+          paddingTop: 72,
           paddingBottom: bottomPadding,
         }}
         showsVerticalScrollIndicator={false}>
-        {/* Header row: title + streak chip */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 20,
-          }}>
-          <Text
-            style={[styles.screenTitle, { color: themeColors.text_primary }]}>
-            Analytics
-          </Text>
-          {streakData && streakData.current_streak > 0 && (
-            <StreakBadge
-              streakCount={streakData.current_streak}
-              size="medium"
-            />
-          )}
-        </View>
 
         {/* Time range pills */}
         <TimeRangePills selected={timeRange} onChange={setTimeRange} />
