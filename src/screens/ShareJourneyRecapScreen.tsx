@@ -89,8 +89,8 @@ const ShareJourneyRecapScreen: React.FC<ShareJourneyRecapScreenProps> = ({
 
       setIsSaving(false);
 
-      // Navigate to Evidence Board after posting to avoid seeing lingering toasts
-      onNavigate('EvidenceBoard');
+      // Navigate to Dreams screen after posting
+      onNavigate('AllDreams');
     } catch (error: any) {
       console.error('Failed to share journey:', error);
 

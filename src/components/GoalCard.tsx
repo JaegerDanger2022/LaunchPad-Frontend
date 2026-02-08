@@ -80,33 +80,32 @@ export const GoalCard: React.FC<GoalCardProps> = React.memo(({ data, onPress }) 
             style={{
               flex: 1,
               paddingHorizontal: 15,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
+              paddingVertical: 10,
+              flexDirection: "column",
+              justifyContent: "center",
             }}>
             <Text
+              numberOfLines={2}
               style={{
                 fontFamily: "InriaSans-Bold",
-                fontSize: 15,
+                fontSize: 14,
                 color: Color.colorBlack,
                 fontWeight: "700",
-                flex: 1,
-                marginRight: 10,
+                marginBottom: 6,
               }}>
-              {(() => { const t = data.title.charAt(0).toUpperCase() + data.title.slice(1); return t.length > 20 ? t.slice(0, 20) + "…" : t; })()}
+              {data.title.charAt(0).toUpperCase() + data.title.slice(1)}
             </Text>
             <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
                 gap: 6,
-                flexShrink: 0,
               }}>
-              <ProgressRingIcon size={30} color={themeColors.bg_primary} progress={data.progress} />
+              <ProgressRingIcon size={22} color={themeColors.bg_primary} progress={data.progress} />
               <Text
                 style={{
                   fontFamily: "InriaSans-Bold",
-                  fontSize: 14,
+                  fontSize: 13,
                   color: Color.colorBlack,
                   fontWeight: "700",
                 }}>

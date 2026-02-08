@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import LottieView from "lottie-react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -56,6 +57,9 @@ const EvidenceBoardScreen = ({
   const [expandedDreamId, setExpandedDreamId] = useState<number | null>(null);
   const [showRecap, setShowRecap] = useState(false);
   const [isLoadingDream, setIsLoadingDream] = useState(false);
+  // Track which completed dream should play fireworks (plays once per expand)
+  const [fireworksDreamId, setFireworksDreamId] = useState<number | null>(null);
+  const fireworksRef = useRef<LottieView>(null);
   // Cache of fully-fetched dream data keyed by thread_id
   const [fullDreamsCache, setFullDreamsCache] = useState<Record<string, any>>(
     {},
@@ -123,6 +127,7 @@ const EvidenceBoardScreen = ({
         easing: Easing.in(Easing.cubic),
         useNativeDriver: false,
       }).start();
+      setFireworksDreamId(null);
     }
   }, [expandedDreamId, expandAnim]);
 
@@ -195,6 +200,15 @@ const EvidenceBoardScreen = ({
       ? dreams
       : // Fallback sample data if no userData
         ([] as Dream[]);
+
+  // Trigger fireworks when a completed dream finishes loading its details
+  useEffect(() => {
+    if (expandedDreamId == null || isLoadingDream) return;
+    const expandedDream = displayDreams.find((d) => d.id === expandedDreamId);
+    if (expandedDream?.isComplete) {
+      setFireworksDreamId(expandedDreamId);
+    }
+  }, [expandedDreamId, isLoadingDream, displayDreams]);
 
   const activeDream =
     displayDreams.find((d) => d.id === expandedDreamId) || null;
@@ -330,6 +344,32 @@ const EvidenceBoardScreen = ({
                           }
                         />
                       </TouchableOpacity>
+
+                      {/* Fireworks animation for completed dreams */}
+                      {isExpanded && dream.isComplete && fireworksDreamId === dream.id && (
+                        <View
+                          pointerEvents="none"
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            zIndex: 10,
+                            overflow: "hidden",
+                            borderRadius: 24,
+                          }}>
+                          <LottieView
+                            ref={fireworksRef}
+                            source={require("../assets/animations/fireworks.json")}
+                            style={{ width: "100%", height: "100%" }}
+                            autoPlay
+                            loop={false}
+                            speed={1}
+                            onAnimationFinish={() => setFireworksDreamId(null)}
+                          />
+                        </View>
+                      )}
 
                       {/* Expanded Evidence Board Content - Inside the card */}
                       {isExpanded && (

@@ -844,7 +844,6 @@ const HomeScreen = ({
                 contentContainerStyle={{
                   paddingLeft: 17,
                   paddingRight: 17,
-                  alignItems: "flex-start",
                 }}
                 snapToInterval={width - 34 + 12}
                 decelerationRate="fast"
@@ -885,6 +884,7 @@ const HomeScreen = ({
                         intensity={60}
                         tint={theme === "dark" ? "dark" : "light"}
                         style={{
+                          flex: 1,
                           paddingHorizontal: 18,
                           paddingVertical: 18,
                           flexDirection: "column",
@@ -963,6 +963,7 @@ const HomeScreen = ({
                           flexDirection: "row",
                           alignItems: "center",
                           justifyContent: "space-between",
+                          marginTop: "auto",
                         }}>
                         <ResonanceIndicator
                           meTooCount={victory.meTooCount}

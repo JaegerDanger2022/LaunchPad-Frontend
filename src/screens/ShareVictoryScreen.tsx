@@ -80,8 +80,8 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
 
       setIsSaving(false);
 
-      // Navigate to Evidence Board after posting
-      onNavigate("EvidenceBoard");
+      // Navigate to Dreams screen after posting
+      onNavigate("AllDreams");
     } catch (error) {
       console.error("Failed to share victory:", error);
       Toast.show({
