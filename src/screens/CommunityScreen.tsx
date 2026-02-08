@@ -228,6 +228,9 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
 
   // Boost handler with optimistic update
   const handleBoost = async (victoryId: string) => {
+    const feedItem = feedItems.find(item => item.id === victoryId);
+    const itemType = feedItem?.type || 'victory_card';
+
     // Optimistic UI update
     setFeedItems(prev =>
       prev.map(item =>
@@ -238,7 +241,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
     );
 
     try {
-      await boostVictory(victoryId);
+      await boostVictory(victoryId, itemType);
       Toast.show({
         type: 'success',
         text1: 'Courage Boost Given! ⚡',
@@ -295,6 +298,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
     const feedItem = feedItems.find(item => item.id === victoryId);
     if (!feedItem) return;
 
+    const itemType = feedItem.type;
     const previousState = feedItem.hasUserMeTooed;
     const previousCount = feedItem.meTooCount;
 
@@ -312,7 +316,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
     );
 
     try {
-      const result = await toggleMeToo(victoryId);
+      const result = await toggleMeToo(victoryId, itemType);
 
       // Update with actual count from server
       setFeedItems(prev =>

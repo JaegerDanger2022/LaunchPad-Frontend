@@ -939,12 +939,14 @@ export async function createVictory(
 }
 
 export async function giveCourageBoost(
-  victoryId: string,
+  itemId: string,
   userId: string,
+  itemType: 'victory_card' | 'journey_recap' = 'victory_card',
 ): Promise<CourageBoostResponse> {
   try {
     // Backend expects giver_user_id as a query parameter
-    const url = `${API_BASE_URL}/victories/${victoryId}/boost?giver_user_id=${encodeURIComponent(userId)}`;
+    const basePath = itemType === 'journey_recap' ? 'journey-recaps' : 'victories';
+    const url = `${API_BASE_URL}/${basePath}/${itemId}/boost?giver_user_id=${encodeURIComponent(userId)}`;
 
     if (__DEV__) {
       console.log("[giveCourageBoost] Boosting victory at:", url);
@@ -1088,11 +1090,13 @@ export async function getVictoryPermissions(
 }
 
 export async function toggleMeToo(
-  victoryId: string,
+  itemId: string,
   userId: string,
+  itemType: 'victory_card' | 'journey_recap' = 'victory_card',
 ): Promise<import("../types/community").MeTooResponse> {
   try {
-    const url = `${API_BASE_URL}/victories/${victoryId}/metoo?user_id=${encodeURIComponent(userId)}`;
+    const basePath = itemType === 'journey_recap' ? 'journey-recaps' : 'victories';
+    const url = `${API_BASE_URL}/${basePath}/${itemId}/metoo?user_id=${encodeURIComponent(userId)}`;
     if (__DEV__) {
       console.log("[toggleMeToo] Toggling Me Too at:", url);
     }
@@ -1212,6 +1216,48 @@ export async function getUserCommunityStats(
   } catch (error: any) {
     console.error("[getUserCommunityStats] Error:", error.message);
     throw error;
+  }
+}
+
+/**
+ * Check if user has already posted a victory for a specific milestone
+ */
+export async function checkVictoryExists(
+  userId: string,
+  milestoneId: string
+): Promise<boolean> {
+  try {
+    const url = `${API_BASE_URL}/victories/check?user_id=${encodeURIComponent(userId)}&milestone_id=${encodeURIComponent(milestoneId)}`;
+
+    if (__DEV__) {
+      console.log("[checkVictoryExists] Checking victory existence:", url);
+    }
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      // If endpoint doesn't exist yet, return false (no victory exists)
+      if (response.status === 404) {
+        return false;
+      }
+      // For other errors, log but don't throw (fail gracefully)
+      if (__DEV__) {
+        console.warn("[checkVictoryExists] Error checking victory:", response.status);
+      }
+      return false;
+    }
+
+    const result = await response.json();
+    return result.exists || false;
+  } catch (error: any) {
+    if (__DEV__) {
+      console.error("[checkVictoryExists] Error:", error.message);
+    }
+    // Fail gracefully - if we can't check, allow the user to try posting
+    return false;
   }
 }
 

@@ -102,6 +102,8 @@ export interface CommunityFeedResponse {
 }
 
 export interface CreateVictoryRequest {
+  userId: string;
+  threadId: string;
   milestoneId: string;
   evidenceSnippet?: string; // Optional - can be blank
   isAnonymous: boolean;

@@ -37,8 +37,8 @@ interface CommunityState {
     keyMoment: string,
     isAnonymous: boolean
   ) => Promise<string>;
-  boostVictory: (victoryId: string) => Promise<void>;
-  toggleMeToo: (victoryId: string) => Promise<{ newCount: number; added: boolean }>;
+  boostVictory: (itemId: string, itemType?: 'victory_card' | 'journey_recap') => Promise<void>;
+  toggleMeToo: (itemId: string, itemType?: 'victory_card' | 'journey_recap') => Promise<{ newCount: number; added: boolean }>;
   givePermission: (victoryId: string, permissionType: PermissionType) => Promise<string>;
   loadPermissions: (victoryId: string) => Promise<PermissionSlip[]>;
   setFilters: (filters: CommunityFilters) => void;
@@ -60,6 +60,8 @@ export const useCommunityStore = create<CommunityState>((set) => ({
   error: null,
 
   createVictoryCard: async (
+    userId: string,
+    threadId: string,
     milestoneId: string,
     evidenceSnippet: string,
     isAnonymous: boolean,
@@ -67,6 +69,8 @@ export const useCommunityStore = create<CommunityState>((set) => ({
   ) => {
     try {
       const response = await createVictory({
+        userId,
+        threadId,
         milestoneId,
         evidenceSnippet: evidenceSnippet || undefined, // Send undefined if empty
         isAnonymous,
@@ -121,13 +125,13 @@ export const useCommunityStore = create<CommunityState>((set) => ({
     }
   },
 
-  boostVictory: async (victoryId: string) => {
+  boostVictory: async (itemId: string, itemType: 'victory_card' | 'journey_recap' = 'victory_card') => {
     try {
       const userId = useAuthStore.getState().user?.uid;
       if (!userId) {
         throw new Error('User not authenticated');
       }
-      await giveCourageBoost(victoryId, userId);
+      await giveCourageBoost(itemId, userId, itemType);
       set({ error: null });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to give boost';
@@ -136,13 +140,13 @@ export const useCommunityStore = create<CommunityState>((set) => ({
     }
   },
 
-  toggleMeToo: async (victoryId: string) => {
+  toggleMeToo: async (itemId: string, itemType: 'victory_card' | 'journey_recap' = 'victory_card') => {
     try {
       const userId = useAuthStore.getState().user?.uid;
       if (!userId) {
         throw new Error('User not authenticated');
       }
-      const response = await toggleMeToo(victoryId, userId);
+      const response = await toggleMeToo(itemId, userId, itemType);
       set({ error: null });
       return { newCount: response.newMeTooCount, added: response.added };
     } catch (error) {

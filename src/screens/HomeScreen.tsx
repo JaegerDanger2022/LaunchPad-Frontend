@@ -482,11 +482,6 @@ const HomeScreen = ({
                   }
                 }
 
-                // SAFETY CHECK: Default to locked if milestone data isn't fully loaded yet
-                const dependenciesMet = milestonesLoaded
-                  ? areDependenciesCompleted(rawMilestone, userData?.dreams)
-                  : false;
-
                 return (
                   <UpNextHeroCard
                     heroOpacity={heroOpacity}
@@ -497,9 +492,9 @@ const HomeScreen = ({
                     )}
                     xpPoints={userData.up_next.xp_points}
                     challengeType={userData.up_next.challenge_type}
-                    isLocked={!dependenciesMet}
+                    isLocked={false}
                     onPress={() => {
-                      if (dependenciesMet && milestoneThreadId) {
+                      if (milestoneThreadId) {
                         onNavigate("Milestone", {
                           milestoneId: userData.up_next!.milestone_id,
                           threadId: milestoneThreadId,

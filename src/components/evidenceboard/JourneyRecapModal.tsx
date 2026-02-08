@@ -1,6 +1,10 @@
-import React from "react";
-import { Modal, View, Text, TouchableOpacity } from "react-native";
+import React, { useRef, useState } from "react";
+import { Modal, View, Text, TouchableOpacity, Alert, Platform, ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { captureRef } from "react-native-view-shot";
+import * as Sharing from "expo-sharing";
+import * as MediaLibrary from "expo-media-library";
+import Toast from "react-native-toast-message";
 import { EvidenceBoardColors, getThemeColors } from "../../constants/GlobalStyles";
 import { useThemeStore } from "../../store/themeStore";
 
@@ -62,8 +66,93 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
   const { theme } = useThemeStore();
   const colors = getThemeColors(theme);
   const isDark = theme === "dark";
+  const viewRef = useRef<View>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
 
   if (!dream) return null;
+
+  const handleShare = async () => {
+    if (isCapturing) return;
+
+    try {
+      setIsCapturing(true);
+
+      // Capture the view as an image
+      const uri = await captureRef(viewRef, {
+        format: "png",
+        quality: 1,
+      });
+
+      // Check if sharing is available
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (isAvailable) {
+        await Sharing.shareAsync(uri, {
+          mimeType: "image/png",
+          dialogTitle: "Share Your Journey",
+        });
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Sharing Not Available",
+          text2: "Sharing is not supported on this device",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to share:", error);
+      Toast.show({
+        type: "error",
+        text1: "Share Failed",
+        text2: "Could not share the image",
+      });
+    } finally {
+      setIsCapturing(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (isCapturing) return;
+
+    try {
+      setIsCapturing(true);
+
+      // Request media library permissions
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+
+      if (status !== "granted") {
+        Toast.show({
+          type: "error",
+          text1: "Permission Denied",
+          text2: "Please allow access to save photos",
+        });
+        setIsCapturing(false);
+        return;
+      }
+
+      // Capture the view as an image
+      const uri = await captureRef(viewRef, {
+        format: "png",
+        quality: 1,
+      });
+
+      // Save to media library
+      await MediaLibrary.saveToLibraryAsync(uri);
+
+      Toast.show({
+        type: "success",
+        text1: "Saved!",
+        text2: "Journey saved to your photos",
+      });
+    } catch (error) {
+      console.error("Failed to save:", error);
+      Toast.show({
+        type: "error",
+        text1: "Save Failed",
+        text2: "Could not save the image",
+      });
+    } finally {
+      setIsCapturing(false);
+    }
+  };
 
   return (
     <Modal
@@ -89,6 +178,7 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
             maxWidth: 400,
           }}>
           <View
+            ref={viewRef}
             style={{
               width: "100%",
               maxWidth: 400,
@@ -210,9 +300,7 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                     fontWeight: "bold",
                     color: isDark ? colors.text_primary : EvidenceBoardColors.text.primary,
                   }}>
-                  {dream.completedDate
-                    ? calculateDuration(dream.startDate, dream.completedDate)
-                    : "—"}
+                  {calculateDuration(dream.startDate, dream.completedDate || new Date().toISOString())}
                 </Text>
               </View>
               <View
@@ -295,6 +383,8 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
 
             <View style={{ flexDirection: "row", gap: 12 }}>
               <TouchableOpacity
+                onPress={handleShare}
+                disabled={isCapturing}
                 style={{
                   flex: 1,
                   backgroundColor: isDark ? "rgba(168, 85, 247, 0.2)" : "transparent",
@@ -305,17 +395,24 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                   alignItems: "center",
                   borderWidth: isDark ? 1 : 0,
                   borderColor: isDark ? "rgba(168, 85, 247, 0.3)" : "transparent",
+                  opacity: isCapturing ? 0.6 : 1,
                 }}>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: "600",
-                    color: isDark ? "#A855F7" : EvidenceBoardColors.text.primary,
-                  }}>
-                  Share Victory
-                </Text>
+                {isCapturing ? (
+                  <ActivityIndicator size="small" color={isDark ? "#A855F7" : EvidenceBoardColors.text.primary} />
+                ) : (
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "600",
+                      color: isDark ? "#A855F7" : EvidenceBoardColors.text.primary,
+                    }}>
+                    Share
+                  </Text>
+                )}
               </TouchableOpacity>
               <TouchableOpacity
+                onPress={handleSave}
+                disabled={isCapturing}
                 style={{
                   flex: 1,
                   backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : EvidenceBoardColors.white,
@@ -326,15 +423,20 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
                   paddingHorizontal: 16,
                   justifyContent: "center",
                   alignItems: "center",
+                  opacity: isCapturing ? 0.6 : 1,
                 }}>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: "600",
-                    color: isDark ? colors.text_primary : "#374151"
-                  }}>
-                  Save
-                </Text>
+                {isCapturing ? (
+                  <ActivityIndicator size="small" color={isDark ? colors.text_primary : "#374151"} />
+                ) : (
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "600",
+                      color: isDark ? colors.text_primary : "#374151"
+                    }}>
+                    Save to Photos
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>

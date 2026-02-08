@@ -4,7 +4,9 @@ import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import * as SplashScreen from 'expo-splash-screen';
 import React from 'react';
+import { AnimatedSplashScreen } from './src/components/animations/AnimatedSplashScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import MilestoneScreen from './src/screens/MilestoneScreen';
 import DreamPage from './src/screens/DreamPage';
@@ -63,6 +65,9 @@ export type TabParamList = {
   Analytics: undefined;
 };
 
+
+// Keep native splash visible while JS loads and Lottie splash mounts
+SplashScreen.preventAutoHideAsync();
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -187,42 +192,24 @@ const StreakStatsScreenWrapper = React.memo(({ navigation }: any) => {
 
 const ShareVictoryScreenWrapper = React.memo(({ navigation, route }: any) => {
   const onNavigate = useCallback((screen: string) => {
-    if (screen === 'Home') {
-      navigation.goBack();
-    } else if (screen === 'EvidenceBoard') {
-      navigation.goBack();
-      setTimeout(() => {
-        if (navigation.canGoBack()) {
-          navigation.goBack();
-        }
-        setTimeout(() => {
-          navigation.navigate('HomeTabs', { screen: 'EvidenceBoard' });
-        }, 300);
-      }, 300);
-    } else {
-      navigation.navigate(screen as keyof RootStackParamList);
-    }
+    navigation.goBack();
+    setTimeout(() => {
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
+    }, 300);
   }, [navigation]);
   return <ShareVictoryScreen onNavigate={onNavigate} victory={route.params?.victory} />;
 });
 
 const ShareJourneyRecapScreenWrapper = React.memo(({ navigation, route }: any) => {
   const onNavigate = useCallback((screen: string) => {
-    if (screen === 'Home') {
-      navigation.goBack();
-    } else if (screen === 'EvidenceBoard') {
-      navigation.goBack();
-      setTimeout(() => {
-        if (navigation.canGoBack()) {
-          navigation.goBack();
-        }
-        setTimeout(() => {
-          navigation.navigate('HomeTabs', { screen: 'EvidenceBoard' });
-        }, 400);
-      }, 300);
-    } else {
-      navigation.navigate(screen as keyof RootStackParamList);
-    }
+    navigation.goBack();
+    setTimeout(() => {
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
+    }, 300);
   }, [navigation]);
   return <ShareJourneyRecapScreen onNavigate={onNavigate} journeyRecap={route.params?.journeyRecap} />;
 });
@@ -422,6 +409,7 @@ export default function App() {
   // After that, never show the blank loading view again — let the real
   // screens (auth or home with skeletons) handle their own loading states.
   const [initialCheckDone, setInitialCheckDone] = useState(false);
+  const [splashComplete, setSplashComplete] = useState(false);
 
   useEffect(() => {
     // Initialize RevenueCat SDK
@@ -432,6 +420,11 @@ export default function App() {
 
     // Initialize auth (will also identify user in RevenueCat if logged in)
     initializeAuth();
+  }, []);
+
+  // Hide the native splash immediately so the video splash takes over
+  useEffect(() => {
+    SplashScreen.hideAsync();
   }, []);
 
   // Mark initial check done once loading flips to false for the first time
@@ -449,18 +442,29 @@ export default function App() {
     }
   }, [isAuthenticated, loading]);
 
-  // Show blank loading view ONLY during the very first auth check on cold start.
-  // Once that's done, or if the user is already authenticated, go straight to
-  // the real navigator so HomeScreen can show its own skeletons.
-  const showLoadingView = !initialCheckDone && !isAuthenticated && !needsOnboarding;
+  const isAppReady = initialCheckDone || isAuthenticated || needsOnboarding;
+
+  const handleSplashComplete = useCallback(() => {
+    setSplashComplete(true);
+  }, []);
 
   return (
-    <NavigationContainer>
-      {showLoadingView ? (
-        <View style={{ flex: 1, backgroundColor: theme === 'light' ? Color.colorSnow : '#050938' }} />
-      ) : isAuthenticated ? <AppNavigator /> : needsOnboarding ? <AuthNavigator initialRoute="Timezone" /> : <AuthNavigator />}
-      <StatusBar style={theme === 'light' ? 'dark' : 'light'} backgroundColor={theme === 'light' ? Color.colorSnow : '#050938'} />
-      <Toast config={toastConfig} />
-    </NavigationContainer>
+    <View style={{ flex: 1 }}>
+      <NavigationContainer>
+        {isAppReady ? (
+          isAuthenticated ? <AppNavigator /> : needsOnboarding ? <AuthNavigator initialRoute="Timezone" /> : <AuthNavigator />
+        ) : (
+          <View style={{ flex: 1, backgroundColor: '#050938' }} />
+        )}
+        <StatusBar style={theme === 'light' ? 'dark' : 'light'} backgroundColor={theme === 'light' ? Color.colorSnow : '#050938'} />
+        <Toast config={toastConfig} />
+      </NavigationContainer>
+      {!splashComplete && (
+        <AnimatedSplashScreen
+          isAppReady={isAppReady}
+          onAnimationComplete={handleSplashComplete}
+        />
+      )}
+    </View>
   );
 }

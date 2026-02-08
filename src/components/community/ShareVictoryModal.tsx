@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,6 +18,8 @@ import { VictoryCard } from "./VictoryCard";
 import Toast from "react-native-toast-message";
 import { useThemeStore } from "../../store/themeStore";
 import { getThemeColors } from "../../constants/GlobalStyles";
+import { useAuthStore } from "../../store/authStore";
+import { checkVictoryExists } from "../../config/api";
 
 interface ShareVictoryModalProps {
   visible: boolean;
@@ -57,6 +59,9 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
   );
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [alreadyPosted, setAlreadyPosted] = useState(false);
+  const [checkingVictory, setCheckingVictory] = useState(false);
+  const { user } = useAuthStore();
 
   React.useEffect(() => {
     if (victory) {
@@ -66,15 +71,58 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
     }
   }, [victory, visible]);
 
+  // Check if victory already exists when modal opens
+  useEffect(() => {
+    const checkExistingVictory = async () => {
+      if (!visible || !victory?.milestoneId || !user?.uid) {
+        setAlreadyPosted(false);
+        setCheckingVictory(false);
+        return;
+      }
+
+      setCheckingVictory(true);
+      try {
+        const exists = await checkVictoryExists(user.uid, victory.milestoneId);
+        setAlreadyPosted(exists);
+      } catch (error) {
+        console.error("[ShareVictoryModal] Error checking victory:", error);
+        setAlreadyPosted(false);
+      } finally {
+        setCheckingVictory(false);
+      }
+    };
+
+    checkExistingVictory();
+  }, [visible, victory?.milestoneId, user?.uid]);
+
   const handleShare = async () => {
+    if (alreadyPosted) {
+      Toast.show({
+        type: "info",
+        text1: "Already Posted",
+        text2: "You've already shared this milestone victory",
+      });
+      return;
+    }
+
     try {
       setIsSaving(true);
       await onShare(evidenceSnippet.trim(), isAnonymous, selectedImpact);
       setIsSaving(false);
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       setIsSaving(false);
-      // Error toast is handled by parent
+      // Check if it's a duplicate error
+      const errorMessage = error?.message || "";
+      if (errorMessage.includes("already posted")) {
+        setAlreadyPosted(true);
+        Toast.show({
+          type: "info",
+          text1: "Already Posted",
+          text2: "You've already shared this milestone victory",
+        });
+      }
+      // Other errors handled by parent
     }
   };
 
@@ -134,6 +182,29 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
             </Text>
             <View style={{ width: 24 }} />
           </View>
+
+          {/* Already Posted Banner */}
+          {alreadyPosted && (
+            <View
+              style={{
+                backgroundColor: isDark ? "rgba(255, 193, 7, 0.1)" : "rgba(255, 193, 7, 0.2)",
+                borderBottomWidth: 1,
+                borderBottomColor: isDark ? "rgba(255, 193, 7, 0.3)" : "rgba(255, 193, 7, 0.5)",
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                marginTop: 12,
+              }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "500",
+                  color: isDark ? "#FFC107" : "#F57C00",
+                  textAlign: "center",
+                }}>
+                ⚠️ You've already posted a victory for this milestone
+              </Text>
+            </View>
+          )}
 
           {/* Preview */}
           <View
@@ -340,12 +411,14 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
                 borderRadius: 8,
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: "#2D5BFF",
-                opacity: isSaving ? 0.6 : 1,
+                backgroundColor: alreadyPosted ? colors.text_tertiary : "#2D5BFF",
+                opacity: (isSaving || alreadyPosted) ? 0.6 : 1,
               }}
               onPress={handleShare}
-              disabled={isSaving}>
-              {isSaving ? (
+              disabled={isSaving || alreadyPosted || checkingVictory}>
+              {checkingVictory ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : isSaving ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
                 <Text
@@ -354,7 +427,7 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
                     fontWeight: "600",
                     color: "#FFFFFF",
                   }}>
-                  Post to Victory Wall
+                  {alreadyPosted ? "Already Posted" : "Post to Victory Wall"}
                 </Text>
               )}
             </TouchableOpacity>

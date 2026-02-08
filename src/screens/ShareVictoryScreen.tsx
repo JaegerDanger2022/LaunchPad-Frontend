@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { useAuthStore } from "../store/authStore";
 import { useCommunityStore } from "../store/communityStore";
 import { useThemeStore } from "../store/themeStore";
 import { getThemeColors } from "../constants/GlobalStyles";
+import { checkVictoryExists } from "../config/api";
 
 interface ShareVictoryScreenProps {
   onNavigate: (screen: string) => void;
@@ -51,8 +52,33 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
   );
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [alreadyPosted, setAlreadyPosted] = useState(false);
+  const [checkingVictory, setCheckingVictory] = useState(true);
   const { createVictoryCard } = useCommunityStore();
   const { updateCouragePoints, userData } = useAuthStore();
+
+  // Check if victory already exists when component mounts
+  useEffect(() => {
+    const checkExistingVictory = async () => {
+      if (!victory?.milestoneId || !userData?.user_id) {
+        setCheckingVictory(false);
+        return;
+      }
+
+      try {
+        const exists = await checkVictoryExists(userData.user_id, victory.milestoneId);
+        setAlreadyPosted(exists);
+      } catch (error) {
+        console.error("[ShareVictoryScreen] Error checking victory:", error);
+        // If check fails, allow posting (fail gracefully)
+        setAlreadyPosted(false);
+      } finally {
+        setCheckingVictory(false);
+      }
+    };
+
+    checkExistingVictory();
+  }, [victory?.milestoneId, userData?.user_id]);
 
   const handleShare = async () => {
     if (!victory) {
@@ -65,10 +91,21 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
       return;
     }
 
+    if (alreadyPosted) {
+      Toast.show({
+        type: "info",
+        text1: "Already Posted",
+        text2: "You've already shared this milestone victory",
+      });
+      return;
+    }
+
     try {
       setIsSaving(true);
       console.log("[ShareVictoryScreen] Creating victory card with milestoneId:", victory.milestoneId);
       await createVictoryCard(
+        userData.user_id,
+        victory.dreamId,
         victory.milestoneId,
         evidenceSnippet.trim(),
         isAnonymous,
@@ -78,17 +115,35 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
       // Award courage points locally
       updateCouragePoints(5);
 
+      Toast.show({
+        type: "success",
+        text1: "Victory Shared!",
+        text2: "+5 Courage Points earned",
+      });
+
       setIsSaving(false);
 
       // Navigate to Dreams screen after posting
       onNavigate("AllDreams");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to share victory:", error);
-      Toast.show({
-        type: "error",
-        text1: "Failed to Share",
-        text2: "Please try again",
-      });
+
+      // Check if it's a duplicate error
+      const errorMessage = error?.message || "";
+      if (errorMessage.includes("already posted")) {
+        setAlreadyPosted(true);
+        Toast.show({
+          type: "info",
+          text1: "Already Posted",
+          text2: "You've already shared this milestone victory",
+        });
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Failed to Share",
+          text2: errorMessage || "Please try again",
+        });
+      }
       setIsSaving(false);
     }
   };
@@ -146,6 +201,28 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
         </Text>
         <View style={{ width: 24 }} />
       </View>
+
+      {/* Already Posted Banner */}
+      {alreadyPosted && (
+        <View
+          style={{
+            backgroundColor: isDark ? "rgba(255, 193, 7, 0.1)" : "rgba(255, 193, 7, 0.2)",
+            borderBottomWidth: 1,
+            borderBottomColor: isDark ? "rgba(255, 193, 7, 0.3)" : "rgba(255, 193, 7, 0.5)",
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+          }}>
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: "500",
+              color: isDark ? "#FFC107" : "#F57C00",
+              textAlign: "center",
+            }}>
+            ⚠️ You've already posted a victory for this milestone
+          </Text>
+        </View>
+      )}
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: 40 }}
@@ -356,12 +433,14 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
               borderRadius: 8,
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: "#2D5BFF",
-              opacity: isSaving ? 0.6 : 1,
+              backgroundColor: alreadyPosted ? colors.text_tertiary : "#2D5BFF",
+              opacity: (isSaving || alreadyPosted) ? 0.6 : 1,
             }}
             onPress={handleShare}
-            disabled={isSaving}>
-            {isSaving ? (
+            disabled={isSaving || alreadyPosted || checkingVictory}>
+            {checkingVictory ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : isSaving ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
               <Text
@@ -370,7 +449,7 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
                   fontWeight: "600",
                   color: "#FFFFFF",
                 }}>
-                Post to Victory Wall
+                {alreadyPosted ? "Already Posted" : "Post to Victory Wall"}
               </Text>
             )}
           </TouchableOpacity>
