@@ -90,14 +90,6 @@ const LoginScreen = ({ navigation }: any) => {
                 fontFamily: "InstrumentSans-Bold",
                 marginBottom: 8,
               }}>
-              Welcome Back
-            </Text>
-            <Text
-              style={{
-                fontSize: 15,
-                color: DarkTheme.text_secondary,
-                fontFamily: "InstrumentSans-Regular",
-              }}>
               Log in to continue your journey
             </Text>
           </View>
