@@ -40,13 +40,13 @@ export interface VictoryCard {
   userDisplayName: string; // "Sarah" or "Anonymous"
   userLocation?: string;
   userAge?: number;
-  userTimezone?: string; // IANA timezone (e.g., "America/New_York")
+  prefTimezone?: string; // IANA timezone (e.g., "America/New_York")
 
   milestoneId: string;
   milestoneTitle: string;
   challengeType?: string; // Optional - milestone challenge type
   dreamId: string;
-  dreamCategory: DreamCategory;
+  dreamCategory: DreamCategory; // Populated from dream's roadmap.category (e.g., "Travel & Exploration")
 
   evidenceSnippet?: string; // Optional - can be blank
   confidenceBoost: number; // XP points
@@ -163,11 +163,11 @@ export interface JourneyRecap {
   userDisplayName: string; // "Sarah" or "Anonymous"
   userLocation?: string;
   userAge?: number;
-  userTimezone?: string; // IANA timezone (e.g., "America/New_York")
+  prefTimezone?: string; // IANA timezone (e.g., "America/New_York")
 
   dreamId: string;
   dreamTitle: string;
-  dreamCategory: DreamCategory;
+  dreamCategory: DreamCategory; // Populated from dream's roadmap.category (e.g., "Travel & Exploration")
 
   journeyStory: string; // User's reflection on completing the dream
   totalMilestones: number;

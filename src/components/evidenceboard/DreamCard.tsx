@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { EvidenceBoardColors } from "../../constants/GlobalStyles";
 
@@ -55,72 +56,111 @@ export const DreamCard: React.FC<DreamCardProps> = ({
   isSelected,
   onPress,
   isDark = false,
-}) => (
-  <TouchableOpacity
-    onPress={onPress}
-    style={{
-      borderRadius: 24,
-      padding: 24,
-      backgroundColor: isSelected
-        ? isDark
-          ? "#1b1f52"
-          : EvidenceBoardColors.white
-        : dream.dream_card_bg ||
-          (isDark ? "#2B2D56" : EvidenceBoardColors.dream_card_bg),
-      borderWidth: isSelected ? 2 : 0,
-      borderColor: isSelected ? EvidenceBoardColors.teal : "transparent",
-      opacity: 1,
-      shadowColor: isDark ? "rgba(0,0,0,0.4)" : "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: isDark ? 0.3 : 0.1,
-      shadowRadius: 8,
-      elevation: 4,
-    }}>
-    <View
-      style={{
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        marginBottom: 12,
-      }}>
-      {dream.isComplete && (
+}) => {
+  const textColor = isDark ? "#ffffff" : (isSelected ? "#ffffff" : "#000000");
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[
+        styles.cardWrapper,
+        {
+          borderColor: dream.dream_card_bg || "transparent",
+          backgroundColor: isDark
+            ? "rgba(30, 41, 59, 0.4)"
+            : (dream.dream_card_bg || EvidenceBoardColors.dream_card_bg) + "66",
+          shadowColor: isDark ? "rgba(255, 255, 255, 0.12)" : "#000",
+          shadowOpacity: isDark ? 1 : 0.1,
+        }
+      ]}>
+      <BlurView
+        intensity={isDark ? 80 : 20}
+        tint={isDark ? "dark" : "light"}
+        style={styles.blurContainer}>
         <View
-          style={{
-            backgroundColor: isDark
-              ? "rgba(34, 197, 94, 0.2)"
-              : EvidenceBoardColors.successLight,
-            paddingHorizontal: 12,
-            paddingVertical: 6,
-            borderRadius: 20,
-          }}>
-          <Text
-            style={{
-              fontSize: 12,
-              fontWeight: "600",
-              color: EvidenceBoardColors.success,
-            }}>
-            Completed!
+          style={[
+            styles.contentWrapper,
+            {
+              backgroundColor: isDark
+                ? "rgba(255, 255, 255, 0.08)"
+                : isSelected
+                  ? "rgba(255, 255, 255, 0.7)"
+                  : "rgba(255, 255, 255, 0.6)",
+            }
+          ]}>
+          <View style={styles.headerRow}>
+            {dream.isComplete && (
+              <View
+                style={[
+                  styles.completedBadge,
+                  {
+                    backgroundColor: isDark
+                      ? "rgba(34, 197, 94, 0.2)"
+                      : EvidenceBoardColors.successLight,
+                  }
+                ]}>
+                <Text style={styles.completedText}>Completed!</Text>
+              </View>
+            )}
+          </View>
+
+          <Text style={[styles.title, { color: textColor }]}>
+            {dream.title}
           </Text>
+
+          <View style={styles.bottomRow}>
+            <Text style={[styles.courageText, { color: textColor }]}>
+              🏆 {dream.couragePoints} courage points
+            </Text>
+          </View>
         </View>
-      )}
-    </View>
-    <Text
-      style={{
-        fontSize: 18,
-        fontWeight: "bold",
-        color: isSelected ? "#ffffff" : "#000000",
-        marginBottom: 12,
-      }}>
-      {dream.title}
-    </Text>
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-      <Text
-        style={{
-          fontSize: 14,
-          color: isSelected ? "#ffffff" : "#000000",
-        }}>
-        🏆 {dream.couragePoints} courage points
-      </Text>
-    </View>
-  </TouchableOpacity>
-);
+      </BlurView>
+    </TouchableOpacity>
+  );
+};
+
+const styles = StyleSheet.create({
+  cardWrapper: {
+    borderRadius: 24,
+    borderWidth: 2,
+    overflow: "hidden",
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  blurContainer: {
+    borderRadius: 24,
+    overflow: "hidden",
+  },
+  contentWrapper: {
+    padding: 24,
+    gap: 10,
+  },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  completedBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  completedText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: EvidenceBoardColors.success,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  bottomRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  courageText: {
+    fontSize: 14,
+  },
+});

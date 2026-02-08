@@ -46,12 +46,13 @@ const AllDreamsScreen = ({
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const { width } = useWindowDimensions();
-  const [isDreamChoiceModalVisible, setIsDreamChoiceModalVisible] = useState(false);
-  const [isCreateDreamModalVisible, setIsCreateDreamModalVisible] = useState(false);
+  const [isDreamChoiceModalVisible, setIsDreamChoiceModalVisible] =
+    useState(false);
+  const [isCreateDreamModalVisible, setIsCreateDreamModalVisible] =
+    useState(false);
   const [isDIYDreamModalVisible, setIsDIYDreamModalVisible] = useState(false);
   const [isCreating, setIsCreating] = useState(creatingDream === true);
   const [phraseIndex, setPhraseIndex] = useState(0);
-  const [showInitialMessage, setShowInitialMessage] = useState(true);
 
   // Get user data from auth store
   const { userData, addToRecents, user, refreshDreamsFromCrud, isPremium } =
@@ -123,36 +124,19 @@ const AllDreamsScreen = ({
   useEffect(() => {
     if (creatingDream === true && !isCreating) {
       setIsCreating(true);
-      setShowInitialMessage(true);
     }
   }, [creatingDream]);
 
-  // Show initial message for 3 seconds, then cycle through phrases
+  // Cycle through phrases while the placeholder card is visible
   useEffect(() => {
     if (!isCreating) {
       setPhraseIndex(0);
-      setShowInitialMessage(true);
       return;
     }
-
-    // Show initial message for 3 seconds
-    const initialTimeout = setTimeout(() => {
-      setShowInitialMessage(false);
-    }, 3000);
-
-    // Start cycling through phrases after initial message
-    let interval: ReturnType<typeof setInterval> | null = null;
-    const delayedInterval = setTimeout(() => {
-      interval = setInterval(() => {
-        setPhraseIndex((prev) => (prev + 1) % dreamCreatingPhrases.length);
-      }, 1800);
-    }, 3000);
-
-    return () => {
-      clearTimeout(initialTimeout);
-      clearTimeout(delayedInterval);
-      if (interval) clearInterval(interval);
-    };
+    const interval = setInterval(() => {
+      setPhraseIndex((prev) => (prev + 1) % dreamCreatingPhrases.length);
+    }, 1800);
+    return () => clearInterval(interval);
   }, [isCreating]);
 
   // Poll for the new dream; dismiss placeholder once it appears
@@ -214,11 +198,11 @@ const AllDreamsScreen = ({
 
       if (cancelled) return;
       pollInterval.current = setInterval(poll, 7000);
-      // Safety: dismiss placeholder after 200 s
+      // Safety: dismiss placeholder after 500 s
       pollTimeout.current = setTimeout(() => {
         stopPolling();
         setIsCreating(false);
-      }, 200000);
+      }, 500000);
     };
 
     init();
@@ -478,9 +462,7 @@ const AllDreamsScreen = ({
                             textAlign: "center",
                             paddingHorizontal: 12,
                           }}>
-                          {showInitialMessage
-                            ? "Luna is setting your milestones up. You'll receive a notification once she's done"
-                            : dreamCreatingPhrases[phraseIndex]}
+                          {dreamCreatingPhrases[phraseIndex]}
                         </Text>
                       </LinearGradient>
                     </View>

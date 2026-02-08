@@ -315,8 +315,7 @@ const MilestoneScreen = ({
           borderTopRightRadius: 30,
           overflow: "hidden",
           flex: 1,
-        }}
-        {...panResponder.panHandlers}>
+        }}>
         {/* Top Section with Gradient */}
         <LinearGradient
           colors={generateGradientColors(
@@ -337,14 +336,15 @@ const MilestoneScreen = ({
               style={{
                 alignItems: "center",
                 paddingTop: 40,
-                paddingBottom: 0,
+                paddingBottom: 20,
                 position: "absolute",
                 top: 0,
                 left: 0,
                 right: 0,
                 zIndex: 10,
                 transform: [{ scale: handleScaleAnim }],
-              }}>
+              }}
+              {...panResponder.panHandlers}>
               <Svg width="40" height="4" viewBox="0 0 40 4">
                 <Path
                   d="M 0 2 L 40 2"
@@ -392,10 +392,11 @@ const MilestoneScreen = ({
             <ScrollView
               style={{ flex: 1 }}
               contentContainerStyle={{
-                flexGrow: 1,
-                justifyContent: "flex-start",
+                paddingBottom: 20,
               }}
-              showsVerticalScrollIndicator={false}>
+              showsVerticalScrollIndicator={true}
+              scrollEnabled={true}
+              bounces={true}>
               {/* Title */}
               <View
                 style={{
@@ -507,27 +508,20 @@ const MilestoneScreen = ({
                       {milestone?.title || milestone?.name || "Untitled Milestone"}
                     </Text>
 
-                    {/* Scrollable Description */}
-                    <ScrollView
+                    {/* Description */}
+                    <Text
                       style={{
-                        maxHeight: 120,
+                        color: Color.colorBlack,
+                        textAlign: "center",
+                        fontSize: 14,
+                        lineHeight: 24,
+                        opacity: 0.95,
                         width: "100%",
                         marginBottom: 25,
-                      }}
-                      showsVerticalScrollIndicator={true}
-                      persistentScrollbar={true}
-                      nestedScrollEnabled={true}>
-                      <Text
-                        style={{
-                          color: Color.colorBlack,
-                          textAlign: "center",
-                          fontSize: 14,
-                          lineHeight: 24,
-                          opacity: 0.95,
-                        }}>
-                        {milestone?.description || "No description available"}
-                      </Text>
-                    </ScrollView>
+                        paddingHorizontal: 8,
+                      }}>
+                      {milestone?.description || "No description available"}
+                    </Text>
 
                     <View
                       style={{

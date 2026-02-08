@@ -118,6 +118,7 @@ const ShareJourneyRecapScreen: React.FC<ShareJourneyRecapScreenProps> = ({
     userDisplayName: isAnonymous ? 'Anonymous' : (userData?.firstname || journeyRecap?.userDisplayName || 'User'),
     userLocation: isAnonymous ? undefined : (userData?.location || journeyRecap?.userLocation),
     userAge: isAnonymous ? undefined : (userData?.age || journeyRecap?.userAge),
+    prefTimezone: isAnonymous ? (userData?.pref_timezone || journeyRecap?.prefTimezone) : undefined,
     dreamId: journeyRecap?.dreamId || '',
     dreamTitle: journeyRecap?.dreamTitle || '',
     dreamCategory: journeyRecap?.dreamCategory || 'achievement_goals',
@@ -239,7 +240,7 @@ const ShareJourneyRecapScreen: React.FC<ShareJourneyRecapScreenProps> = ({
           </View>
           <Text style={[styles.helperText, { color: colors.text_secondary }]}>
             {isAnonymous
-              ? 'Your journey will show as "Someone"'
+              ? 'Your journey will show as "Someone in {your timezone}"'
               : 'Your name will be visible to the community'}
           </Text>
         </View>

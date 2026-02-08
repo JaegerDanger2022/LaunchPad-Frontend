@@ -42,7 +42,7 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
   };
 
   const userInfo = victory.isAnonymous
-    ? `Someone${victory.userTimezone ? " in " + victory.userTimezone : ""}`
+    ? `Someone${victory.prefTimezone ? " in " + victory.prefTimezone : ""}`
     : `${victory.userDisplayName}${victory.userAge ? ", " + victory.userAge : ""}${victory.userLocation ? ", " + victory.userLocation : ""}`;
 
   const formattedDate = formatDate(victory.createdAt);
@@ -50,10 +50,7 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
   const challengeTypeLabel = formatChallengeType(victory.challengeType);
 
   return (
-    <TouchableOpacity
-      style={styles.cardWrapper}
-      onPress={onPress}
-      activeOpacity={0.85}>
+    <View style={styles.cardWrapper}>
       {/* Colored accent strip at the very top */}
       <LinearGradient
         colors={[categoryColor, categoryColor + "00"]}
@@ -63,7 +60,11 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
       />
 
       {/* Frosted glass body */}
-      <BlurView intensity={40} tint="dark" style={styles.glassBody}>
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.85}
+        style={{ overflow: 'hidden', borderRadius: 20 }}>
+        <BlurView intensity={80} tint="dark" style={styles.glassBody}>
         {/* Top row: checkmark badge + category tag */}
         <View style={styles.topRow}>
           <View style={[styles.victoryBadge, { borderColor: categoryColor + "66" }]}>
@@ -136,7 +137,8 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
           )}
         </View>
       </BlurView>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 };
 
@@ -147,19 +149,20 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
+    borderColor: "rgba(255, 255, 255, 0.18)",
+    backgroundColor: "rgba(30, 41, 59, 0.4)", // Semi-transparent dark background for blur effect
     // Subtle outer glow via shadow
-    shadowColor: "rgba(255, 255, 255, 0.08)",
+    shadowColor: "rgba(255, 255, 255, 0.12)",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 12,
-    elevation: 4,
+    elevation: 8,
   },
   accentStrip: {
     height: 3,
   },
   glassBody: {
-    backgroundColor: "rgba(255, 255, 255, 0.07)",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
     padding: 18,
     gap: 10,
   },

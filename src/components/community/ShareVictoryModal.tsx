@@ -88,6 +88,7 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
     userDisplayName: isAnonymous ? "Anonymous" : victory.userDisplayName,
     userLocation: isAnonymous ? undefined : victory.userLocation,
     userAge: isAnonymous ? undefined : victory.userAge,
+    prefTimezone: isAnonymous ? victory.prefTimezone : undefined,
   };
 
   return (
@@ -115,7 +116,12 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
               borderBottomColor: colors.border,
               backgroundColor: colors.bg_secondary,
             }}>
-            <TouchableOpacity onPress={onClose} disabled={isSaving}>
+            <TouchableOpacity
+              onPress={onClose}
+              disabled={isSaving}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={{ padding: 4, minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'center' }}
+            >
               <Text style={{ fontSize: 24, color: colors.text_secondary }}>✕</Text>
             </TouchableOpacity>
             <Text
@@ -289,7 +295,7 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
                 fontStyle: "italic",
               }}>
               {isAnonymous
-                ? 'Your victory will show as "Someone"'
+                ? 'Your victory will show as "Someone in {your timezone}"'
                 : "Your name will be visible to the community"}
             </Text>
           </View>

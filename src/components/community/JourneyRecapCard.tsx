@@ -29,16 +29,13 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
   const categoryColor = '#10B981'; // Green for all journey cards
 
   const userInfo = journeyRecap.isAnonymous
-    ? `Someone${journeyRecap.userTimezone ? " in " + journeyRecap.userTimezone : ""}`
+    ? `Someone${journeyRecap.prefTimezone ? " in " + journeyRecap.prefTimezone : ""}`
     : `${journeyRecap.userDisplayName}${journeyRecap.userAge ? ", " + journeyRecap.userAge : ""}${journeyRecap.userLocation ? ", " + journeyRecap.userLocation : ""}`;
 
   const formattedDate = formatDate(journeyRecap.createdAt);
 
   return (
-    <TouchableOpacity
-      style={styles.cardWrapper}
-      onPress={onPress}
-      activeOpacity={0.85}>
+    <View style={styles.cardWrapper}>
       {/* Colored accent strip — gradient fade for journey cards */}
       <LinearGradient
         colors={[categoryColor, categoryColor + "00"]}
@@ -48,7 +45,11 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
       />
 
       {/* Frosted glass body */}
-      <BlurView intensity={40} tint="dark" style={styles.glassBody}>
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.85}
+        style={{ overflow: 'hidden', borderRadius: 20 }}>
+        <BlurView intensity={80} tint="dark" style={styles.glassBody}>
         {/* Top row: star badge + category tag */}
         <View style={styles.topRow}>
           <View style={[styles.journeyBadge, { borderColor: categoryColor + "66" }]}>
@@ -136,7 +137,8 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
           )}
         </View>
       </BlurView>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 };
 
@@ -147,18 +149,19 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
-    shadowColor: "rgba(255, 255, 255, 0.08)",
+    borderColor: "rgba(255, 255, 255, 0.18)",
+    backgroundColor: "rgba(30, 41, 59, 0.4)", // Semi-transparent dark background for blur effect
+    shadowColor: "rgba(255, 255, 255, 0.12)",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 12,
-    elevation: 4,
+    elevation: 8,
   },
   accentStrip: {
     height: 3,
   },
   glassBody: {
-    backgroundColor: "rgba(255, 255, 255, 0.07)",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
     padding: 18,
     gap: 10,
   },

@@ -100,6 +100,7 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
     userDisplayName: isAnonymous ? "Anonymous" : (userData?.firstname || victory?.userDisplayName || 'User'),
     userLocation: isAnonymous ? undefined : (userData?.location || victory?.userLocation),
     userAge: isAnonymous ? undefined : (userData?.age || victory?.userAge),
+    prefTimezone: isAnonymous ? (userData?.pref_timezone || victory?.prefTimezone) : undefined,
     milestoneId: victory?.milestoneId || '',
     milestoneTitle: victory?.milestoneTitle || '',
     challengeType: victory?.challengeType,
@@ -310,7 +311,7 @@ const ShareVictoryScreen: React.FC<ShareVictoryScreenProps> = ({
               fontStyle: "italic",
             }}>
             {isAnonymous
-              ? 'Your victory will show as "Someone"'
+              ? 'Your victory will show as "Someone in {your timezone}"'
               : "Your name will be visible to the community"}
           </Text>
         </View>

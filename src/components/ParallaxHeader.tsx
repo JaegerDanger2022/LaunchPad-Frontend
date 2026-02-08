@@ -76,8 +76,8 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
   });
 
   const imageOpacity = scrollY.interpolate({
-    inputRange: [0, parallaxHeight / 2, parallaxHeight],
-    outputRange: [1, 0.8, 0.3],
+    inputRange: [0, parallaxHeight / 2, parallaxHeight - headerHeight],
+    outputRange: [1, 0.5, 0],
     extrapolate: 'clamp',
   });
 
@@ -97,7 +97,7 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
   return (
     <View style={{ flex: 1 }}>
       {/* Parallax Header Background - Fixed position */}
-      <View style={{
+      <Animated.View style={{
         position: 'absolute',
         top: 0,
         left: 0,
@@ -105,6 +105,7 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
         height: parallaxHeight,
         overflow: 'hidden',
         zIndex: 0,
+        opacity: imageOpacity,
       }}>
         <Animated.View
           style={{
@@ -204,7 +205,7 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
             </Text>
           )}
         </Animated.View>
-      </View>
+      </Animated.View>
 
       {/* Sticky Header (appears on scroll) - with opaque background */}
       <Animated.View

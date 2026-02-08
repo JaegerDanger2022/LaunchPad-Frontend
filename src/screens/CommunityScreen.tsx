@@ -31,16 +31,16 @@ import { ChevronUp } from 'lucide-react-native';
 const CATEGORY_OPTIONS: Array<{ label: string; value: DreamCategory | 'all' }> =
   [
     { label: 'All Categories', value: 'all' },
-    { label: 'Career', value: 'career_professional' },
-    { label: 'Development', value: 'personal_development' },
-    { label: 'Wellness', value: 'health_wellness' },
-    { label: 'Creative', value: 'creative_expression' },
-    { label: 'Relationships', value: 'relationships_community' },
-    { label: 'Travel', value: 'travel_exploration' },
-    { label: 'Finance', value: 'finance_security' },
-    { label: 'Lifestyle', value: 'lifestyle_hobbies' },
-    { label: 'Courage', value: 'courage_challenges' },
-    { label: 'Achievement', value: 'achievement_goals' },
+    { label: 'Career & Professional', value: 'career_professional' },
+    { label: 'Personal Development', value: 'personal_development' },
+    { label: 'Health & Wellness', value: 'health_wellness' },
+    { label: 'Creative Expression', value: 'creative_expression' },
+    { label: 'Relationships & Community', value: 'relationships_community' },
+    { label: 'Travel & Exploration', value: 'travel_exploration' },
+    { label: 'Finance & Security', value: 'finance_security' },
+    { label: 'Lifestyle & Hobbies', value: 'lifestyle_hobbies' },
+    { label: 'Courage & Challenges', value: 'courage_challenges' },
+    { label: 'Achievement & Goals', value: 'achievement_goals' },
   ];
 
 const TIME_OPTIONS = [
@@ -106,7 +106,12 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
         timeframe: filters.timeframe !== 'all' ? filters.timeframe : undefined,
       });
 
-      setFeedItems(prev => reset ? response.feed : [...prev, ...response.feed]);
+      // Sort feed by dream category alphabetically
+      const sortedFeed = response.feed.sort((a, b) => {
+        return a.dreamCategory.localeCompare(b.dreamCategory);
+      });
+
+      setFeedItems(prev => reset ? sortedFeed : [...prev, ...sortedFeed]);
       setCurrentPage(response.pagination.page);
       setTotalPages(response.pagination.totalPages);
 
@@ -116,6 +121,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
         id: item.id,
         type: item.type,
         userId: item.userId,
+        dreamCategory: item.dreamCategory,
         isOwnPost: item.userId === user?.uid
       })));
 

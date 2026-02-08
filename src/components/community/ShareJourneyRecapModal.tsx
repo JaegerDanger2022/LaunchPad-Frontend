@@ -74,6 +74,7 @@ export const ShareJourneyRecapModal: React.FC<ShareJourneyRecapModalProps> = ({
     userDisplayName: isAnonymous ? 'Anonymous' : journeyRecap.userDisplayName,
     userLocation: isAnonymous ? undefined : journeyRecap.userLocation,
     userAge: isAnonymous ? undefined : journeyRecap.userAge,
+    prefTimezone: isAnonymous ? journeyRecap.prefTimezone : undefined,
   };
 
   return (
@@ -166,7 +167,7 @@ export const ShareJourneyRecapModal: React.FC<ShareJourneyRecapModalProps> = ({
             </View>
             <Text style={styles.helperText}>
               {isAnonymous
-                ? 'Your journey will show as "Someone"'
+                ? 'Your journey will show as "Someone in {your timezone}"'
                 : 'Your name will be visible to the community'}
             </Text>
           </View>

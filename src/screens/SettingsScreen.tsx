@@ -428,7 +428,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                         ? "rgba(255, 255, 255, 0.1)"
                         : "rgba(0, 0, 0, 0.05)",
                   }}>
-                  <SettingRow
+                  {/* <SettingRow
                     icon="🎨"
                     label="Theme"
                     value={theme === "light" ? "Light" : "Dark"}
@@ -442,7 +442,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                         visibilityTime: 1500,
                       });
                     }}
-                  />
+                  /> */}
                   <SettingRow
                     icon="🌍"
                     label="Timezone"

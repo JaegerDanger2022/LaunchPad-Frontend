@@ -85,24 +85,26 @@ export const ProgressRingIcon: React.FC<ProgressRingIconProps> = ({ size = 30, p
   const circumference = 2 * Math.PI * radius; // ≈ 81.68
   const clampedProgress = Math.min(100, Math.max(0, progress));
   const offset = circumference * (1 - clampedProgress / 100);
-  const arcColor = clampedProgress > 0 ? '#ff9000' : '#050938';
 
   return (
     <View style={{ width: size, height: size }}>
       <Svg width={size} height={size} viewBox="0 0 30 30" fill="none">
-        {/* Background track */}
-        <Circle cx="15" cy="15" r={radius} stroke="#050938" strokeWidth="2" />
+        {/* Background circle fill */}
+        <Circle cx="15" cy="15" r={radius} fill="#22C55E" fillOpacity="0.15" />
+        {/* Background track stroke */}
+        <Circle cx="15" cy="15" r={radius} stroke="rgba(255,255,255,0.2)" strokeWidth="2" fill="none" />
         {/* Progress arc — rotated so 0% starts at 12 o'clock */}
         <Circle
           cx="15"
           cy="15"
           r={radius}
-          stroke={arcColor}
+          stroke="#22C55E"
           strokeWidth="2"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
           transform="rotate(-90 15 15)"
+          fill="none"
         />
       </Svg>
     </View>

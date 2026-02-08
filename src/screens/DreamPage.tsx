@@ -328,7 +328,7 @@ const DreamPage = ({
           <View
             style={{
               paddingHorizontal: 22,
-              paddingBottom: 40,
+              paddingBottom: 120, // Extra padding to clear bottom navbar
             }}>
             {/* Loading indicator */}
             {isLoadingDream && milestones.length === 0 ? (

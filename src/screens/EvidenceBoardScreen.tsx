@@ -539,7 +539,7 @@ const EvidenceBoardScreen = ({
                                 }}>
                                 <Text
                                   style={{
-                                    fontSize: 28,
+                                    fontSize: 22,
                                     fontWeight: "bold",
                                     color: isDark
                                       ? "#ffffff"
@@ -550,7 +550,7 @@ const EvidenceBoardScreen = ({
                                 </Text>
                                 <Text
                                   style={{
-                                    fontSize: 12,
+                                    fontSize: 11,
                                     color: isDark
                                       ? "#b0b0b0"
                                       : EvidenceBoardColors.text.secondary,
@@ -578,7 +578,7 @@ const EvidenceBoardScreen = ({
                                 }}>
                                 <Text
                                   style={{
-                                    fontSize: 28,
+                                    fontSize: 22,
                                     fontWeight: "bold",
                                     color: isDark
                                       ? "#ffffff"
@@ -589,7 +589,7 @@ const EvidenceBoardScreen = ({
                                 </Text>
                                 <Text
                                   style={{
-                                    fontSize: 12,
+                                    fontSize: 11,
                                     color: isDark
                                       ? "#b0b0b0"
                                       : EvidenceBoardColors.text.secondary,
@@ -617,7 +617,7 @@ const EvidenceBoardScreen = ({
                                 }}>
                                 <Text
                                   style={{
-                                    fontSize: 28,
+                                    fontSize: 22,
                                     fontWeight: "bold",
                                     color: isDark
                                       ? "#ffffff"
@@ -628,7 +628,7 @@ const EvidenceBoardScreen = ({
                                 </Text>
                                 <Text
                                   style={{
-                                    fontSize: 12,
+                                    fontSize: 11,
                                     color: isDark
                                       ? "#b0b0b0"
                                       : EvidenceBoardColors.text.secondary,

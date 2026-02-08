@@ -14,16 +14,16 @@ export const CATEGORY_COLORS: Record<DreamCategory, string> = {
 };
 
 export const CATEGORY_LABELS: Record<DreamCategory, string> = {
-  career_professional: 'CAREER',
-  personal_development: 'DEVELOPMENT',
-  health_wellness: 'WELLNESS',
-  creative_expression: 'CREATIVE',
-  relationships_community: 'RELATIONSHIPS',
-  travel_exploration: 'TRAVEL',
-  finance_security: 'FINANCE',
-  lifestyle_hobbies: 'LIFESTYLE',
-  courage_challenges: 'COURAGE',
-  achievement_goals: 'VICTORY',
+  career_professional: 'CAREER & PROFESSIONAL',
+  personal_development: 'PERSONAL DEVELOPMENT',
+  health_wellness: 'HEALTH & WELLNESS',
+  creative_expression: 'CREATIVE EXPRESSION',
+  relationships_community: 'RELATIONSHIPS & COMMUNITY',
+  travel_exploration: 'TRAVEL & EXPLORATION',
+  finance_security: 'FINANCE & SECURITY',
+  lifestyle_hobbies: 'LIFESTYLE & HOBBIES',
+  courage_challenges: 'COURAGE & CHALLENGES',
+  achievement_goals: 'ACHIEVEMENT & GOALS',
 };
 
 export const getCategoryColor = (category: DreamCategory): string => {
