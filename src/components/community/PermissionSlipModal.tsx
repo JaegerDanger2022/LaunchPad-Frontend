@@ -9,8 +9,12 @@ import {
   SafeAreaView,
   ScrollView,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { X } from 'lucide-react-native';
 import { DreamCategory, PermissionType } from '../../types/community';
 import { getPermissionOptions } from '../../utils/permissionUtils';
+import { useThemeStore } from '../../store/themeStore';
+import { getThemeColors } from '../../constants/GlobalStyles';
 
 interface PermissionSlipModalProps {
   visible: boolean;
@@ -29,6 +33,10 @@ export const PermissionSlipModal: React.FC<PermissionSlipModalProps> = ({
 }) => {
   const [selectedType, setSelectedType] = useState<PermissionType | null>(null);
   const [isGranting, setIsGranting] = useState(false);
+
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
+  const themeColors = getThemeColors(theme);
 
   const permissionOptions = getPermissionOptions(dreamCategory);
 
@@ -54,6 +62,8 @@ export const PermissionSlipModal: React.FC<PermissionSlipModalProps> = ({
     }
   };
 
+  const styles = createStyles(isDark, themeColors);
+
   return (
     <Modal
       visible={visible}
@@ -65,8 +75,12 @@ export const PermissionSlipModal: React.FC<PermissionSlipModalProps> = ({
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={handleClose} disabled={isGranting}>
-              <Text style={styles.closeButton}>✕</Text>
+            <TouchableOpacity
+              onPress={handleClose}
+              disabled={isGranting}
+              style={styles.closeButtonWrap}
+            >
+              <X size={20} color={isDark ? 'rgba(255,255,255,0.6)' : '#6B7280'} strokeWidth={2.5} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Give Permission</Text>
             <View style={styles.spacer} />
@@ -80,24 +94,30 @@ export const PermissionSlipModal: React.FC<PermissionSlipModalProps> = ({
 
             {/* Permission Options */}
             <View style={styles.optionsContainer}>
-              {permissionOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.type}
-                  style={[
-                    styles.optionButton,
-                    selectedType === option.type && styles.optionButtonSelected,
-                  ]}
-                  onPress={() => setSelectedType(option.type)}
-                  disabled={isGranting}
-                >
-                  <View style={styles.radioOuter}>
-                    {selectedType === option.type && (
-                      <View style={styles.radioInner} />
-                    )}
-                  </View>
-                  <Text style={styles.optionText}>{option.text}</Text>
-                </TouchableOpacity>
-              ))}
+              {permissionOptions.map((option) => {
+                const isSelected = selectedType === option.type;
+                return (
+                  <TouchableOpacity
+                    key={option.type}
+                    style={[
+                      styles.optionButton,
+                      isSelected && styles.optionButtonSelected,
+                    ]}
+                    onPress={() => setSelectedType(option.type)}
+                    disabled={isGranting}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}>
+                      {isSelected && (
+                        <View style={styles.radioInner} />
+                      )}
+                    </View>
+                    <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+                      {option.text}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </ScrollView>
 
@@ -107,6 +127,7 @@ export const PermissionSlipModal: React.FC<PermissionSlipModalProps> = ({
               style={styles.buttonSecondary}
               onPress={handleClose}
               disabled={isGranting}
+              activeOpacity={0.7}
             >
               <Text style={styles.buttonSecondaryText}>Cancel</Text>
             </TouchableOpacity>
@@ -117,6 +138,7 @@ export const PermissionSlipModal: React.FC<PermissionSlipModalProps> = ({
               ]}
               onPress={handleGrant}
               disabled={!selectedType || isGranting}
+              activeOpacity={0.7}
             >
               {isGranting ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
@@ -131,127 +153,138 @@ export const PermissionSlipModal: React.FC<PermissionSlipModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FAFBFC',
-  },
-  content: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
-  },
-  closeButton: {
-    fontSize: 24,
-    color: '#6B7280',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  spacer: {
-    width: 24,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  instructions: {
-    fontSize: 15,
-    color: '#374151',
-    marginHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 16,
-    fontWeight: '500',
-  },
-  optionsContainer: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  optionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#D1D5DB',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    gap: 12,
-  },
-  optionButtonSelected: {
-    borderColor: '#2D5BFF',
-    backgroundColor: '#F0F5FF',
-  },
-  radioOuter: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#D1D5DB',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#2D5BFF',
-  },
-  optionText: {
-    flex: 1,
-    fontSize: 15,
-    color: '#111827',
-    lineHeight: 22,
-  },
-  buttonContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
-  },
-  buttonSecondary: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  buttonSecondaryText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  buttonPrimary: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2D5BFF',
-  },
-  buttonPrimaryText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-});
+const createStyles = (isDark: boolean, themeColors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: isDark ? themeColors.bg_primary : '#FAFBFC',
+    },
+    content: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : '#E5E7EB',
+      backgroundColor: isDark ? themeColors.bg_secondary : '#FFFFFF',
+    },
+    closeButtonWrap: {
+      width: 32,
+      height: 32,
+      borderRadius: 10,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'transparent',
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: isDark ? '#ffffff' : '#111827',
+    },
+    spacer: {
+      width: 32,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    instructions: {
+      fontSize: 15,
+      color: isDark ? '#b0b0b0' : '#374151',
+      marginHorizontal: 16,
+      marginTop: 20,
+      marginBottom: 16,
+      fontWeight: '500',
+    },
+    optionsContainer: {
+      paddingHorizontal: 16,
+      gap: 12,
+    },
+    optionButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#FFFFFF',
+      borderWidth: 1.5,
+      borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#D1D5DB',
+      borderRadius: 14,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      gap: 12,
+    },
+    optionButtonSelected: {
+      borderColor: isDark ? 'rgba(45,91,255,0.6)' : '#2D5BFF',
+      backgroundColor: isDark ? 'rgba(45,91,255,0.12)' : '#F0F5FF',
+    },
+    radioOuter: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      borderWidth: 2,
+      borderColor: isDark ? 'rgba(255,255,255,0.25)' : '#D1D5DB',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    radioOuterSelected: {
+      borderColor: '#2D5BFF',
+    },
+    radioInner: {
+      width: 11,
+      height: 11,
+      borderRadius: 5.5,
+      backgroundColor: '#2D5BFF',
+    },
+    optionText: {
+      flex: 1,
+      fontSize: 15,
+      color: isDark ? 'rgba(255,255,255,0.75)' : '#111827',
+      lineHeight: 22,
+    },
+    optionTextSelected: {
+      color: isDark ? '#ffffff' : '#111827',
+    },
+    buttonContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      flexDirection: 'row',
+      gap: 12,
+      borderTopWidth: 1,
+      borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : '#E5E7EB',
+      backgroundColor: isDark ? themeColors.bg_secondary : '#FFFFFF',
+    },
+    buttonSecondary: {
+      flex: 1,
+      paddingVertical: 13,
+      paddingHorizontal: 16,
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255,255,255,0.15)' : '#D1D5DB',
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#FFFFFF',
+    },
+    buttonSecondaryText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: isDark ? 'rgba(255,255,255,0.7)' : '#374151',
+    },
+    buttonPrimary: {
+      flex: 1,
+      paddingVertical: 13,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#2D5BFF',
+    },
+    buttonPrimaryText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: '#FFFFFF',
+    },
+    buttonDisabled: {
+      opacity: 0.5,
+    },
+  });

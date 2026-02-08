@@ -67,6 +67,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
   const player = useVideoPlayer(mascotVideoSource ?? null, (player) => {
     if (mascotVideoSource) {
       player.muted = true;
+      player.audioMixingMode = 'mixWithOthers';
       player.loop = true;
       player.play();
     }

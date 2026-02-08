@@ -10,6 +10,7 @@ import {
   ScrollView,
   Modal,
   Image,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -56,6 +57,122 @@ const generateGradientColors = (hexColor: string): [string, string] => {
   };
 
   return [hexColor, lighten(hexColor, 15)];
+};
+
+// Parse description text into formatted segments (links, steps, plain text)
+const FormattedDescription = ({
+  text,
+  style,
+}: {
+  text: string;
+  style?: any;
+}) => {
+  const urlRegex = /(https?:\/\/[^\s,)]+)/g;
+
+  const renderTextWithLinks = (segment: string, keyPrefix: string) => {
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    urlRegex.lastIndex = 0;
+    while ((match = urlRegex.exec(segment)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(
+          <Text key={`${keyPrefix}-t-${lastIndex}`}>
+            {segment.slice(lastIndex, match.index)}
+          </Text>,
+        );
+      }
+      const url = match[0];
+      parts.push(
+        <Text
+          key={`${keyPrefix}-l-${match.index}`}
+          style={{ textDecorationLine: "underline", fontWeight: "600" }}
+          onPress={() => Linking.openURL(url)}>
+          {url}
+        </Text>,
+      );
+      lastIndex = match.index + url.length;
+    }
+    if (lastIndex < segment.length) {
+      parts.push(
+        <Text key={`${keyPrefix}-t-${lastIndex}`}>
+          {segment.slice(lastIndex)}
+        </Text>,
+      );
+    }
+    return parts;
+  };
+
+  // Pre-process: insert newlines before step patterns that appear mid-string
+  // Handles "Step 1:", "1.", "1)" — even when no newlines exist in the source
+  const normalized = text
+    .replace(/(?<!\n)\s*(?=Step\s+\d+[:.]\s)/gi, "\n")
+    .replace(/(?<!\n)\s*(?=(?:^|\.\s+)\d+[.)]\s)/gm, "\n");
+
+  // Split on newlines, then classify each line
+  const lines = normalized.split("\n").map((l) => l.trim()).filter(Boolean);
+  const stepLineRegex = /^(?:Step\s+\d+[:.]\s*|\d+[.)]\s+)/i;
+
+  const blocks: { type: "text" | "step"; content: string }[] = [];
+  let currentTextLines: string[] = [];
+
+  const flushText = () => {
+    if (currentTextLines.length > 0) {
+      blocks.push({ type: "text", content: currentTextLines.join(" ") });
+      currentTextLines = [];
+    }
+  };
+
+  for (const line of lines) {
+    if (stepLineRegex.test(line)) {
+      flushText();
+      blocks.push({ type: "step", content: line });
+    } else {
+      currentTextLines.push(line);
+    }
+  }
+  flushText();
+
+  const hasSteps = blocks.some((b) => b.type === "step");
+
+  return (
+    <View style={[{ width: "100%" }, style]}>
+      {blocks.map((block, i) => {
+        if (block.type === "step") {
+          return (
+            <Text
+              key={`block-${i}`}
+              style={{
+                color: Color.colorBlack,
+                fontSize: 14,
+                lineHeight: 22,
+                opacity: 0.95,
+                textAlign: "left",
+                paddingHorizontal: 8,
+                marginTop: i === 0 ? 0 : 8,
+              }}>
+              {renderTextWithLinks(block.content, `b${i}`)}
+            </Text>
+          );
+        }
+        return (
+          <Text
+            key={`block-${i}`}
+            style={{
+              color: Color.colorBlack,
+              fontSize: 14,
+              lineHeight: 22,
+              opacity: 0.95,
+              textAlign: hasSteps ? "left" : "center",
+              paddingHorizontal: 8,
+            }}>
+            {renderTextWithLinks(block.content, `b${i}`)}
+          </Text>
+        );
+      })}
+    </View>
+  );
 };
 
 const MilestoneScreen = ({
@@ -412,11 +529,11 @@ const MilestoneScreen = ({
                     {/* Skeleton Animation Circle */}
                     <Animated.View
                       style={{
-                        width: 80,
-                        height: 80,
-                        borderRadius: 40,
+                        width: 64,
+                        height: 64,
+                        borderRadius: 32,
                         backgroundColor: "rgba(255, 255, 255, 0.3)",
-                        marginBottom: 20,
+                        marginBottom: 8,
                         opacity: fadeAnim,
                       }}
                     />
@@ -437,7 +554,17 @@ const MilestoneScreen = ({
                     <Animated.View
                       style={{
                         width: "90%",
-                        height: 18,
+                        height: 14,
+                        borderRadius: 4,
+                        backgroundColor: "rgba(255, 255, 255, 0.25)",
+                        marginBottom: 8,
+                        opacity: fadeAnim,
+                      }}
+                    />
+                    <Animated.View
+                      style={{
+                        width: "95%",
+                        height: 14,
                         borderRadius: 4,
                         backgroundColor: "rgba(255, 255, 255, 0.25)",
                         marginBottom: 8,
@@ -447,7 +574,17 @@ const MilestoneScreen = ({
                     <Animated.View
                       style={{
                         width: "85%",
-                        height: 18,
+                        height: 14,
+                        borderRadius: 4,
+                        backgroundColor: "rgba(255, 255, 255, 0.25)",
+                        marginBottom: 8,
+                        opacity: fadeAnim,
+                      }}
+                    />
+                    <Animated.View
+                      style={{
+                        width: "70%",
+                        height: 14,
                         borderRadius: 4,
                         backgroundColor: "rgba(255, 255, 255, 0.25)",
                         marginBottom: 25,
@@ -510,19 +647,10 @@ const MilestoneScreen = ({
                     </Text>
 
                     {/* Description */}
-                    <Text
-                      style={{
-                        color: Color.colorBlack,
-                        textAlign: "center",
-                        fontSize: 14,
-                        lineHeight: 24,
-                        opacity: 0.95,
-                        width: "100%",
-                        marginBottom: 25,
-                        paddingHorizontal: 8,
-                      }}>
-                      {milestone?.description || "No description available"}
-                    </Text>
+                    <FormattedDescription
+                      text={milestone?.description || "No description available"}
+                      style={{ marginBottom: 25 }}
+                    />
 
                     <View
                       style={{

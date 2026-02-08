@@ -108,6 +108,8 @@ const TimezoneScreen = ({ navigation, route }: TimezoneScreenProps) => {
   const videoSource = require('../../assets/animations/ondoarding/Luna floating.mp4');
   const player = useVideoPlayer(videoSource, (player) => {
     player.loop = true;
+    player.muted = true;
+    player.audioMixingMode = 'mixWithOthers';
     player.play();
   });
 

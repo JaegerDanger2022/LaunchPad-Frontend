@@ -20,7 +20,7 @@ import { VictoryCard as VictoryCardComponent } from '../components/community/Vic
 import { JourneyRecapCard } from '../components/community/JourneyRecapCard';
 import { VictoryCard, DreamCategory, PermissionSlip, PermissionType, CommunityFeedItem, CardTypeFilter } from '../types/community';
 import { CATEGORY_LABELS } from '../constants/communityColors';
-import { fetchVictories, togglePinInspiration } from '../config/api';
+import { fetchVictories, togglePinInspiration, fetchInspirationVictories } from '../config/api';
 import Toast from 'react-native-toast-message';
 import { BottomNavbar } from '../components/BottomNavbar';
 import { PermissionSlipModal } from '../components/community/PermissionSlipModal';
@@ -148,11 +148,23 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
     }
   };
 
-  // Load initial feed on mount
+  // Load pinned item IDs from server
+  const loadPinnedItems = async () => {
+    if (!user?.uid) return;
+    try {
+      const response = await fetchInspirationVictories(user.uid);
+      setPinnedItems(new Set(response.victories.map(v => v.id)));
+    } catch {
+      // Silent fail — pins will just show as unpinned
+    }
+  };
+
+  // Load initial feed + pinned state on focus
   useFocusEffect(
     React.useCallback(() => {
       loadFeed(1, true);
-    }, [filters])
+      loadPinnedItems();
+    }, [filters, user?.uid])
   );
 
   // Show error toasts from store
@@ -335,7 +347,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
     }
   };
 
-  // Pin to inspiration handler
+  // Pin to inspiration handler (separate from Me Too / resonance)
   const handlePin = async (itemId: string) => {
     if (!user?.uid) return;
 
@@ -396,7 +408,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
   // Permission slip handlers
   const handlePermissionClick = (victoryId: string) => {
     const feedItem = feedItems.find(item => item.id === victoryId);
-    if (feedItem && feedItem.type === 'victory') {
+    if (feedItem && feedItem.type === 'victory_card') {
       setSelectedVictoryForPermission(feedItem);
       setShowPermissionModal(true);
     }
@@ -724,16 +736,6 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
           ) : (
             filteredFeedItems.map((item) => {
               const isOwnPost = item.userId === user?.uid;
-
-              // Debug logging
-              console.log('[CommunityScreen] Rendering item:', {
-                id: item.id,
-                type: item.type,
-                userId: item.userId,
-                currentUserUid: user?.uid,
-                isOwnPost,
-                willShowBoost: !isOwnPost
-              });
 
               if (item.type === 'journey_recap') {
                 // Render Journey Recap Card

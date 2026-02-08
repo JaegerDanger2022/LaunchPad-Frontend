@@ -1,27 +1,25 @@
 import * as React from "react";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
   Animated,
-  FlatList,
   useWindowDimensions,
   StatusBar,
   TouchableOpacity,
   RefreshControl,
   ScrollView,
-  ActivityIndicator,
   Alert,
 } from "react-native";
-import * as Haptics from "expo-haptics";
-import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { Plus, Settings } from "lucide-react-native";
-import { Color, getThemeColors } from "../constants/GlobalStyles";
+import { Color, getThemeColors, ChallengeTypeColors } from "../constants/GlobalStyles";
 import { AvatarIcon } from "../components/icons/SVGIcons";
 import { GoalCard, type GoalCardData } from "../components/GoalCard";
 import { CreateDreamModal } from "../components/CreateDreamModal";
@@ -40,10 +38,13 @@ import { CommunityWinCardSkeleton } from "../components/community/CommunityWinCa
 import { NoRecentsState } from "../components/NoRecentsState";
 import { StreakBadge } from "../components/streak/StreakBadge";
 import { VictoryCard } from "../components/community/VictoryCard";
+import { ResonanceIndicator } from "../components/community/ResonanceIndicator";
 import { useAuthStore } from "../store/authStore";
+import { useCommunityStore } from "../store/communityStore";
 import { useThemeStore } from "../store/themeStore";
 import { areDependenciesCompleted } from "../utils/dependencyChecker";
-import { fetchVictories, fetchInspirationVictories } from "../config/api";
+import { fetchVictories, fetchInspirationVictories, togglePinInspiration } from "../config/api";
+import Toast from "react-native-toast-message";
 import {
   VictoryCard as VictoryCardType,
   CommunityFeedItem,
@@ -59,7 +60,6 @@ const HomeScreen = ({
   const [isDreamChoiceModalVisible, setIsDreamChoiceModalVisible] = useState(false);
   const [isCreateDreamModalVisible, setIsCreateDreamModalVisible] = useState(false);
   const [isDIYDreamModalVisible, setIsDIYDreamModalVisible] = useState(false);
-  const [isAtBottom, setIsAtBottom] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [recentVictories, setRecentVictories] = useState<CommunityFeedItem[]>(
     [],
@@ -74,7 +74,6 @@ const HomeScreen = ({
   const slideAnim = useRef(new Animated.Value(20)).current;
   const communityFadeAnim = useRef(new Animated.Value(0)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
-  const bottomEffectAnim = useRef(new Animated.Value(0)).current;
   const communityCarouselRef = useRef<ScrollView>(null);
   const { width } = useWindowDimensions();
 
@@ -84,6 +83,7 @@ const HomeScreen = ({
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
+  const { toggleMeToo } = useCommunityStore();
 
   // Dream-limit gate: free = 2 total, pro = 3 active
   const dreamLimitReached = useMemo(() => {
@@ -135,7 +135,7 @@ const HomeScreen = ({
   }, []);
 
   // Load recent community victories
-  const loadRecentVictories = async () => {
+  const loadRecentVictories = useCallback(async () => {
     setRecentVictoriesLoading(true);
     try {
       const response = await fetchVictories({ page: 1, limit: 10 });
@@ -151,10 +151,10 @@ const HomeScreen = ({
     } finally {
       setRecentVictoriesLoading(false);
     }
-  };
+  }, []);
 
   // Load inspiration victories (victories user has Me Too'd)
-  const loadInspirationVictories = async () => {
+  const loadInspirationVictories = useCallback(async () => {
     if (!user?.uid) return;
 
     setInspirationLoading(true);
@@ -172,7 +172,7 @@ const HomeScreen = ({
     } finally {
       setInspirationLoading(false);
     }
-  };
+  }, [user?.uid]);
 
   useEffect(() => {
     loadRecentVictories();
@@ -181,26 +181,19 @@ const HomeScreen = ({
     }
   }, [user?.uid]);
 
+  // Reload inspiration victories when tab comes back into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (user?.uid) {
+        loadInspirationVictories();
+      }
+    }, [user?.uid, loadInspirationVictories])
+  );
+
   useEffect(() => {
-    // Fade out and slide down
-    fadeAnim.setValue(0);
-
-    slideAnim.setValue(20);
-
-    // Then fade in and slide up
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [activeTab, fadeAnim, slideAnim]);
+    fadeAnim.setValue(1);
+    slideAnim.setValue(0);
+  }, [activeTab]);
 
   useEffect(() => {
     // Animate community wins section on mount
@@ -255,42 +248,78 @@ const HomeScreen = ({
     }
   };
 
+  // Unpin from inspiration handler
+  const handleUnpin = async (victoryId: string) => {
+    if (!user?.uid) return;
+
+    // Optimistic removal
+    setInspirationVictories(prev => prev.filter(v => v.id !== victoryId));
+
+    try {
+      await togglePinInspiration(victoryId, user.uid);
+      Toast.show({
+        type: 'success',
+        text1: 'Removed from Inspiration',
+        visibilityTime: 1500,
+      });
+    } catch (err) {
+      // Rollback — reload from server
+      await loadInspirationVictories();
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to unpin',
+        text2: 'Please try again',
+        visibilityTime: 2000,
+      });
+    }
+  };
+
+  // Me Too handler for community wins carousel
+  const handleMeToo = async (victoryId: string) => {
+    const item = recentVictories.find((v) => v.id === victoryId);
+    if (!item) return;
+
+    const previousState = item.hasUserMeTooed;
+    const previousCount = item.meTooCount;
+
+    // Optimistic update
+    setRecentVictories((prev) =>
+      prev.map((v) =>
+        v.id === victoryId
+          ? {
+              ...v,
+              meTooCount: previousState ? v.meTooCount - 1 : v.meTooCount + 1,
+              hasUserMeTooed: !previousState,
+            }
+          : v
+      )
+    );
+
+    try {
+      const result = await toggleMeToo(victoryId);
+      // Sync with server
+      setRecentVictories((prev) =>
+        prev.map((v) =>
+          v.id === victoryId
+            ? { ...v, meTooCount: result.newCount, hasUserMeTooed: result.added }
+            : v
+        )
+      );
+    } catch {
+      // Rollback on error
+      setRecentVictories((prev) =>
+        prev.map((v) =>
+          v.id === victoryId
+            ? { ...v, meTooCount: previousCount, hasUserMeTooed: previousState }
+            : v
+        )
+      );
+    }
+  };
+
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-    {
-      useNativeDriver: false,
-      listener: (event: any) => {
-        const contentOffsetY = event.nativeEvent.contentOffset.y;
-        const contentHeight = event.nativeEvent.contentSize.height;
-        const layoutHeight = event.nativeEvent.layoutMeasurement.height;
-
-        // Check if we're at bottom (within 50px of the end)
-        const isBottom = contentOffsetY + layoutHeight >= contentHeight - 50;
-
-        // Handle bottom edge detection
-        if (isBottom && !isAtBottom) {
-          setIsAtBottom(true);
-          // Trigger haptic feedback
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          // Trigger bottom effect animation
-          Animated.sequence([
-            Animated.timing(bottomEffectAnim, {
-              toValue: 1,
-              duration: 300,
-              useNativeDriver: true,
-            }),
-            Animated.timing(bottomEffectAnim, {
-              toValue: 0,
-              duration: 300,
-              delay: 1000,
-              useNativeDriver: true,
-            }),
-          ]).start();
-        } else if (!isBottom && isAtBottom) {
-          setIsAtBottom(false);
-        }
-      },
-    },
+    { useNativeDriver: true },
   );
 
   const heroOpacity = scrollY.interpolate({
@@ -495,81 +524,9 @@ const HomeScreen = ({
               marginBottom: 20,
               zIndex: 10,
             }}>
-            {/* If user has no dreams at all, show create-a-dream prompt instead of tabs */}
-            {!loading && userData && (!userData.dreams || userData.dreams.length === 0) && !userData.dreams_count ? (
-              <View
-                style={{
-                  alignItems: "center",
-                  justifyContent: "center",
-                  paddingVertical: 48,
-                  paddingHorizontal: 24,
-                }}>
-                {/* Icon circle */}
-                <View
-                  style={{
-                    width: 96,
-                    height: 96,
-                    borderRadius: 48,
-                    backgroundColor: theme === "dark" ? "rgba(251, 99, 34, 0.15)" : "rgba(251, 99, 34, 0.1)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: 20,
-                  }}>
-                  <Plus size={40} color={Color.colorOrangered} />
-                </View>
-
-                {/* Heading */}
-                <Text
-                  style={{
-                    fontSize: 20,
-                    fontWeight: "700",
-                    color: themeColors.text_primary,
-                    fontFamily: "InstrumentSans-Bold",
-                    marginBottom: 8,
-                    textAlign: "center",
-                  }}>
-                  Create a Dream
-                </Text>
-
-                {/* Subtitle */}
-                <Text
-                  style={{
-                    fontSize: 14,
-                    color: themeColors.text_secondary,
-                    fontFamily: "InstrumentSans-Regular",
-                    textAlign: "center",
-                    lineHeight: 20,
-                    marginBottom: 24,
-                  }}>
-                  You don't have any dreams yet. Tap the button below to get started.
-                </Text>
-
-                {/* Create button */}
-                <TouchableOpacity
-                  onPress={handleAddDreamPress}
-                  activeOpacity={0.8}
-                  style={{
-                    backgroundColor: Color.colorOrangered,
-                    borderRadius: 28,
-                    paddingHorizontal: 28,
-                    paddingVertical: 12,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 8,
-                  }}>
-                  <Plus size={20} color={Color.colorWhite} />
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: "700",
-                      color: Color.colorWhite,
-                      fontFamily: "InstrumentSans-Bold",
-                    }}>
-                    New Dream
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
+            {(() => {
+              const noDreams = !loading && userData && (!userData.dreams || userData.dreams.length === 0) && !userData.dreams_count;
+              return (
               <>
                 <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
 
@@ -579,8 +536,74 @@ const HomeScreen = ({
                     transform: [{ translateY: slideAnim }],
                   }}>
                   {activeTab === "recents" ? (
-                    /* Goal Cards Carousel, Skeletons, or No Recents */
-                    loading || isRefreshing || (dreamCardsData.length === 0 && (userData?.recents?.length || (userData?.dreams_count && (!userData.dreams || userData.dreams.length === 0)))) ? (
+                    /* Goal Cards Carousel, Skeletons, No Recents, or No Dreams */
+                    noDreams ? (
+                      <View
+                        style={{
+                          alignItems: "center",
+                          justifyContent: "center",
+                          paddingVertical: 48,
+                          paddingHorizontal: 24,
+                        }}>
+                        <View
+                          style={{
+                            width: 96,
+                            height: 96,
+                            borderRadius: 48,
+                            backgroundColor: theme === "dark" ? "rgba(251, 99, 34, 0.15)" : "rgba(251, 99, 34, 0.1)",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            marginBottom: 20,
+                          }}>
+                          <Plus size={40} color={Color.colorOrangered} />
+                        </View>
+                        <Text
+                          style={{
+                            fontSize: 20,
+                            fontWeight: "700",
+                            color: themeColors.text_primary,
+                            fontFamily: "InstrumentSans-Bold",
+                            marginBottom: 8,
+                            textAlign: "center",
+                          }}>
+                          Create a Dream
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            color: themeColors.text_secondary,
+                            fontFamily: "InstrumentSans-Regular",
+                            textAlign: "center",
+                            lineHeight: 20,
+                            marginBottom: 24,
+                          }}>
+                          You don't have any dreams yet. Tap the button below to get started.
+                        </Text>
+                        <TouchableOpacity
+                          onPress={handleAddDreamPress}
+                          activeOpacity={0.8}
+                          style={{
+                            backgroundColor: Color.colorOrangered,
+                            borderRadius: 28,
+                            paddingHorizontal: 28,
+                            paddingVertical: 12,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 8,
+                          }}>
+                          <Plus size={20} color={Color.colorWhite} />
+                          <Text
+                            style={{
+                              fontSize: 16,
+                              fontWeight: "700",
+                              color: Color.colorWhite,
+                              fontFamily: "InstrumentSans-Bold",
+                            }}>
+                            New Dream
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    ) : loading || isRefreshing || (dreamCardsData.length === 0 && (userData?.recents?.length || (userData?.dreams_count && (!userData.dreams || userData.dreams.length === 0)))) ? (
                       <SkeletonDreamCardsCarousel />
                     ) : dreamCardsData.length > 0 ? (
                       <Animated.ScrollView
@@ -636,10 +659,8 @@ const HomeScreen = ({
                           <View key={victory.id} style={{ width: width - 20 }}>
                             <VictoryCard
                               victory={victory}
-                              onBoost={() => {}}
-                              onPress={() => {
-                                // Navigate to victory detail if needed
-                              }}
+                              onPin={() => handleUnpin(victory.id)}
+                              isPinned={true}
                             />
                           </View>
                         );
@@ -725,7 +746,8 @@ const HomeScreen = ({
                   )}
                 </Animated.View>
               </>
-            )}
+              );
+            })()}
           </View>
 
           {/* Dream Choice Modal */}
@@ -822,6 +844,7 @@ const HomeScreen = ({
                 contentContainerStyle={{
                   paddingLeft: 17,
                   paddingRight: 17,
+                  alignItems: "flex-start",
                 }}
                 snapToInterval={width - 34 + 12}
                 decelerationRate="fast"
@@ -842,8 +865,22 @@ const HomeScreen = ({
                           index < recentVictories.length - 1 ? 12 : 0,
                         width: width - 34,
                         borderWidth: 1,
-                        borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
+                        borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.18)" : "rgba(0, 0, 0, 0.1)",
                       }}>
+                      {/* Gradient accent strip — matches Community VictoryCard */}
+                      <LinearGradient
+                        colors={[
+                          victory.challengeType
+                            ? ChallengeTypeColors[victory.challengeType as keyof typeof ChallengeTypeColors] || Color.colorOrangered
+                            : Color.colorOrangered,
+                          (victory.challengeType
+                            ? ChallengeTypeColors[victory.challengeType as keyof typeof ChallengeTypeColors] || Color.colorOrangered
+                            : Color.colorOrangered) + "00",
+                        ]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={{ height: 3 }}
+                      />
                       <BlurView
                         intensity={60}
                         tint={theme === "dark" ? "dark" : "light"}
@@ -904,19 +941,21 @@ const HomeScreen = ({
                         {victory.milestoneTitle}
                       </Text>
 
-                      {/* Evidence Snippet */}
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          textAlign: "left",
-                          color: themeColors.text_secondary,
-                          fontFamily: "InstrumentSans-Regular",
-                          fontWeight: "400",
-                          lineHeight: 20,
-                          fontStyle: "italic",
-                        }}>
-                        "{victory.evidenceSnippet}"
-                      </Text>
+                      {/* Evidence Snippet - only show if proof exists */}
+                      {victory.evidenceSnippet ? (
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            textAlign: "left",
+                            color: themeColors.text_secondary,
+                            fontFamily: "InstrumentSans-Regular",
+                            fontWeight: "400",
+                            lineHeight: 20,
+                            fontStyle: "italic",
+                          }}>
+                          {victory.evidenceSnippet}
+                        </Text>
+                      ) : null}
 
                       {/* Stats Row */}
                       <View
@@ -925,47 +964,13 @@ const HomeScreen = ({
                           alignItems: "center",
                           justifyContent: "space-between",
                         }}>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 8,
-                          }}>
-                          <View
-                            style={{
-                              backgroundColor: "rgba(0, 212, 170, 0.2)",
-                              paddingHorizontal: 10,
-                              paddingVertical: 6,
-                              borderRadius: 12,
-                            }}>
-                            <Text
-                              style={{
-                                color: "#00D4AA",
-                                fontSize: 12,
-                                fontWeight: "600",
-                                fontFamily: "InstrumentSans-Medium",
-                              }}>
-                              +{victory.confidenceBoost}% confidence
-                            </Text>
-                          </View>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                              gap: 4,
-                            }}>
-                            <Text style={{ fontSize: 14 }}>⚡</Text>
-                            <Text
-                              style={{
-                                color: "#F59E0B",
-                                fontSize: 12,
-                                fontWeight: "600",
-                                fontFamily: "InstrumentSans-Medium",
-                              }}>
-                              {victory.courageBoosts}
-                            </Text>
-                          </View>
-                        </View>
+                        <ResonanceIndicator
+                          meTooCount={victory.meTooCount}
+                          hasUserMeTooed={victory.hasUserMeTooed}
+                          onPress={victory.userId !== user?.uid ? () => handleMeToo(victory.id) : undefined}
+                          size="small"
+                          disabled={victory.userId === user?.uid}
+                        />
                         <Text
                           style={{
                             color: "#A0A0A0",

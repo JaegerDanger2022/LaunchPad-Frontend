@@ -1,12 +1,16 @@
 import { DreamCategory, PermissionType } from '../types/community';
 
 // Permission template texts
-export const PERMISSION_TEMPLATES = {
+export const PERMISSION_TEMPLATES: Record<number, string> = {
   1: 'Permission granted to keep going',
   2: 'Permission granted to be proud of this',
   3: 'Permission granted to inspire the rest of us',
   4: 'dynamic', // Changes based on dream category
-} as const;
+  5: 'Permission granted to take up space',
+  6: 'Permission granted to celebrate loudly',
+  7: 'Permission granted to rest after this win',
+  8: 'Permission granted to believe this is just the beginning',
+};
 
 // Category-specific permission texts for type 4
 const CATEGORY_PERMISSIONS: Record<DreamCategory, string> = {
@@ -30,7 +34,7 @@ export function getPermissionText(
   dreamCategory: DreamCategory,
 ): string {
   if (permissionType === 4) {
-    return CATEGORY_PERMISSIONS[dreamCategory];
+    return CATEGORY_PERMISSIONS[dreamCategory] || 'Permission granted to own this moment';
   }
   return PERMISSION_TEMPLATES[permissionType];
 }
@@ -45,6 +49,10 @@ export function getPermissionOptions(
     { type: 1, text: PERMISSION_TEMPLATES[1] },
     { type: 2, text: PERMISSION_TEMPLATES[2] },
     { type: 3, text: PERMISSION_TEMPLATES[3] },
-    { type: 4, text: CATEGORY_PERMISSIONS[dreamCategory] },
+    { type: 4, text: CATEGORY_PERMISSIONS[dreamCategory] || 'Permission granted to own this moment' },
+    { type: 5, text: PERMISSION_TEMPLATES[5] },
+    { type: 6, text: PERMISSION_TEMPLATES[6] },
+    { type: 7, text: PERMISSION_TEMPLATES[7] },
+    { type: 8, text: PERMISSION_TEMPLATES[8] },
   ];
 }

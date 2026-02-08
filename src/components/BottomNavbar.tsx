@@ -18,7 +18,7 @@ interface BottomNavbarProps {
   activeTab?: "home" | "dreams" | "evidence" | "community" | "analytics";
 }
 
-export const BottomNavbar: React.FC<BottomNavbarProps> = ({
+export const BottomNavbar: React.FC<BottomNavbarProps> = React.memo(({
   onNavigate,
   activeTab = "home",
 }) => {
@@ -42,7 +42,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({
   return (
     <View style={[styles.wrapper, { bottom: insets.bottom > 0 ? insets.bottom + 4 : 12 }]}>
       <BlurView
-        intensity={80}
+        intensity={60}
         tint={theme === "dark" ? "dark" : "light"}
         style={[
           styles.container,
@@ -89,7 +89,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = ({
       </BlurView>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     overflow: "hidden",
     // Liquid glass effect - borders handled in component
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,

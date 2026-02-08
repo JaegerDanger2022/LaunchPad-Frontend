@@ -56,22 +56,39 @@ const steps: Step[] = [
   },
 ];
 
-const SignupScreen = ({ navigation }: any) => {
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+const SignupScreen = ({ navigation, route }: any) => {
+  const params = route?.params;
+  const [currentStepIndex, setCurrentStepIndex] = useState(params?.emailError ? 1 : 0);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
+    name: params?.name || '',
+    email: params?.email || '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [fieldError, setFieldError] = useState('');
+  const [fieldError, setFieldError] = useState(params?.emailError || '');
   const [displayedText, setDisplayedText] = useState('');
   const inputRef = useRef<TextInput>(null);
+
+  // Handle navigation back with email error (e.g. email already in use)
+  useEffect(() => {
+    if (params?.emailError) {
+      setCurrentStepIndex(1); // email step
+      setFormData((prev) => ({
+        ...prev,
+        name: params.name || prev.name,
+        email: params.email || prev.email,
+        password: '',
+      }));
+      setFieldError(params.emailError);
+    }
+  }, [params?.emailError]);
 
   // Setup video player for Luna background
   const videoSource = require('../../assets/animations/ondoarding/Luna floating.mp4');
   const player = useVideoPlayer(videoSource, (player) => {
     player.loop = true;
+    player.muted = true;
+    player.audioMixingMode = 'mixWithOthers';
     player.play();
   });
 

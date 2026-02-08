@@ -20,6 +20,7 @@ export const DreamCompleteVideoOverlay: React.FC<
 
   const player = useVideoPlayer(videoSource, (player) => {
     player.muted = false;
+    player.audioMixingMode = 'mixWithOthers';
     player.loop = false;
   });
 

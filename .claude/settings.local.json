@@ -49,7 +49,11 @@
       "Bash(npm view:*)",
       "Bash(npm ls:*)",
       "WebFetch(domain:docs.expo.dev)",
-      "WebFetch(domain:expo.dev)"
+      "WebFetch(domain:expo.dev)",
+      "Bash(copy \"C:\\\\Users\\\\mkmen\\\\Downloads\\\\android\\\\playstore-icon.png\" \"C:\\\\Users\\\\mkmen\\\\Documents\\\\GitHub\\\\BUSINESS_REPOS\\\\PacksLight---Expo-Frontend\\\\assets\\\\icon.png\")",
+      "Bash(magick:*)",
+      "Bash(convert:*)",
+      "Bash(grep:*)"
     ]
   }
 }

@@ -49,7 +49,7 @@ export const ResonanceIndicator: React.FC<ResonanceIndicatorProps> = ({
       // For user's own posts, show view-only resonance text
       switch (resonanceLevel) {
         case 'none': return 'No resonance yet';
-        case 'low': return meTooCount === 1 ? 'Resonates' : `${meTooCount} resonate`;
+        case 'low': return 'Resonates';
         case 'medium': return 'Others relate';
         case 'high': return 'Shared victory';
         case 'intense': return 'Strong resonance';
@@ -60,7 +60,7 @@ export const ResonanceIndicator: React.FC<ResonanceIndicatorProps> = ({
     // For other users' posts, show interactive text
     switch (resonanceLevel) {
       case 'none': return 'Resonate';
-      case 'low': return meTooCount === 1 ? 'Resonates' : 'You resonate';
+      case 'low': return hasUserMeTooed ? 'You resonate' : 'Resonates';
       case 'medium': return 'Others relate';
       case 'high': return 'Shared victory';
       case 'intense': return 'Strong resonance';
@@ -110,8 +110,8 @@ export const ResonanceIndicator: React.FC<ResonanceIndicatorProps> = ({
 
   const glowOpacity = getGlowOpacity();
 
-  // Hide completely if there's no resonance
-  if (meTooCount === 0) {
+  // Hide only on user's own posts with no resonance
+  if (meTooCount === 0 && disabled) {
     return null;
   }
 

@@ -40,6 +40,7 @@ export const DreamChoiceModal: React.FC<DreamChoiceModalProps> = ({
 
   const player = useVideoPlayer(videoSource, (player) => {
     player.muted = true;
+    player.audioMixingMode = 'mixWithOthers';
     player.loop = false;
     player.timeUpdateEventInterval = 0.1;
     player.currentTime = 2;

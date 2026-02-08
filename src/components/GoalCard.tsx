@@ -28,7 +28,7 @@ interface GoalCardProps {
   onPress?: () => void;
 }
 
-export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
+export const GoalCard: React.FC<GoalCardProps> = React.memo(({ data, onPress }) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
 
@@ -118,4 +118,4 @@ export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
       </View>
     </TouchableOpacity>
   );
-};
+});

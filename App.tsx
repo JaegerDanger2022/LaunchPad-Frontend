@@ -1,8 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef, useState } from 'react';
-import { View, Animated } from 'react-native';
-import { NavigationContainer, NavigationProp, useFocusEffect } from '@react-navigation/native';
-import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useEffect, useCallback, useState } from 'react';
+import { View } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import HomeScreen from './src/screens/HomeScreen';
@@ -35,7 +35,7 @@ import { configureRevenueCat } from './src/config/revenuecat';
 export type RootStackParamList = {
   // Auth screens
   Login: undefined;
-  Signup: undefined;
+  Signup: { emailError?: string; name?: string; email?: string } | undefined;
   Timezone: { email: string; password: string; name: string; isGoogleSignUp?: boolean };
   NotificationTime: { email: string; password: string; name: string; timezone: string; isGoogleSignUp?: boolean };
   Pledge: { email: string; password: string; name: string; timezone: string; notificationTime?: string | null; isGoogleSignUp?: boolean };
@@ -67,138 +67,102 @@ export type TabParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
-// HOC to add fade-in animation to tab screens
-const withFadeAnimation = (Component: any) => {
-  return (props: any) => {
-    const fadeAnim = useRef(new Animated.Value(1)).current;
-    const { theme } = useThemeStore();
+const TAB_SCREENS = new Set<string>(['Home', 'AllDreams', 'EvidenceBoard', 'Community', 'Analytics']);
 
-    useFocusEffect(() => {
-      fadeAnim.setValue(0.95);
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    });
-
-    return (
-      <Animated.View
-        style={{
-          flex: 1,
-          opacity: fadeAnim,
-          backgroundColor: theme === 'dark' ? '#121212' : '#FAFBFC'
-        }}>
-        <Component {...props} />
-      </Animated.View>
-    );
-  };
-};
-
-// Wrapper components that accept navigation as a prop
-const HomeScreenBase = ({ navigation }: any) => (
-  <HomeScreen onNavigate={(screen, params) => {
-    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Analytics') {
+// Memoized wrapper components — no fade HOC, no per-render theme subscription
+const HomeScreenWrapper = React.memo(({ navigation }: any) => {
+  const onNavigate = useCallback((screen: string, params?: any) => {
+    if (TAB_SCREENS.has(screen)) {
       navigation.navigate(screen as keyof TabParamList, params);
     } else {
       navigation.navigate(screen as keyof RootStackParamList, params);
     }
-  }} />
-);
+  }, [navigation]);
+  return <HomeScreen onNavigate={onNavigate} />;
+});
 
-const HomeScreenWrapper = withFadeAnimation(HomeScreenBase);
+const MilestoneScreenWrapper = React.memo(({ navigation, route }: any) => {
+  const onNavigate = useCallback((screen: string, params?: any) => {
+    if (screen === 'Home') {
+      navigation.goBack();
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList, params);
+    }
+  }, [navigation]);
+  return (
+    <MilestoneScreen
+      onNavigate={onNavigate}
+      milestoneId={route.params?.milestoneId}
+      dreamThreadId={route.params?.threadId}
+    />
+  );
+});
 
-const MilestoneScreenWrapper = ({ navigation, route }: any) => (
-  <MilestoneScreen
-    onNavigate={(screen, params?) => {
-      if (screen === 'Home') {
-        navigation.goBack();
-      } else {
-        navigation.navigate(screen as keyof RootStackParamList, params);
-      }
-    }}
-    milestoneId={route.params?.milestoneId}
-    dreamThreadId={route.params?.threadId}
-  />
-);
-
-const AllDreamsScreenBase = ({ navigation, route }: any) => (
-  <AllDreamsScreen
-    onNavigate={(screen, params?) => {
-      if (screen === 'Home' || screen === 'EvidenceBoard' || screen === 'AllDreams' || screen === 'Community' || screen === 'Analytics') {
-        navigation.navigate(screen as keyof TabParamList);
-      } else {
-        navigation.navigate(screen as keyof RootStackParamList, params);
-      }
-    }}
-    creatingDream={route.params?.creatingDream === true}
-  />
-);
-
-const AllDreamsScreenWrapper = withFadeAnimation(AllDreamsScreenBase);
-
-const DreamPageWrapper = ({ navigation, route }: any) => (
-  <DreamPage
-    threadId={route.params?.threadId}
-    onNavigate={(screen, params) => {
-      if (screen === 'Back') {
-        navigation.goBack();
-      } else if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Analytics') {
-        navigation.goBack();
-        // Navigate to the tab after closing the modal
-        setTimeout(() => {
-          navigation.navigate('HomeTabs', {
-            screen: screen as keyof TabParamList,
-          });
-        }, 100);
-      } else {
-        navigation.navigate(screen as keyof RootStackParamList, params);
-      }
-    }}
-  />
-);
-
-const EvidenceBoardScreenBase = ({ navigation }: any) => (
-  <EvidenceBoardScreen onNavigate={(screen, params) => {
-    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Analytics') {
+const AllDreamsScreenWrapper = React.memo(({ navigation, route }: any) => {
+  const onNavigate = useCallback((screen: string, params?: any) => {
+    if (TAB_SCREENS.has(screen)) {
       navigation.navigate(screen as keyof TabParamList);
     } else {
       navigation.navigate(screen as keyof RootStackParamList, params);
     }
-  }} />
-);
+  }, [navigation]);
+  return <AllDreamsScreen onNavigate={onNavigate} creatingDream={route.params?.creatingDream === true} />;
+});
 
-const EvidenceBoardScreenWrapper = withFadeAnimation(EvidenceBoardScreenBase);
+const DreamPageWrapper = React.memo(({ navigation, route }: any) => {
+  const onNavigate = useCallback((screen: string, params?: any) => {
+    if (screen === 'Back') {
+      navigation.goBack();
+    } else if (TAB_SCREENS.has(screen)) {
+      navigation.goBack();
+      setTimeout(() => {
+        navigation.navigate('HomeTabs', { screen: screen as keyof TabParamList });
+      }, 100);
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList, params);
+    }
+  }, [navigation]);
+  return <DreamPage threadId={route.params?.threadId} onNavigate={onNavigate} />;
+});
 
-const CommunityScreenBase = ({ navigation }: any) => (
-  <CommunityScreen onNavigate={(screen) => {
-    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Analytics') {
+const EvidenceBoardScreenWrapper = React.memo(({ navigation }: any) => {
+  const onNavigate = useCallback((screen: string, params?: any) => {
+    if (TAB_SCREENS.has(screen)) {
+      navigation.navigate(screen as keyof TabParamList);
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList, params);
+    }
+  }, [navigation]);
+  return <EvidenceBoardScreen onNavigate={onNavigate} />;
+});
+
+const CommunityScreenWrapper = React.memo(({ navigation }: any) => {
+  const onNavigate = useCallback((screen: string) => {
+    if (TAB_SCREENS.has(screen)) {
       navigation.navigate(screen as keyof TabParamList);
     } else {
       navigation.navigate(screen as keyof RootStackParamList);
     }
-  }} />
-);
+  }, [navigation]);
+  return <CommunityScreen onNavigate={onNavigate} />;
+});
 
-const CommunityScreenWrapper = withFadeAnimation(CommunityScreenBase);
-
-const AnalyticsScreenBase = ({ navigation }: any) => (
-  <AnalyticsScreen onNavigate={(screen: string) => {
-    if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Analytics') {
+const AnalyticsScreenWrapper = React.memo(({ navigation }: any) => {
+  const onNavigate = useCallback((screen: string) => {
+    if (TAB_SCREENS.has(screen)) {
       navigation.navigate(screen as keyof TabParamList);
     } else {
       navigation.navigate(screen as keyof RootStackParamList);
     }
-  }} />
-);
+  }, [navigation]);
+  return <AnalyticsScreen onNavigate={onNavigate} />;
+});
 
-const AnalyticsScreenWrapper = withFadeAnimation(AnalyticsScreenBase);
-
-const SettingsModalWrapper = ({ navigation }: any) => (
-  <SettingsScreen onNavigate={(screen: string) => {
+const SettingsModalWrapper = React.memo(({ navigation }: any) => {
+  const onNavigate = useCallback((screen: string) => {
     if (screen === 'Settings') {
       navigation.goBack();
-    } else if (screen === 'Home' || screen === 'AllDreams' || screen === 'EvidenceBoard' || screen === 'Community' || screen === 'Analytics') {
+    } else if (TAB_SCREENS.has(screen)) {
       navigation.goBack();
       setTimeout(() => {
         navigation.navigate('HomeTabs', { screen: screen as keyof TabParamList });
@@ -206,108 +170,87 @@ const SettingsModalWrapper = ({ navigation }: any) => (
     } else {
       navigation.navigate(screen as keyof RootStackParamList);
     }
-  }} />
-);
+  }, [navigation]);
+  return <SettingsScreen onNavigate={onNavigate} />;
+});
 
-const StreakStatsScreenWrapper = ({ navigation }: any) => (
-  <StreakStatsScreen onNavigate={(screen) => {
+const StreakStatsScreenWrapper = React.memo(({ navigation }: any) => {
+  const onNavigate = useCallback((screen: string) => {
     if (screen === 'Home') {
       navigation.goBack();
     } else {
       navigation.navigate(screen as keyof RootStackParamList);
     }
-  }} />
-);
+  }, [navigation]);
+  return <StreakStatsScreen onNavigate={onNavigate} />;
+});
 
-const ShareVictoryScreenWrapper = ({ navigation, route }: any) => (
-  <ShareVictoryScreen
-    onNavigate={(screen) => {
-      if (screen === 'Home') {
-        navigation.goBack();
-      } else if (screen === 'EvidenceBoard') {
-        // Close the ShareVictory modal first
-        navigation.goBack();
-        // Then close the Milestone modal after a brief delay
+const ShareVictoryScreenWrapper = React.memo(({ navigation, route }: any) => {
+  const onNavigate = useCallback((screen: string) => {
+    if (screen === 'Home') {
+      navigation.goBack();
+    } else if (screen === 'EvidenceBoard') {
+      navigation.goBack();
+      setTimeout(() => {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
         setTimeout(() => {
-          // Check if we can go back (to close Milestone screen if it's open)
-          if (navigation.canGoBack()) {
-            navigation.goBack();
-          }
-          // Then navigate to Evidence Board
-          setTimeout(() => {
-            navigation.navigate('HomeTabs', {
-              screen: 'EvidenceBoard',
-            });
-          }, 300);
+          navigation.navigate('HomeTabs', { screen: 'EvidenceBoard' });
         }, 300);
-      } else {
-        navigation.navigate(screen as keyof RootStackParamList);
-      }
-    }}
-    victory={route.params?.victory}
-  />
-);
+      }, 300);
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList);
+    }
+  }, [navigation]);
+  return <ShareVictoryScreen onNavigate={onNavigate} victory={route.params?.victory} />;
+});
 
-const ShareJourneyRecapScreenWrapper = ({ navigation, route }: any) => (
-  <ShareJourneyRecapScreen
-    onNavigate={(screen) => {
-      if (screen === 'Home') {
-        navigation.goBack();
-      } else if (screen === 'EvidenceBoard') {
-        // Step 1: Close the ShareJourneyRecap modal (goes back to Milestone screen)
-        navigation.goBack();
-
+const ShareJourneyRecapScreenWrapper = React.memo(({ navigation, route }: any) => {
+  const onNavigate = useCallback((screen: string) => {
+    if (screen === 'Home') {
+      navigation.goBack();
+    } else if (screen === 'EvidenceBoard') {
+      navigation.goBack();
+      setTimeout(() => {
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
         setTimeout(() => {
-          // Step 2: Close the Milestone modal (goes back to Dream screen)
-          if (navigation.canGoBack()) {
-            navigation.goBack();
-          }
+          navigation.navigate('HomeTabs', { screen: 'EvidenceBoard' });
+        }, 400);
+      }, 300);
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList);
+    }
+  }, [navigation]);
+  return <ShareJourneyRecapScreen onNavigate={onNavigate} journeyRecap={route.params?.journeyRecap} />;
+});
 
-          // Step 3: Wait a bit, then navigate to Evidence Board from Dream screen
-          setTimeout(() => {
-            navigation.navigate('HomeTabs', {
-              screen: 'EvidenceBoard',
-            });
-          }, 400);
-        }, 300);
-      } else {
-        navigation.navigate(screen as keyof RootStackParamList);
-      }
-    }}
-    journeyRecap={route.params?.journeyRecap}
-  />
-);
-
-const ChangePasswordScreenWrapper = ({ navigation }: any) => (
-  <ChangePasswordScreen
-    onNavigate={(screen) => {
-      if (screen === 'Settings') {
-        navigation.goBack();
-        // After closing the modal, navigate to the Settings tab
-        setTimeout(() => {
-          navigation.navigate('HomeTabs', {
-            screen: 'Settings',
-          });
-        }, 100);
-      } else {
-        navigation.navigate(screen as keyof RootStackParamList);
-      }
-    }}
-  />
-);
-
-const PaywallScreenWrapper = ({ navigation }: any) => (
-  <PaywallScreen
-    onClose={() => {
-      if (navigation.canGoBack()) {
-        navigation.goBack();
-      } else {
-        // Fallback to Settings tab if no history
+const ChangePasswordScreenWrapper = React.memo(({ navigation }: any) => {
+  const onNavigate = useCallback((screen: string) => {
+    if (screen === 'Settings') {
+      navigation.goBack();
+      setTimeout(() => {
         navigation.navigate('HomeTabs', { screen: 'Settings' });
-      }
-    }}
-  />
-);
+      }, 100);
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList);
+    }
+  }, [navigation]);
+  return <ChangePasswordScreen onNavigate={onNavigate} />;
+});
+
+const PaywallScreenWrapper = React.memo(({ navigation }: any) => {
+  const onClose = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('HomeTabs', { screen: 'Settings' });
+    }
+  }, [navigation]);
+  return <PaywallScreen onClose={onClose} />;
+});
 
 // Auth Navigator
 function AuthNavigator({ initialRoute = 'Login' }: { initialRoute?: string }) {

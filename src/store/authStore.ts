@@ -456,9 +456,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           // Update the streak data in state
           set((state) => {
             if (!state.userData) return state;
-            const updatedUserData = JSON.parse(JSON.stringify(state.userData));
-            updatedUserData.streak = streakResponse.streak_data;
-            return { userData: updatedUserData };
+            return { userData: { ...state.userData, streak: streakResponse.streak_data ?? undefined } as typeof state.userData };
           });
         }
 
@@ -478,24 +476,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     set((state) => {
       if (!state.userData?.dreams) return state;
 
-      // Create a deep copy of userData to avoid mutations
-      const updatedUserData = JSON.parse(JSON.stringify(state.userData));
+      const updatedDreams = state.userData.dreams.map((dream: any) => {
+        if (dream.thread_id !== threadId || !dream.roadmap?.milestones) return dream;
+        return {
+          ...dream,
+          roadmap: {
+            ...dream.roadmap,
+            milestones: dream.roadmap.milestones.map((m: any) =>
+              m.id === milestoneId ? { ...m, status } : m
+            ),
+          },
+        };
+      });
 
-      // Find and update the milestone with matching threadId and milestoneId
-      for (const dream of updatedUserData.dreams) {
-        if (dream.thread_id === threadId && dream.roadmap?.milestones) {
-          const milestone = dream.roadmap.milestones.find(
-            (m: any) => m.id === milestoneId
-          );
-          if (milestone) {
-            milestone.status = status;
-            console.log(`Updated milestone ${milestoneId} status to ${status}`);
-            break;
-          }
-        }
-      }
-
-      return { userData: updatedUserData };
+      return { userData: { ...state.userData, dreams: updatedDreams } };
     });
 
     // If milestone was completed, recalculate up_next
@@ -510,7 +504,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     set((state) => {
       if (!state.userData?.dreams || !state.user?.uid) return state;
 
-      // Find the dream with the matching threadId
       const dreamToAdd = state.userData.dreams.find(
         (dream: any) => dream.thread_id === threadId
       );
@@ -519,31 +512,16 @@ export const useAuthStore = create<AuthState>((set) => ({
         return state;
       }
 
-      // Create a deep copy of userData
-      const updatedUserData = JSON.parse(JSON.stringify(state.userData));
-
-      // Initialize recents array if it doesn't exist
-      if (!updatedUserData.recents) {
-        updatedUserData.recents = [];
-      }
-
-      // Remove threadId if it already exists (to avoid duplicates)
-      updatedUserData.recents = updatedUserData.recents.filter(
-        (id: string) => id !== threadId
-      );
-
-      // Add threadId to the beginning of recents
-      updatedUserData.recents.unshift(threadId);
-
-      // Keep only the last 3 items
-      updatedUserData.recents = updatedUserData.recents.slice(0, 3);
+      const oldRecents = state.userData.recents || [];
+      const filtered = oldRecents.filter((id: string) => id !== threadId);
+      const newRecents = [threadId, ...filtered].slice(0, 3);
 
       // Call API to persist to database (fire and forget - don't block UI)
       updateRecents(state.user.uid, threadId).catch((error) => {
         console.error('Failed to sync recents to database:', error);
       });
 
-      return { userData: updatedUserData };
+      return { userData: { ...state.userData, recents: newRecents } };
     });
 
     // Recalculate up_next since recents priority changed
@@ -556,23 +534,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     set((state) => {
       if (!state.userData || !state.user?.uid) return state;
 
-      // Calculate next incomplete milestone
       const upNext = findNextIncompleteMilestone(state.userData);
-      // console.log('[updateUpNext] Calculated upNext:', upNext);
-
-      // Create a deep copy of userData
-      const updatedUserData = JSON.parse(JSON.stringify(state.userData));
-
-      // Update up_next field
-      updatedUserData.up_next = upNext;
-      // console.log('[updateUpNext] Updated userData.up_next to:', updatedUserData.up_next);
 
       // Call API to persist to database (fire and forget - don't block UI)
-      updateUpNextAPI(state.user.uid, upNext).catch((error) => {
-        // console.error('[updateUpNext] Failed to sync up_next to database:', error);
-      });
+      updateUpNextAPI(state.user.uid, upNext).catch(() => {});
 
-      return { userData: updatedUserData };
+      return { userData: { ...state.userData, up_next: upNext } };
     });
   },
 
@@ -580,12 +547,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set((state) => {
       if (!state.userData) return state;
 
-      // Deep copy to avoid mutations
-      const updatedUserData = JSON.parse(JSON.stringify(state.userData));
-      updatedUserData.streak = streakData;
-      updatedUserData.last_activity = new Date().toISOString();
-
-      return { userData: updatedUserData };
+      return { userData: { ...state.userData, streak: streakData, last_activity: new Date().toISOString() } };
     });
 
     // Update notification store with last activity
@@ -604,11 +566,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set((state) => {
       if (!state.userData) return state;
 
-      // Deep copy to avoid mutations
-      const updatedUserData = JSON.parse(JSON.stringify(state.userData));
-      updatedUserData.couragePoints = (updatedUserData.couragePoints || 0) + amount;
-
-      return { userData: updatedUserData };
+      return { userData: { ...state.userData, couragePoints: (state.userData.couragePoints || 0) + amount } };
     });
   },
 
@@ -636,23 +594,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         if (fullDream?.roadmap?.milestones) {
           set((prev) => {
             if (!prev.userData?.dreams) return prev;
-            const updated = JSON.parse(JSON.stringify(prev.userData));
-            const target = updated.dreams.find((d: any) => d.thread_id === threadId);
-            if (target) {
-              // Verify we're updating the correct dream by checking thread_id match
-              console.log('[loadFullDreams] Updating dream:', {
-                threadId,
-                dreamTitle: target.dream,
-                milestoneCount: fullDream.roadmap.milestones.length,
-              });
-              target.roadmap = fullDream.roadmap;
-              target.metadata = fullDream.metadata;
-              // Add timestamp to track when data was last updated
-              target._lastUpdated = Date.now();
-            } else {
-              console.error('[loadFullDreams] Target dream not found for thread:', threadId);
-            }
-            return { userData: updated };
+            const updatedDreams = prev.userData.dreams.map((d: any) => {
+              if (d.thread_id !== threadId) return d;
+              return { ...d, roadmap: fullDream.roadmap, metadata: fullDream.metadata, _lastUpdated: Date.now() };
+            });
+            return { userData: { ...prev.userData, dreams: updatedDreams } };
           });
         }
       } catch (e) {
@@ -729,14 +675,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (result.success && result.milestones) {
         set((state) => {
           if (!state.userData?.dreams) return state;
-          const updated = JSON.parse(JSON.stringify(state.userData));
-          const dream = updated.dreams.find((d: any) => d.thread_id === threadId);
-          if (!dream?.roadmap) return state;
-
-          // Update the milestones with the backend response
-          dream.roadmap.milestones = result.milestones;
-
-          return { userData: updated };
+          const updatedDreams = state.userData.dreams.map((d: any) => {
+            if (d.thread_id !== threadId || !d.roadmap) return d;
+            return { ...d, roadmap: { ...d.roadmap, milestones: result.milestones } };
+          });
+          return { userData: { ...state.userData, dreams: updatedDreams } };
         });
       }
     } catch (e) {

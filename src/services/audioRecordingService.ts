@@ -39,7 +39,7 @@ export class AudioRecordingService {
         allowsRecording: true,
         playsInSilentMode: true,
         shouldPlayInBackground: false,
-        interruptionMode: 'duckOthers',
+        interruptionMode: 'mixWithOthers',
         shouldRouteThroughEarpiece: false,
       });
 
@@ -159,7 +159,7 @@ export class AudioRecordingService {
         allowsRecording: false,
         playsInSilentMode: true,
         shouldPlayInBackground: false,
-        interruptionMode: 'duckOthers',
+        interruptionMode: 'mixWithOthers',
         shouldRouteThroughEarpiece: false,
       });
 

@@ -66,6 +66,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
 
   const player = useVideoPlayer(require('../assets/animations/chatbox/Chatbox.mp4'), (player) => {
     player.muted = true;
+    player.audioMixingMode = 'mixWithOthers';
     player.loop = false;
     player.timeUpdateEventInterval = 0.1;
     player.play();

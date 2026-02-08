@@ -43,6 +43,8 @@ const PledgeScreen = ({ navigation, route }: PledgeScreenProps) => {
   const videoSource = require('../../assets/animations/ondoarding/Luna floating.mp4');
   const player = useVideoPlayer(videoSource, (player) => {
     player.loop = true;
+    player.muted = true;
+    player.audioMixingMode = 'mixWithOthers';
     player.play();
   });
 
@@ -97,12 +99,22 @@ const PledgeScreen = ({ navigation, route }: PledgeScreenProps) => {
       // Auth store handles navigation automatically via onAuthStateChanged
       // Once user is created, isAuthenticated becomes true and App.tsx shows AppNavigator
     } catch (err: any) {
-      // Handle error
       console.error('Signup error:', err);
       setIsLoading(false);
       setAccepted(false);
-      setErrorMessage(err.message || 'Failed to create account. Please try again.');
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+
+      // If email already in use, navigate back to signup email step
+      if (err.code === 'auth/email-already-in-use') {
+        navigation.navigate('Signup', {
+          emailError: 'This email is already registered. Please use a different email.',
+          name,
+          email,
+        });
+        return;
+      }
+
+      setErrorMessage(err.message || 'Failed to create account. Please try again.');
     }
   };
 
