@@ -2,7 +2,8 @@ import React, { ReactNode } from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Video, AVPlaybackStatus } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { useEventListener } from 'expo';
 
 export interface MessageBubbleProps {
   role: 'user' | 'mascot';
@@ -62,6 +63,22 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     alignItems: 'flex-end',
   };
 
+  // Video player for mascot avatar
+  const player = useVideoPlayer(mascotVideoSource ?? null, (player) => {
+    if (mascotVideoSource) {
+      player.muted = true;
+      player.loop = true;
+      player.play();
+    }
+  });
+
+  // Track when video loads for callback
+  useEventListener(player, 'statusChange', ({ status }) => {
+    if (status === 'readyToPlay' && onVideoLoad) {
+      onVideoLoad();
+    }
+  });
+
   // Render mascot avatar slot
   const renderMascotAvatar = () => {
     if (!isMascot) return null;
@@ -69,14 +86,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     return (
       <View style={styles.avatarSlot}>
         {mascotVideoSource ? (
-          <Video
-            source={mascotVideoSource}
+          <VideoView
+            player={player}
             style={[styles.avatarVideo, videoStyle]}
-            resizeMode="cover"
-            shouldPlay={true}
-            isLooping={true}
-            isMuted={true}
-            onLoad={onVideoLoad}
+            contentFit="cover"
+            nativeControls={false}
           />
         ) : (
           // Fallback placeholder

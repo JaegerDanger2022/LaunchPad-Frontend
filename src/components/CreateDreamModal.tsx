@@ -21,7 +21,8 @@ import { getThemeColors } from '../constants/GlobalStyles';
 import { startConversation, sendConversationTurn } from '../config/api';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
-import { Video, AVPlaybackStatus } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { useEventListener } from 'expo';
 
 interface CreateDreamModalProps {
   visible: boolean;
@@ -56,81 +57,81 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
   const aiMessageOpacity = useRef(new Animated.Value(1)).current;
   const userMessageOpacity = useRef(new Animated.Value(1)).current;
 
-  // Video ref for Luna header
-  const videoRef = useRef<Video>(null);
+  // Video player for Luna header
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const [isSeeking, setIsSeeking] = useState(false);
+  const isSeekingRef = useRef(false);
+  const chatStatusRef = useRef(chatStatus);
+  chatStatusRef.current = chatStatus;
 
-  // Video playback handler for looping segments based on chat status
-  const handlePlaybackStatusUpdate = async (status: AVPlaybackStatus) => {
-    if (!status.isLoaded || !videoRef.current) return;
+  const player = useVideoPlayer(require('../assets/animations/chatbox/Chatbox.mp4'), (player) => {
+    player.muted = true;
+    player.loop = false;
+    player.timeUpdateEventInterval = 0.1;
+    player.play();
+  });
 
-    if (!isVideoLoaded) {
+  // Track when video is loaded
+  useEventListener(player, 'statusChange', ({ status }) => {
+    if (status === 'readyToPlay' && !isVideoLoaded) {
       setIsVideoLoaded(true);
     }
+  });
 
-    if (isSeeking) return;
-
-    const positionMillis = status.positionMillis;
+  // Handle playback time updates for manual looping
+  useEventListener(player, 'timeUpdate', ({ currentTime }) => {
+    if (isSeekingRef.current) return;
 
     try {
-      switch (chatStatus) {
+      switch (chatStatusRef.current) {
         case 'rendering':
-          // Loop 0s - 4.5s while AI is typing
-          if (positionMillis >= 4500) {
-            setIsSeeking(true);
-            await videoRef.current.setPositionAsync(0);
-            setTimeout(() => setIsSeeking(false), 100);
+          if (currentTime >= 4.5) {
+            isSeekingRef.current = true;
+            player.currentTime = 0;
+            setTimeout(() => { isSeekingRef.current = false; }, 100);
           }
           break;
         case 'waiting':
-          // Loop 5s - 9.5s while waiting for user
-          if (positionMillis >= 9500) {
-            setIsSeeking(true);
-            await videoRef.current.setPositionAsync(5000);
-            setTimeout(() => setIsSeeking(false), 100);
+          if (currentTime >= 9.5) {
+            isSeekingRef.current = true;
+            player.currentTime = 5;
+            setTimeout(() => { isSeekingRef.current = false; }, 100);
           }
           break;
         case 'sending':
-          // Loop 11s - 14s while processing
-          if (positionMillis >= 14000) {
-            setIsSeeking(true);
-            await videoRef.current.setPositionAsync(11000);
-            setTimeout(() => setIsSeeking(false), 100);
+          if (currentTime >= 14) {
+            isSeekingRef.current = true;
+            player.currentTime = 11;
+            setTimeout(() => { isSeekingRef.current = false; }, 100);
           }
           break;
       }
     } catch (error) {
-      setIsSeeking(false);
+      isSeekingRef.current = false;
     }
-  };
+  });
 
   // Handle chat status changes and jump to appropriate video segment
   useEffect(() => {
-    const jumpToSegment = async () => {
-      if (!videoRef.current || !isVideoLoaded || isSeeking) return;
+    if (!isVideoLoaded || isSeekingRef.current) return;
 
-      setIsSeeking(true);
-      try {
-        switch (chatStatus) {
-          case 'rendering':
-            await videoRef.current.setPositionAsync(0);
-            break;
-          case 'waiting':
-            await videoRef.current.setPositionAsync(5000);
-            break;
-          case 'sending':
-            await videoRef.current.setPositionAsync(11000);
-            break;
-        }
-      } catch (error) {
-        console.debug('[CreateDreamModal] seek interrupted');
-      } finally {
-        setTimeout(() => setIsSeeking(false), 100);
+    isSeekingRef.current = true;
+    try {
+      switch (chatStatus) {
+        case 'rendering':
+          player.currentTime = 0;
+          break;
+        case 'waiting':
+          player.currentTime = 5;
+          break;
+        case 'sending':
+          player.currentTime = 11;
+          break;
       }
-    };
-
-    jumpToSegment();
+    } catch (error) {
+      console.debug('[CreateDreamModal] seek interrupted');
+    } finally {
+      setTimeout(() => { isSeekingRef.current = false; }, 100);
+    }
   }, [chatStatus, isVideoLoaded]);
 
   // Typewriter effect for AI messages
@@ -363,15 +364,11 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                   {/* Luna Video Header (replaces avatar) */}
                   <View style={styles.videoHeaderContainer}>
                     <View style={styles.videoPortal}>
-                      <Video
-                        ref={videoRef}
-                        source={require('../assets/animations/chatbox/Chatbox.mp4')}
+                      <VideoView
+                        player={player}
                         style={styles.video}
-                        resizeMode={'cover' as any}
-                        isLooping={false}
-                        shouldPlay={true}
-                        isMuted={true}
-                        onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+                        contentFit="cover"
+                        nativeControls={false}
                       />
                     </View>
                   </View>

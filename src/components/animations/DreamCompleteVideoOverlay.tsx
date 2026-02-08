@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, StyleSheet, Animated } from "react-native";
-import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
+import { useVideoPlayer, VideoView } from "expo-video";
+import { useEventListener } from "expo";
 
 interface DreamCompleteVideoOverlayProps {
   visible: boolean;
@@ -8,13 +9,19 @@ interface DreamCompleteVideoOverlayProps {
   duration?: number; // Optional duration override (uses video length by default)
 }
 
+const videoSource = require("../../assets/animations/FinalCelebration.mp4");
+
 export const DreamCompleteVideoOverlay: React.FC<
   DreamCompleteVideoOverlayProps
 > = ({ visible, onComplete, duration }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const videoRef = useRef<Video>(null);
   const [hasPlayed, setHasPlayed] = useState(false);
   const hasCalledComplete = useRef(false);
+
+  const player = useVideoPlayer(videoSource, (player) => {
+    player.muted = false;
+    player.loop = false;
+  });
 
   useEffect(() => {
     if (visible && !hasPlayed) {
@@ -24,26 +31,16 @@ export const DreamCompleteVideoOverlay: React.FC<
       // Show overlay immediately (no fade in to avoid stutter)
       fadeAnim.setValue(1);
 
-      // Load and play video from beginning
-      const playVideo = async () => {
-        try {
-          await videoRef.current?.setPositionAsync(0);
-          await videoRef.current?.playAsync();
-          setHasPlayed(true);
-        } catch (error) {
-          console.error("Error playing video:", error);
-        }
-      };
-
-      playVideo();
+      // Play video from beginning
+      player.currentTime = 0;
+      player.play();
+      setHasPlayed(true);
     }
   }, [visible, hasPlayed]);
 
-  const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
-    if (!status.isLoaded) return;
-
-    // When video finishes playing, dismiss the overlay
-    if (status.didJustFinish && !hasCalledComplete.current) {
+  // Detect when video finishes playing
+  useEventListener(player, 'playToEnd', () => {
+    if (!hasCalledComplete.current) {
       hasCalledComplete.current = true;
 
       // Small delay then call onComplete
@@ -52,7 +49,7 @@ export const DreamCompleteVideoOverlay: React.FC<
         onComplete();
       }, 200);
     }
-  };
+  });
 
   if (!visible) return null;
 
@@ -60,15 +57,11 @@ export const DreamCompleteVideoOverlay: React.FC<
     <Animated.View
       style={[styles.overlay, { opacity: fadeAnim }]}
       pointerEvents="none">
-      <Video
-        ref={videoRef}
-        source={require("../../assets/animations/FinalCelebration.mp4")}
+      <VideoView
+        player={player}
         style={styles.video}
-        resizeMode={ResizeMode.COVER}
-        shouldPlay={false} // Manual control via playAsync
-        isLooping={false}
-        isMuted={false}
-        onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+        contentFit="cover"
+        nativeControls={false}
       />
     </Animated.View>
   );

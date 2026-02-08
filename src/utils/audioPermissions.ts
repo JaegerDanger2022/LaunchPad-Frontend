@@ -1,4 +1,8 @@
-import { Audio } from 'expo-av';
+import {
+  getRecordingPermissionsAsync,
+  requestRecordingPermissionsAsync,
+  setAudioModeAsync,
+} from 'expo-audio';
 
 /**
  * Request microphone permission and configure audio session
@@ -9,7 +13,7 @@ export async function requestAudioPermissionsAsync(): Promise<boolean> {
     console.log('[Audio] Checking microphone permissions...');
 
     // Check existing permission status
-    const { status: existingStatus } = await Audio.getPermissionsAsync();
+    const { status: existingStatus } = await getRecordingPermissionsAsync();
     let finalStatus = existingStatus;
 
     console.log('[Audio] Existing permission status:', existingStatus);
@@ -17,7 +21,7 @@ export async function requestAudioPermissionsAsync(): Promise<boolean> {
     // Request permission if not granted
     if (existingStatus !== 'granted') {
       console.log('[Audio] Requesting microphone permission...');
-      const { status } = await Audio.requestPermissionsAsync();
+      const { status } = await requestRecordingPermissionsAsync();
       finalStatus = status;
       console.log('[Audio] Permission request result:', status);
     }
@@ -29,12 +33,12 @@ export async function requestAudioPermissionsAsync(): Promise<boolean> {
 
     // Configure audio session for recording
     console.log('[Audio] Configuring audio mode...');
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: true,
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: false,
-      shouldDuckAndroid: true,
-      playThroughEarpieceAndroid: false,
+    await setAudioModeAsync({
+      allowsRecording: true,
+      playsInSilentMode: true,
+      shouldPlayInBackground: false,
+      interruptionMode: 'duckOthers',
+      shouldRouteThroughEarpiece: false,
     });
 
     console.log('[Audio] Microphone permission granted and audio configured');

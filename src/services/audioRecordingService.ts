@@ -1,12 +1,19 @@
-import { Audio } from 'expo-av';
+import {
+  AudioModule,
+  createAudioPlayer,
+  setAudioModeAsync,
+  IOSOutputFormat,
+  AudioQuality,
+} from 'expo-audio';
+import type { AudioPlayer, AudioRecorder } from 'expo-audio';
 import { Paths, File } from 'expo-file-system';
 
 /**
  * Service for managing audio recording and playback
  */
 export class AudioRecordingService {
-  private recording: Audio.Recording | null = null;
-  private sound: Audio.Sound | null = null;
+  private recorder: AudioRecorder | null = null;
+  private player: AudioPlayer | null = null;
   private audioChunks: string[] = [];
 
   /**
@@ -17,51 +24,43 @@ export class AudioRecordingService {
       console.log('[AudioRecording] Starting recording...');
 
       // Stop any existing recording first
-      if (this.recording) {
+      if (this.recorder) {
         try {
-          await this.recording.stopAndUnloadAsync();
+          await this.recorder.stop();
         } catch (e) {
           console.log('[AudioRecording] Cleaned up previous recording');
         }
-        this.recording = null;
+        this.recorder = null;
       }
 
       // Configure audio mode for recording
       console.log('[AudioRecording] Setting audio mode...');
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: false,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
+        shouldPlayInBackground: false,
+        interruptionMode: 'duckOthers',
+        shouldRouteThroughEarpiece: false,
       });
 
       // Small delay to ensure audio mode is set
       await new Promise(resolve => setTimeout(resolve, 150));
 
-      // Create new recording instance
-      console.log('[AudioRecording] Creating recording instance...');
-      this.recording = new Audio.Recording();
-
-      // Configure recording options for Gemini Live API
+      // Create new recording instance with options for Gemini Live API
       // Gemini expects 16kHz, 16-bit, mono, linear PCM
-      console.log('[AudioRecording] Preparing to record...');
-      await this.recording.prepareToRecordAsync({
+      console.log('[AudioRecording] Creating recording instance...');
+      this.recorder = new AudioModule.AudioRecorder({
+        extension: '.wav',
+        sampleRate: 16000,
+        numberOfChannels: 1,
+        bitRate: 256000,
         android: {
-          extension: '.wav',
-          outputFormat: Audio.AndroidOutputFormat.DEFAULT,
-          audioEncoder: Audio.AndroidAudioEncoder.DEFAULT,
-          sampleRate: 16000,
-          numberOfChannels: 1,
-          bitRate: 256000,
+          outputFormat: 'default',
+          audioEncoder: 'default',
         },
         ios: {
-          extension: '.wav',
-          outputFormat: Audio.IOSOutputFormat.LINEARPCM,
-          audioQuality: Audio.IOSAudioQuality.HIGH,
-          sampleRate: 16000,
-          numberOfChannels: 1,
-          bitRate: 256000,
+          outputFormat: IOSOutputFormat.LINEARPCM,
+          audioQuality: AudioQuality.HIGH,
           linearPCMBitDepth: 16,
           linearPCMIsBigEndian: false,
           linearPCMIsFloat: false,
@@ -72,14 +71,17 @@ export class AudioRecordingService {
         },
       });
 
-      // Start recording
+      // Prepare and start recording
+      console.log('[AudioRecording] Preparing to record...');
+      await this.recorder.prepareToRecordAsync();
+
       console.log('[AudioRecording] Starting recording...');
-      await this.recording.startAsync();
+      this.recorder.record();
       console.log('[AudioRecording] Recording started successfully');
     } catch (error) {
       console.error('[AudioRecording] Failed to start recording:', error);
       console.error('[AudioRecording] Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-      this.recording = null;
+      this.recorder = null;
       throw error;
     }
   }
@@ -89,7 +91,7 @@ export class AudioRecordingService {
    */
   async stopRecording(): Promise<string | null> {
     try {
-      if (!this.recording) {
+      if (!this.recorder) {
         console.warn('[AudioRecording] No recording in progress');
         return null;
       }
@@ -97,9 +99,9 @@ export class AudioRecordingService {
       console.log('[AudioRecording] Stopping recording...');
 
       // Stop recording
-      await this.recording.stopAndUnloadAsync();
-      const uri = this.recording.getURI();
-      this.recording = null;
+      await this.recorder.stop();
+      const uri = this.recorder.uri;
+      this.recorder = null;
 
       if (!uri) {
         console.error('[AudioRecording] No URI for recording');
@@ -118,7 +120,7 @@ export class AudioRecordingService {
       return base64;
     } catch (error) {
       console.error('[AudioRecording] Failed to stop recording:', error);
-      this.recording = null;
+      this.recorder = null;
       return null;
     }
   }
@@ -153,26 +155,29 @@ export class AudioRecordingService {
       console.log('[AudioRecording] MP3 file written:', file.uri);
 
       // Set audio mode for playback
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: false,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
+      await setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true,
+        shouldPlayInBackground: false,
+        interruptionMode: 'duckOthers',
+        shouldRouteThroughEarpiece: false,
       });
 
-      // Create sound instance and play
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: file.uri },
-        { shouldPlay: true, volume: 1.0 },
-        this._onPlaybackStatusUpdate
-      );
+      // Create audio player and play
+      this.player = createAudioPlayer({ uri: file.uri });
+      this.player.volume = 1.0;
 
-      this.sound = sound;
+      // Listen for playback completion
+      this.player.addListener('playbackStatusUpdate', (status) => {
+        if (status.didJustFinish) {
+          console.log('[AudioRecording] Playback finished');
+          this.player?.remove();
+          this.player = null;
+        }
+      });
 
-      // Explicitly start playback
-      const playbackStatus = await sound.playAsync();
-      console.log('[AudioRecording] Audio playback started, status:', playbackStatus);
+      this.player.play();
+      console.log('[AudioRecording] Audio playback started');
     } catch (error) {
       console.error('[AudioRecording] Failed to play audio:', error);
       console.error('[AudioRecording] Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
@@ -238,11 +243,11 @@ export class AudioRecordingService {
    */
   async stopPlayback(): Promise<void> {
     try {
-      if (this.sound) {
+      if (this.player) {
         console.log('[AudioRecording] Stopping playback...');
-        await this.sound.stopAsync();
-        await this.sound.unloadAsync();
-        this.sound = null;
+        this.player.pause();
+        this.player.remove();
+        this.player = null;
       }
     } catch (error) {
       console.error('[AudioRecording] Error stopping playback:', error);
@@ -253,14 +258,14 @@ export class AudioRecordingService {
    * Check if currently recording
    */
   isRecording(): boolean {
-    return this.recording !== null;
+    return this.recorder !== null;
   }
 
   /**
    * Check if currently playing
    */
   isPlaying(): boolean {
-    return this.sound !== null;
+    return this.player !== null;
   }
 
   /**
@@ -268,27 +273,17 @@ export class AudioRecordingService {
    */
   async cleanup(): Promise<void> {
     try {
-      if (this.recording) {
-        await this.recording.stopAndUnloadAsync();
-        this.recording = null;
+      if (this.recorder) {
+        await this.recorder.stop();
+        this.recorder = null;
       }
-      if (this.sound) {
-        await this.sound.unloadAsync();
-        this.sound = null;
+      if (this.player) {
+        this.player.remove();
+        this.player = null;
       }
       this.audioChunks = [];
     } catch (error) {
       console.error('[AudioRecording] Error during cleanup:', error);
     }
   }
-
-  /**
-   * Playback status update callback
-   */
-  private _onPlaybackStatusUpdate = (status: any) => {
-    if (status.didJustFinish) {
-      console.log('[AudioRecording] Playback finished');
-      this.sound = null;
-    }
-  };
 }

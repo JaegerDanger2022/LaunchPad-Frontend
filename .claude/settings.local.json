@@ -44,7 +44,12 @@
       "Bash(find:*)",
       "Bash(python -m py_compile:*)",
       "Bash(python migrations/fix_victory_categories.py:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(xargs cat:*)",
+      "Bash(npm view:*)",
+      "Bash(npm ls:*)",
+      "WebFetch(domain:docs.expo.dev)",
+      "WebFetch(domain:expo.dev)"
     ]
   }
 }

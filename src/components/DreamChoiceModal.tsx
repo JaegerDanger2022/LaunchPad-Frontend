@@ -12,7 +12,8 @@ import { BlurView } from 'expo-blur';
 import { Pencil } from 'lucide-react-native';
 import { getThemeColors } from '../constants/GlobalStyles';
 import { useThemeStore } from '../store/themeStore';
-import { Video, AVPlaybackStatus } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { useEventListener } from 'expo';
 
 interface DreamChoiceModalProps {
   visible: boolean;
@@ -20,6 +21,8 @@ interface DreamChoiceModalProps {
   onSelectLuna: () => void;
   onSelectDIY: () => void;
 }
+
+const videoSource = require('../assets/animations/ondoarding/Luna floating.mp4');
 
 export const DreamChoiceModal: React.FC<DreamChoiceModalProps> = ({
   visible,
@@ -33,64 +36,36 @@ export const DreamChoiceModal: React.FC<DreamChoiceModalProps> = ({
   const isDark = theme === 'dark';
 
   // Luna video state
-  const videoRef = useRef<Video>(null);
-  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const [isSeeking, setIsSeeking] = useState(false);
-  const [playingForward, setPlayingForward] = useState(true);
+  const isSeekingRef = useRef(false);
 
-  // Video looping logic: 2s-6s forward, then 6s-2s backward
-  const handlePlaybackStatusUpdate = async (status: AVPlaybackStatus) => {
-    if (!status.isLoaded || !videoRef.current || isSeeking) return;
+  const player = useVideoPlayer(videoSource, (player) => {
+    player.muted = true;
+    player.loop = false;
+    player.timeUpdateEventInterval = 0.1;
+    player.currentTime = 2;
+  });
 
-    if (!isVideoLoaded) {
-      setIsVideoLoaded(true);
+  // Simple forward loop: 2s → 6s → seek back to 2s
+  useEventListener(player, 'timeUpdate', ({ currentTime }) => {
+    if (isSeekingRef.current) return;
+
+    if (currentTime >= 6) {
+      isSeekingRef.current = true;
+      player.currentTime = 2;
+      setTimeout(() => { isSeekingRef.current = false; }, 100);
     }
+  });
 
-    const positionMillis = status.positionMillis;
-
-    try {
-      if (playingForward) {
-        // Playing forward: 2s to 6s
-        if (positionMillis >= 6000) {
-          setIsSeeking(true);
-          setPlayingForward(false);
-          await videoRef.current.setPositionAsync(6000);
-          await videoRef.current.setRateAsync(-1, true); // Play backward at 1x speed
-          setTimeout(() => setIsSeeking(false), 100);
-        }
-      } else {
-        // Playing backward: 6s to 2s
-        if (positionMillis <= 2000) {
-          setIsSeeking(true);
-          setPlayingForward(true);
-          await videoRef.current.setPositionAsync(2000);
-          await videoRef.current.setRateAsync(1, true); // Play forward at 1x speed
-          setTimeout(() => setIsSeeking(false), 100);
-        }
-      }
-    } catch (error) {
-      setIsSeeking(false);
-    }
-  };
-
-  // Initialize video when modal opens
+  // Play/pause based on modal visibility
   useEffect(() => {
-    const initVideo = async () => {
-      if (visible && videoRef.current) {
-        setIsSeeking(true);
-        setPlayingForward(true);
-        try {
-          await videoRef.current.setPositionAsync(2000);
-          await videoRef.current.setRateAsync(1, true);
-        } catch (error) {
-          console.debug('[DreamChoiceModal] Video init error');
-        } finally {
-          setTimeout(() => setIsSeeking(false), 100);
-        }
-      }
-    };
-
-    initVideo();
+    if (visible) {
+      isSeekingRef.current = true;
+      player.currentTime = 2;
+      player.play();
+      setTimeout(() => { isSeekingRef.current = false; }, 100);
+    } else {
+      player.pause();
+    }
   }, [visible]);
 
   return (
@@ -154,15 +129,11 @@ export const DreamChoiceModal: React.FC<DreamChoiceModalProps> = ({
                       },
                     ]}>
                     <View style={styles.iconCircle}>
-                      <Video
-                        ref={videoRef}
-                        source={require('../assets/animations/ondoarding/Luna floating.mp4')}
+                      <VideoView
+                        player={player}
                         style={styles.lunaVideo}
-                        resizeMode={'cover' as any}
-                        isLooping={false}
-                        shouldPlay={visible}
-                        isMuted={true}
-                        onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+                        contentFit="cover"
+                        nativeControls={false}
                       />
                     </View>
                     <Text

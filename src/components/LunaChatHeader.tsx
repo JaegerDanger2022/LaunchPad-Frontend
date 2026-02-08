@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Video, AVPlaybackStatus } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { useEventListener } from 'expo';
 
 type ChatStatus = 'rendering' | 'waiting' | 'sending';
 
@@ -9,106 +10,96 @@ interface LunaChatHeaderProps {
   borderColor?: string;
 }
 
+const videoSource = require('../assets/animations/chatbox/Chatbox.mp4');
+
 export const LunaChatHeader: React.FC<LunaChatHeaderProps> = ({
   chatStatus,
   borderColor = 'rgba(255,255,255,0.1)',
 }) => {
-  const videoRef = useRef<Video>(null);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const [isSeeking, setIsSeeking] = useState(false);
+  const isSeeking = useRef(false);
+  const chatStatusRef = useRef(chatStatus);
+  chatStatusRef.current = chatStatus;
+
+  const player = useVideoPlayer(videoSource, (player) => {
+    player.muted = true;
+    player.loop = false;
+    player.timeUpdateEventInterval = 0.1;
+    player.play();
+  });
 
   // Handle chat status changes and jump to appropriate video segment
   useEffect(() => {
-    const jumpToSegment = async () => {
-      if (!videoRef.current || !isVideoLoaded || isSeeking) return;
+    if (!isVideoLoaded || isSeeking.current) return;
 
-      setIsSeeking(true);
-      try {
-        switch (chatStatus) {
-          case 'rendering':
-            // AI is generating response with typewriter: loop 0s - 4.5s
-            await videoRef.current.setPositionAsync(0);
-            break;
-          case 'waiting':
-            // Waiting for user input: loop 5s - 9.5s
-            await videoRef.current.setPositionAsync(5000);
-            break;
-          case 'sending':
-            // User sent message / AI thinking: loop 11s - 14s
-            await videoRef.current.setPositionAsync(11000);
-            break;
-        }
-      } catch (error) {
-        // Silently handle seeking errors - they're usually harmless
-        console.debug('[LunaChatHeader] seek interrupted (normal during state changes)');
-      } finally {
-        // Small delay before allowing next seek
-        setTimeout(() => setIsSeeking(false), 100);
-      }
-    };
-
-    jumpToSegment();
-  }, [chatStatus, isVideoLoaded]);
-
-  // Handle playback status updates for manual looping
-  const handlePlaybackStatusUpdate = async (status: AVPlaybackStatus) => {
-    if (!status.isLoaded || !videoRef.current) return;
-
-    // Track when video is loaded
-    if (!isVideoLoaded) {
-      setIsVideoLoaded(true);
-    }
-
-    // Don't try to loop if we're already seeking
-    if (isSeeking) return;
-
-    const positionMillis = status.positionMillis;
-
+    isSeeking.current = true;
     try {
       switch (chatStatus) {
         case 'rendering':
-          // During rendering with typewriter, loop 0s - 4.5s
-          if (positionMillis >= 4500) {
-            setIsSeeking(true);
-            await videoRef.current.setPositionAsync(0);
-            setTimeout(() => setIsSeeking(false), 100);
+          player.currentTime = 0;
+          break;
+        case 'waiting':
+          player.currentTime = 5;
+          break;
+        case 'sending':
+          player.currentTime = 11;
+          break;
+      }
+    } catch (error) {
+      console.debug('[LunaChatHeader] seek interrupted (normal during state changes)');
+    } finally {
+      setTimeout(() => { isSeeking.current = false; }, 100);
+    }
+  }, [chatStatus, isVideoLoaded]);
+
+  // Track when video is loaded
+  useEventListener(player, 'statusChange', ({ status }) => {
+    if (status === 'readyToPlay' && !isVideoLoaded) {
+      setIsVideoLoaded(true);
+    }
+  });
+
+  // Handle playback time updates for manual looping
+  useEventListener(player, 'timeUpdate', ({ currentTime }) => {
+    if (isSeeking.current) return;
+
+    try {
+      switch (chatStatusRef.current) {
+        case 'rendering':
+          if (currentTime >= 4.5) {
+            isSeeking.current = true;
+            player.currentTime = 0;
+            setTimeout(() => { isSeeking.current = false; }, 100);
           }
           break;
         case 'waiting':
-          // Loop 5s - 9.5s while waiting for user
-          if (positionMillis >= 9500) {
-            setIsSeeking(true);
-            await videoRef.current.setPositionAsync(5000);
-            setTimeout(() => setIsSeeking(false), 100);
+          if (currentTime >= 9.5) {
+            isSeeking.current = true;
+            player.currentTime = 5;
+            setTimeout(() => { isSeeking.current = false; }, 100);
           }
           break;
         case 'sending':
-          // Loop 11s - 14s while user message is being processed
-          if (positionMillis >= 14000) {
-            setIsSeeking(true);
-            await videoRef.current.setPositionAsync(11000);
-            setTimeout(() => setIsSeeking(false), 100);
+          if (currentTime >= 14) {
+            isSeeking.current = true;
+            player.currentTime = 11;
+            setTimeout(() => { isSeeking.current = false; }, 100);
           }
           break;
       }
     } catch (error) {
-      // Silently handle seeking errors - they're usually harmless race conditions
-      setIsSeeking(false);
+      isSeeking.current = false;
     }
-  };
+  });
 
   return (
     <View style={[styles.headerContainer, { borderBottomColor: borderColor }]}>
       <View style={styles.portal}>
-        <Video
-          ref={videoRef}
-          source={require('../assets/animations/chatbox/Chatbox.mp4')}
+        <VideoView
+          player={player}
           style={styles.video}
-          resizeMode="cover"
-          isLooping={false} // Manual looping for precise control
-          shouldPlay={true}
-          isMuted={true}
-          onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+          contentFit="cover"
+          nativeControls={false}
         />
       </View>
     </View>
