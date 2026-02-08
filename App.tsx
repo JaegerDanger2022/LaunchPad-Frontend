@@ -36,9 +36,9 @@ export type RootStackParamList = {
   // Auth screens
   Login: undefined;
   Signup: undefined;
-  Timezone: { email: string; password: string; name: string };
-  NotificationTime: { email: string; password: string; name: string; timezone: string };
-  Pledge: { email: string; password: string; name: string; timezone: string; notificationTime?: string | null };
+  Timezone: { email: string; password: string; name: string; isGoogleSignUp?: boolean };
+  NotificationTime: { email: string; password: string; name: string; timezone: string; isGoogleSignUp?: boolean };
+  Pledge: { email: string; password: string; name: string; timezone: string; notificationTime?: string | null; isGoogleSignUp?: boolean };
   ForgotPassword: undefined;
 
   // App tab screens
@@ -310,9 +310,9 @@ const PaywallScreenWrapper = ({ navigation }: any) => (
 );
 
 // Auth Navigator
-function AuthNavigator() {
+function AuthNavigator({ initialRoute = 'Login' }: { initialRoute?: string }) {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRoute as any}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
       <Stack.Screen name="Timezone" component={TimezoneScreen} />
@@ -472,7 +472,7 @@ function AppNavigator() {
 }
 
 export default function App() {
-  const { isAuthenticated, loading, initializeAuth } = useAuthStore();
+  const { isAuthenticated, loading, initializeAuth, needsOnboarding } = useAuthStore();
   const { theme } = useThemeStore();
   const { initializeNotifications } = useNotificationStore();
   // Track whether the initial auth check has completed at least once.
@@ -509,13 +509,13 @@ export default function App() {
   // Show blank loading view ONLY during the very first auth check on cold start.
   // Once that's done, or if the user is already authenticated, go straight to
   // the real navigator so HomeScreen can show its own skeletons.
-  const showLoadingView = !initialCheckDone && !isAuthenticated;
+  const showLoadingView = !initialCheckDone && !isAuthenticated && !needsOnboarding;
 
   return (
     <NavigationContainer>
       {showLoadingView ? (
         <View style={{ flex: 1, backgroundColor: theme === 'light' ? Color.colorSnow : '#050938' }} />
-      ) : isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
+      ) : isAuthenticated ? <AppNavigator /> : needsOnboarding ? <AuthNavigator initialRoute="Timezone" /> : <AuthNavigator />}
       <StatusBar style={theme === 'light' ? 'dark' : 'light'} backgroundColor={theme === 'light' ? Color.colorSnow : '#050938'} />
       <Toast config={toastConfig} />
     </NavigationContainer>

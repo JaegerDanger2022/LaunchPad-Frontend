@@ -11,14 +11,16 @@ import {
 } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import * as Haptics from 'expo-haptics';
+import { useAuthStore } from '../../store/authStore';
 
 interface TimezoneScreenProps {
   navigation: any;
   route: {
-    params: {
-      email: string;
-      password: string;
-      name: string;
+    params?: {
+      email?: string;
+      password?: string;
+      name?: string;
+      isGoogleSignUp?: boolean;
     };
   };
 }
@@ -67,7 +69,11 @@ const TIMEZONES = [
 ];
 
 const TimezoneScreen = ({ navigation, route }: TimezoneScreenProps) => {
-  const { email, password, name } = route.params;
+  const { needsOnboarding } = useAuthStore();
+  const isGoogleSignUp = needsOnboarding || route.params?.isGoogleSignUp;
+  const email = route.params?.email || '';
+  const password = route.params?.password || '';
+  const name = route.params?.name || '';
 
   // Auto-detect device timezone using the same method as LangGraph agent
   const getDefaultTimezone = () => {
@@ -136,6 +142,7 @@ const TimezoneScreen = ({ navigation, route }: TimezoneScreenProps) => {
       password,
       name,
       timezone: selectedTimezone,
+      isGoogleSignUp: !!isGoogleSignUp,
     });
   };
 

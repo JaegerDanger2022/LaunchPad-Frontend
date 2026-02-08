@@ -21,17 +21,18 @@ interface PledgeScreenProps {
       name: string;
       timezone: string;
       notificationTime?: string | null;
+      isGoogleSignUp?: boolean;
     };
   };
 }
 
 const PledgeScreen = ({ navigation, route }: PledgeScreenProps) => {
-  const { email, password, name, timezone, notificationTime } = route.params;
+  const { email, password, name, timezone, notificationTime, isGoogleSignUp } = route.params;
   const [accepted, setAccepted] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const { signUp } = useAuthStore();
+  const { signUp, completeGoogleOnboarding } = useAuthStore();
 
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -68,9 +69,14 @@ const PledgeScreen = ({ navigation, route }: PledgeScreenProps) => {
     setIsLoading(true);
     setErrorMessage('');
 
-    // Create the user account first
     try {
-      await signUp(email, password, name, undefined, timezone, notificationTime);
+      if (isGoogleSignUp) {
+        // Google user already has a Firebase + MongoDB account — just save preferences
+        await completeGoogleOnboarding(timezone, notificationTime);
+      } else {
+        // Normal email/password signup
+        await signUp(email, password, name, undefined, timezone, notificationTime);
+      }
 
       // On success, fade out pledge card and show animation
       Animated.timing(fadeAnim, {

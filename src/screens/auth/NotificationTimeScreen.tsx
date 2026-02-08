@@ -19,6 +19,7 @@ interface NotificationTimeScreenProps {
       password: string;
       name: string;
       timezone: string;
+      isGoogleSignUp?: boolean;
     };
   };
 }
@@ -43,7 +44,7 @@ const NOTIFICATION_TIMES = [
 ];
 
 const NotificationTimeScreen = ({ navigation, route }: NotificationTimeScreenProps) => {
-  const { email, password, name, timezone } = route.params;
+  const { email, password, name, timezone, isGoogleSignUp } = route.params;
 
   // Default to 9:00 AM (most popular time for productivity nudges)
   const [selectedTime, setSelectedTime] = useState<string>('09:00');
@@ -95,6 +96,7 @@ const NotificationTimeScreen = ({ navigation, route }: NotificationTimeScreenPro
       name,
       timezone,
       notificationTime: enableNotifications ? selectedTime : null,
+      isGoogleSignUp: !!isGoogleSignUp,
     });
   };
 

@@ -14,7 +14,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { ensureGoogleSignInInitialized, isGoogleSignInAvailable } from '../config/googleSignIn';
-import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI, updateStreak as updateStreakAPI, getStreak, FetchUserDataOptions, fetchDreamDetails, fetchDreamsList, updatePlan, addMilestoneToRoadmap } from '../config/api';
+import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI, updateStreak as updateStreakAPI, getStreak, FetchUserDataOptions, fetchDreamDetails, fetchDreamsList, updatePlan, addMilestoneToRoadmap, updateUserTimezone, updateUserNotificationPreferences } from '../config/api';
 import { findNextIncompleteMilestone } from '../utils/upNextHelper';
 import { StreakData } from '../types/index';
 import * as SecureStore from 'expo-secure-store';
@@ -63,12 +63,15 @@ interface AuthState {
   isAuthenticated: boolean;
   isPremium: boolean;
   isNewSignup: boolean;
+  needsOnboarding: boolean;
+  pendingGoogleUser: User | null;
 
   // Actions
   refreshPremiumStatus: () => Promise<void>;
   signUp: (email: string, password: string, firstName: string, lastName?: string, timezone?: string, notificationTime?: string | null) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   googleSignIn: () => Promise<void>;
+  completeGoogleOnboarding: (timezone: string, notificationTime?: string | null) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
@@ -93,6 +96,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   isPremium: false,
   isNewSignup: false,
+  needsOnboarding: false,
+  pendingGoogleUser: null,
 
   refreshPremiumStatus: async () => {
     const active = await checkEntitlement(ENTITLEMENT_ID);
@@ -110,6 +115,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     onAuthStateChanged(auth, async (user) => {
       try {
         if (user) {
+          // If user is mid-onboarding (Google sign-up), don't auto-authenticate
+          if (useAuthStore.getState().needsOnboarding) {
+            set({ loading: false });
+            return;
+          }
+
           // Store user token securely
           const token = await user.getIdToken();
           await SecureStore.setItemAsync('userToken', token);
@@ -241,11 +252,42 @@ export const useAuthStore = create<AuthState>((set) => ({
           // Don't block login flow on RevenueCat error
         }
 
-        // Load user data from MongoDB - use 'essential' fields for faster login
-        const userData = await fetchUserData(userCredential.user.uid, { fields: 'essential' });
-        const mappedData = mapDreamsSummaryToDreams(userData);
-        set({ user: userCredential.user, userData: mappedData, isAuthenticated: true, loading: false });
-        useAuthStore.getState().refreshDreamsFromCrud(userCredential.user.uid);
+        // Check if user already exists in MongoDB
+        let userData = await fetchUserData(userCredential.user.uid, { fields: 'essential' });
+
+        // If no user doc exists, this is a first-time Google sign-in — register them
+        // but DON'T authenticate yet. Route through onboarding first.
+        if (!userData) {
+          const firebaseUser = userCredential.user;
+          const displayName = firebaseUser.displayName || '';
+          const nameParts = displayName.split(' ');
+          const firstName = nameParts[0] || '';
+          const lastName = nameParts.slice(1).join(' ') || '';
+
+          await registerUserToDatabase({
+            user_id: firebaseUser.uid,
+            firstname: firstName,
+            lastname: lastName,
+            email: firebaseUser.email || '',
+          });
+
+          // Don't set isAuthenticated — user needs to complete onboarding first
+          set({
+            isNewSignup: true,
+            needsOnboarding: true,
+            pendingGoogleUser: userCredential.user,
+            loading: false,
+          });
+          return;
+        }
+
+        if (userData) {
+          const mappedData = mapDreamsSummaryToDreams(userData);
+          set({ user: userCredential.user, userData: mappedData, isAuthenticated: true, loading: false });
+          useAuthStore.getState().refreshDreamsFromCrud(userCredential.user.uid);
+        } else {
+          set({ user: userCredential.user, isAuthenticated: true, loading: false });
+        }
       } else {
         throw new Error('No ID token from Google Sign-In');
       }
@@ -279,6 +321,48 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
+  completeGoogleOnboarding: async (timezone: string, notificationTime?: string | null) => {
+    try {
+      set({ loading: true, error: null });
+      const pendingUser = useAuthStore.getState().pendingGoogleUser;
+      if (!pendingUser) {
+        throw new Error('No pending Google user found');
+      }
+
+      // Update timezone and notification preferences on the already-created user doc
+      await updateUserTimezone(pendingUser.uid, timezone);
+      if (notificationTime !== undefined) {
+        await updateUserNotificationPreferences(pendingUser.uid, notificationTime);
+      }
+
+      // Now load user data and authenticate
+      const userData = await fetchUserData(pendingUser.uid, { fields: 'essential' });
+      if (userData) {
+        const mappedData = mapDreamsSummaryToDreams(userData);
+        set({
+          user: pendingUser,
+          userData: mappedData,
+          isAuthenticated: true,
+          loading: false,
+          needsOnboarding: false,
+          pendingGoogleUser: null,
+        });
+        useAuthStore.getState().refreshDreamsFromCrud(pendingUser.uid);
+      } else {
+        set({
+          user: pendingUser,
+          isAuthenticated: true,
+          loading: false,
+          needsOnboarding: false,
+          pendingGoogleUser: null,
+        });
+      }
+    } catch (error: any) {
+      set({ error: error.message || 'Failed to complete onboarding', loading: false });
+      throw error;
+    }
+  },
+
   logout: async () => {
     try {
       set({ loading: true });
@@ -293,7 +377,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       await signOut(auth);
       await SecureStore.deleteItemAsync('userToken').catch(() => {});
-      set({ user: null, userData: null, isAuthenticated: false, loading: false });
+      set({ user: null, userData: null, isAuthenticated: false, loading: false, needsOnboarding: false, pendingGoogleUser: null });
     } catch (error: any) {
       const errorMessage = getErrorMessage(error.code);
       set({ error: errorMessage, loading: false });

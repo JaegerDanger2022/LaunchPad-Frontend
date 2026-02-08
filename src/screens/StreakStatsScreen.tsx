@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { View, Text, ScrollView, StyleSheet, Animated, PanResponder, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { Color, getThemeColors } from '../constants/GlobalStyles';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
@@ -116,36 +116,39 @@ export const StreakStatsScreen = ({ onNavigate }: { onNavigate?: (screen: string
 
           <ScrollView style={styles.container}>
         {/* Current Streak Card */}
-        <LinearGradient
-          colors={['#A855F7', '#6366F1']}
+        <BlurView
+          intensity={40}
+          tint="dark"
           style={styles.statCard}
         >
           <Text style={styles.statEmoji}>🔥</Text>
           <Text style={styles.statNumber}>{streakData.current_streak}</Text>
           <Text style={styles.statLabel}>Day Streak</Text>
-        </LinearGradient>
+        </BlurView>
 
         {/* Stats Grid */}
         <View style={styles.grid}>
           {/* Longest Streak */}
-          <LinearGradient
-            colors={['#A855F7', '#6366F1']}
+          <BlurView
+            intensity={40}
+            tint="dark"
             style={styles.gridCard}
           >
             <Text style={styles.gridEmoji}>🏆</Text>
             <Text style={styles.gridNumber}>{streakData.longest_streak}</Text>
             <Text style={styles.gridLabel}>Best Streak</Text>
-          </LinearGradient>
+          </BlurView>
 
           {/* Total Completions */}
-          <LinearGradient
-            colors={['#A855F7', '#6366F1']}
+          <BlurView
+            intensity={40}
+            tint="dark"
             style={styles.gridCard}
           >
             <Text style={styles.gridEmoji}>✅</Text>
             <Text style={styles.gridNumber}>{streakData.total_completions}</Text>
             <Text style={styles.gridLabel}>Completed</Text>
-          </LinearGradient>
+          </BlurView>
         </View>
 
         {/* Achievements Section */}
@@ -240,6 +243,10 @@ const styles = StyleSheet.create({
     padding: 32,
     alignItems: 'center',
     marginBottom: 24,
+    backgroundColor: 'rgba(43, 45, 86, 0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(168, 85, 247, 0.3)',
+    overflow: 'hidden',
   },
   statEmoji: {
     fontSize: 48,
@@ -265,6 +272,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
+    backgroundColor: 'rgba(43, 45, 86, 0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(168, 85, 247, 0.3)',
+    overflow: 'hidden',
   },
   gridEmoji: {
     fontSize: 32,
