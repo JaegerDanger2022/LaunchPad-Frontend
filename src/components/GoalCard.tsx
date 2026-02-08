@@ -93,7 +93,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({ data, onPress }) => {
                 flex: 1,
                 marginRight: 10,
               }}>
-              {data.title.length > 20 ? data.title.slice(0, 20) + "…" : data.title}
+              {(() => { const t = data.title.charAt(0).toUpperCase() + data.title.slice(1); return t.length > 20 ? t.slice(0, 20) + "…" : t; })()}
             </Text>
             <View
               style={{

@@ -62,6 +62,7 @@ interface AuthState {
   error: string | null;
   isAuthenticated: boolean;
   isPremium: boolean;
+  isNewSignup: boolean;
 
   // Actions
   refreshPremiumStatus: () => Promise<void>;
@@ -91,6 +92,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   error: null,
   isAuthenticated: false,
   isPremium: false,
+  isNewSignup: false,
 
   refreshPremiumStatus: async () => {
     const active = await checkEntitlement(ENTITLEMENT_ID);
@@ -173,7 +175,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         // Load user data immediately after registration - use 'essential' fields
         const userData = await fetchUserData(userCredential.user.uid, { fields: 'essential' });
         const mappedData = mapDreamsSummaryToDreams(userData);
-        set({ user: userCredential.user, userData: mappedData, isAuthenticated: true, loading: false });
+        set({ user: userCredential.user, userData: mappedData, isAuthenticated: true, loading: false, isNewSignup: true });
       } else {
         set({ user: userCredential.user, isAuthenticated: true, loading: false });
       }

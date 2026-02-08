@@ -5,7 +5,7 @@ import {
   addNotificationReceivedListener,
   addNotificationResponseReceivedListener,
 } from '../services/notificationService';
-import { savePushToken, updateLastActivity as updateLastActivityAPI } from '../config/api';
+import { savePushToken, updateLastActivity as updateLastActivityAPI, sendWelcomeNotification } from '../config/api';
 import { useAuthStore } from './authStore';
 
 export interface NotificationPreferences {
@@ -52,6 +52,14 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
         // Save token to backend
         await get().savePushTokenToBackend(tokenData.token);
+
+        // Send welcome notification for new signups (after token is saved)
+        const authState = useAuthStore.getState();
+        if (authState.isNewSignup && authState.user?.uid) {
+          console.log('[NotificationStore] New signup detected, sending welcome notification');
+          sendWelcomeNotification(authState.user.uid);
+          useAuthStore.setState({ isNewSignup: false });
+        }
       } else {
         console.warn('[NotificationStore] Failed to obtain push token');
       }

@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, Animated } from 'react-native';
 import { NavigationContainer, NavigationProp, useFocusEffect } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -475,6 +475,10 @@ export default function App() {
   const { isAuthenticated, loading, initializeAuth } = useAuthStore();
   const { theme } = useThemeStore();
   const { initializeNotifications } = useNotificationStore();
+  // Track whether the initial auth check has completed at least once.
+  // After that, never show the blank loading view again — let the real
+  // screens (auth or home with skeletons) handle their own loading states.
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
 
   useEffect(() => {
     // Initialize RevenueCat SDK
@@ -487,6 +491,13 @@ export default function App() {
     initializeAuth();
   }, []);
 
+  // Mark initial check done once loading flips to false for the first time
+  useEffect(() => {
+    if (!loading && !initialCheckDone) {
+      setInitialCheckDone(true);
+    }
+  }, [loading, initialCheckDone]);
+
   // Initialize notifications after user is authenticated
   useEffect(() => {
     if (isAuthenticated && !loading) {
@@ -495,9 +506,14 @@ export default function App() {
     }
   }, [isAuthenticated, loading]);
 
+  // Show blank loading view ONLY during the very first auth check on cold start.
+  // Once that's done, or if the user is already authenticated, go straight to
+  // the real navigator so HomeScreen can show its own skeletons.
+  const showLoadingView = !initialCheckDone && !isAuthenticated;
+
   return (
     <NavigationContainer>
-      {loading ? (
+      {showLoadingView ? (
         <View style={{ flex: 1, backgroundColor: theme === 'light' ? Color.colorSnow : '#050938' }} />
       ) : isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
       <StatusBar style={theme === 'light' ? 'dark' : 'light'} backgroundColor={theme === 'light' ? Color.colorSnow : '#050938'} />

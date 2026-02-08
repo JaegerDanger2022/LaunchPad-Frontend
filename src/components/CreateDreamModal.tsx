@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   Animated,
   StyleSheet,
+  Keyboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -270,11 +271,6 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
     setSending(true);
     setChatStatus('sending');
 
-    // Keep keyboard open by refocusing after a brief delay
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 100);
-
     try {
       let accumulatedMessage = '';
       console.log('[CreateDreamModal] Sending conversation turn:', text);
@@ -295,6 +291,9 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
         onDreamCreating?.();
       } else {
         console.log('[CreateDreamModal] Conversation continuing, showing AI response');
+        // Clear user message instantly so AI response is shown clearly
+        setCurrentUserMessage('');
+        userMessageOpacity.setValue(1);
         // Replace AI message with new response
         replaceAiMessage(accumulatedMessage);
       }
@@ -344,7 +343,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
             behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
             keyboardVerticalOffset={Platform.OS === 'android' ? -insets.bottom : 0}
             style={styles.keyboardView}>
-            <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+            <TouchableWithoutFeedback onPress={(e) => { e.stopPropagation(); Keyboard.dismiss(); }}>
               <View
                 style={[
                   styles.modalContent,
@@ -443,7 +442,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
                     </Text>
                   </View>
                 ) : (
-                  <View style={styles.inputRow}>
+                  <View style={styles.inputRow} onStartShouldSetResponder={() => true}>
                     <TextInput
                       ref={inputRef}
                       style={[

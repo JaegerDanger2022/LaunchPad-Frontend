@@ -50,6 +50,7 @@ interface CommunityState {
 const initialFilters: CommunityFilters = {
   categories: [],
   timeframe: 'all',
+  cardType: 'all',
 };
 
 export const useCommunityStore = create<CommunityState>((set) => ({

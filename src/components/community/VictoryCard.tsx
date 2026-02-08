@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
+import { Bookmark } from "lucide-react-native";
 import { VictoryCard as VictoryCardType } from "../../types/community";
 import { CATEGORY_COLORS } from "../../constants/communityColors";
 import { ChallengeTypeColors } from "../../constants/GlobalStyles";
@@ -14,6 +15,8 @@ interface VictoryCardProps {
   victory: VictoryCardType;
   onBoost?: (victoryId: string) => void;
   onMeToo?: (victoryId: string) => void;
+  onPin?: (victoryId: string) => void;
+  isPinned?: boolean;
   onPermission?: (victoryId: string) => void;
   onViewPermissions?: (victoryId: string) => void;
   onPress?: () => void;
@@ -23,6 +26,8 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
   victory,
   onBoost,
   onMeToo,
+  onPin,
+  isPinned = false,
   onPermission,
   onViewPermissions,
   onPress,
@@ -65,19 +70,35 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
         activeOpacity={0.85}
         style={{ overflow: 'hidden', borderRadius: 20 }}>
         <BlurView intensity={80} tint="dark" style={styles.glassBody}>
-        {/* Top row: checkmark badge + category tag */}
+        {/* Top row: checkmark badge + category tag + pin */}
         <View style={styles.topRow}>
           <View style={[styles.victoryBadge, { borderColor: categoryColor + "66" }]}>
             <Text style={[styles.checkmark, { color: categoryColor }]}>✓</Text>
             <Text style={styles.victoryLabel}>MILESTONE</Text>
           </View>
-          {challengeTypeLabel && (
-            <View style={[styles.challengeTypeBadge, { backgroundColor: categoryColor + "33", borderColor: categoryColor + "66" }]}>
-              <Text style={[styles.challengeTypeText, { color: categoryColor }]}>
-                {challengeTypeLabel}
-              </Text>
-            </View>
-          )}
+          <View style={styles.topRowRight}>
+            {challengeTypeLabel && (
+              <View style={[styles.challengeTypeBadge, { backgroundColor: categoryColor + "33", borderColor: categoryColor + "66" }]}>
+                <Text style={[styles.challengeTypeText, { color: categoryColor }]}>
+                  {challengeTypeLabel}
+                </Text>
+              </View>
+            )}
+            {onPin && (
+              <TouchableOpacity
+                style={[styles.pinButton, isPinned && styles.pinButtonActive]}
+                onPress={() => onPin(victory.id)}
+                activeOpacity={0.6}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Bookmark
+                  size={16}
+                  color={isPinned ? "#FBF124" : "rgba(255, 255, 255, 0.5)"}
+                  fill={isPinned ? "#FBF124" : "none"}
+                  strokeWidth={2}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* Milestone title */}
@@ -192,11 +213,30 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     color: "rgba(255, 255, 255, 0.85)",
   },
+  topRowRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   challengeTypeBadge: {
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 12,
     borderWidth: 1,
+  },
+  pinButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+  },
+  pinButtonActive: {
+    backgroundColor: "rgba(251, 241, 36, 0.12)",
+    borderColor: "rgba(251, 241, 36, 0.3)",
   },
   challengeTypeText: {
     fontSize: 10,

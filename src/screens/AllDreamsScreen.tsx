@@ -26,6 +26,7 @@ import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { StreakBadge } from "../components/streak/StreakBadge";
 import { fetchDreamsList } from "../config/api";
+import { scheduleLocalNotification } from "../services/notificationService";
 
 const dreamCreatingPhrases = [
   "Catching your dream…",
@@ -180,6 +181,11 @@ const AllDreamsScreen = ({
           stopPolling();
           await refreshDreamsFromCrud(uid);
           setIsCreating(false);
+          scheduleLocalNotification(
+            "Your dream is ready!",
+            "Luna finished building your roadmap. Jump in and start your first milestone.",
+            { type: "dream_ready" },
+          );
         }
       } catch {
         // keep polling on transient errors
@@ -189,8 +195,15 @@ const AllDreamsScreen = ({
     const init = async () => {
       try {
         const res = await fetchDreamsList(uid, { summary: true });
+        // Only treat dreams that already have milestones as "known".
+        // The new dream may already exist in the DB (conversation_complete
+        // fires after the dream doc is created) but won't have milestones
+        // yet, so we must NOT add it to knownDreamIds — otherwise the poll
+        // will never detect it becoming "ready".
         knownDreamIds.current = new Set(
-          (res.dreams || []).map((d: any) => d.thread_id as string),
+          (res.dreams || [])
+            .filter((d: any) => (d.milestones_count || 0) > 0)
+            .map((d: any) => d.thread_id as string),
         );
       } catch {
         knownDreamIds.current = new Set();
@@ -497,7 +510,7 @@ const AllDreamsScreen = ({
         <View
           style={{
             position: "absolute",
-            bottom: 100,
+            bottom: 110,
             left: 0,
             right: 0,
             alignItems: "center",

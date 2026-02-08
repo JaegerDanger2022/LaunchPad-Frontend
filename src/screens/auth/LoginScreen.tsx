@@ -13,6 +13,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { EyeIcon, EyeOffIcon } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import Svg, { Path, G } from "react-native-svg";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DarkTheme, Color } from "../../constants/GlobalStyles";
 import { useAuthStore } from "../../store/authStore";
 
@@ -44,6 +45,7 @@ const LoginScreen = ({ navigation }: any) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { login, googleSignIn, loading, error, clearError } = useAuthStore();
+  const insets = useSafeAreaInsets();
 
   const isValidEmail = (e: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -320,7 +322,8 @@ const LoginScreen = ({ navigation }: any) => {
               alignItems: "center",
               gap: 4,
               marginTop: "auto",
-              paddingVertical: 40,
+              paddingTop: 40,
+              paddingBottom: Math.max(insets.bottom + 16, 40),
             }}>
             <Text
               style={{

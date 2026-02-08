@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path } from "react-native-svg";
+import { ChevronLeft } from "lucide-react-native";
 import {
   Color,
   getThemeColors,
@@ -368,14 +369,14 @@ const MilestoneScreen = ({
               <TouchableOpacity
                 onPress={handleClose}
                 style={{
-                  width: 40,
-                  height: 40,
-                  backgroundColor: "rgba(255, 255, 255, 0.2)",
+                  width: 48,
+                  height: 48,
+                  backgroundColor: "rgba(0, 0, 0, 0.3)",
                   borderRadius: 12,
                   alignItems: "center",
                   justifyContent: "center",
                 }}>
-                <Text style={{ color: Color.colorBlack, fontSize: 20 }}>←</Text>
+                <ChevronLeft size={24} color={Color.colorWhite} strokeWidth={2.5} />
               </TouchableOpacity>
               <Text
                 style={{
@@ -383,7 +384,7 @@ const MilestoneScreen = ({
                   fontSize: 18,
                   fontWeight: "600",
                 }}>
-                Goal
+                Milestone
               </Text>
               <View style={{ width: 40 }} />
             </View>

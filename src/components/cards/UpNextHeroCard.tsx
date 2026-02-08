@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, Animated } from "react-native";
 import { BlurView } from "expo-blur";
 import { Lock } from "lucide-react-native";
-import { ClockIcon, LightningIcon, ArrowRightIcon } from "../icons/SVGIcons";
+import { LightningIcon, ArrowRightIcon } from "../icons/SVGIcons";
 import { Color, ChallengeTypeColors } from "../../constants/GlobalStyles";
 import { useThemeStore } from "../../store/themeStore";
 
@@ -134,40 +134,13 @@ export const UpNextHeroCard: React.FC<UpNextHeroCardProps> = ({
             flexDirection: "row",
             gap: 12,
           }}>
-          {/* Time Chip */}
+          {/* Courage Points Chip */}
           <View
             style={{
               flexDirection: "row",
               alignItems: "center",
               gap: 6,
-              backgroundColor:
-                theme === "light" ? "#f0f0f0" : Color.colorDarkgray,
-              borderRadius: 8,
-              height: 32,
-              paddingHorizontal: 10,
-            }}>
-            <ClockIcon
-              size={16}
-              color={theme === "light" ? "#666666" : "#a29f9b"}
-            />
-            <Text
-              style={{
-                color: theme === "light" ? Color.colorBlack : Color.colorWhite,
-                fontSize: 14,
-                fontFamily: "InstrumentSans-Bold",
-                fontWeight: "700",
-              }}>
-              {timeMinutes} min
-            </Text>
-          </View>
-
-          {/* XP Chip */}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 6,
-              backgroundColor: "#bdf1cd",
+              backgroundColor: isDark ? "rgba(168,85,247,0.25)" : "#6B21A8",
               borderRadius: 8,
               height: 32,
               paddingHorizontal: 10,
@@ -175,15 +148,12 @@ export const UpNextHeroCard: React.FC<UpNextHeroCardProps> = ({
             <LightningIcon size={16} color="#ff9000" />
             <Text
               style={{
-                color:
-                  theme === "light"
-                    ? Color.colorDarkorange
-                    : Color.colorWhite,
+                color: Color.colorWhite,
                 fontSize: 14,
                 fontFamily: "InstrumentSans-Bold",
                 fontWeight: "700",
               }}>
-              +{xpPoints} XP
+              +{xpPoints} Courage Points
             </Text>
           </View>
 

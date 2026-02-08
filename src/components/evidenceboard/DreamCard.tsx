@@ -105,7 +105,7 @@ export const DreamCard: React.FC<DreamCardProps> = ({
           </View>
 
           <Text style={[styles.title, { color: textColor }]}>
-            {dream.title}
+            {dream.title.charAt(0).toUpperCase() + dream.title.slice(1)}
           </Text>
 
           <View style={styles.bottomRow}>

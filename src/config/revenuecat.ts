@@ -1,5 +1,6 @@
 import Purchases, { LOG_LEVEL, PurchasesPackage } from "react-native-purchases";
-import { Linking } from "react-native";
+import RevenueCatUI from "react-native-purchases-ui";
+import { Linking, Platform } from "react-native";
 import Constants from "expo-constants";
 
 // RevenueCat Configuration
@@ -134,22 +135,28 @@ export async function restorePurchases() {
 }
 
 /**
- * Open the platform-native subscription management page (cancel, upgrade, etc.)
- * Returns true if the URL was available and opened, false otherwise.
+ * Present RevenueCat's Customer Center in-app UI for subscription management.
+ * Falls back to the platform's subscription settings if Customer Center fails.
  */
 export async function showManageSubscriptions(): Promise<boolean> {
   try {
-    const customerInfo = await Purchases.getCustomerInfo();
-    const url = customerInfo.managementURL;
-    if (url) {
-      await Linking.openURL(url);
-      console.log("[RevenueCat] Opened subscription management URL");
-      return true;
-    }
-    console.warn("[RevenueCat] No managementURL available");
-    return false;
+    await RevenueCatUI.presentCustomerCenter();
+    console.log("[RevenueCat] Presented Customer Center");
+    return true;
   } catch (error) {
-    console.error("[RevenueCat] Error opening subscription management:", error);
-    return false;
+    console.warn("[RevenueCat] Customer Center failed, falling back:", error);
+
+    // Fallback: open the platform's subscription settings directly
+    try {
+      const fallbackUrl =
+        Platform.OS === "ios"
+          ? "https://apps.apple.com/account/subscriptions"
+          : "https://play.google.com/store/account/subscriptions";
+      await Linking.openURL(fallbackUrl);
+      return true;
+    } catch (fallbackError) {
+      console.error("[RevenueCat] Fallback also failed:", fallbackError);
+      return false;
+    }
   }
 }

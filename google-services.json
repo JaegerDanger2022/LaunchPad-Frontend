@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "191645644567-3kho3qm7ehuai51d6bseel5mdlaj88rd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.launchpad.app",
+            "certificate_hash": "60efc4c0fade2f641ea19e7a1d8a5c39a0fd8c19"
+          }
+        },
+        {
+          "client_id": "191645644567-agobr9n0kgfcdh38pntjhc2vpcjiv8pu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.launchpad.app",
+            "certificate_hash": "09e4cdbd7a0a6b3fb9efb4c35af919f95421e6d5"
+          }
+        },
+        {
           "client_id": "191645644567-vr3nnmpn79jdrd770jt3m7mjq2hqpu3n.apps.googleusercontent.com",
           "client_type": 3
         }

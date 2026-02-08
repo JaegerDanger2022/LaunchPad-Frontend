@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
+import { Bookmark } from "lucide-react-native";
 import { JourneyRecap } from "../../types/community";
 import { CATEGORY_COLORS } from "../../constants/communityColors";
 import { CategoryBadge } from "./CategoryBadge";
@@ -13,6 +14,8 @@ interface JourneyRecapCardProps {
   journeyRecap: JourneyRecap;
   onBoost?: (journeyId: string) => void;
   onMeToo?: (journeyId: string) => void;
+  onPin?: (journeyId: string) => void;
+  isPinned?: boolean;
   onPermission?: (journeyId: string) => void;
   onViewPermissions?: (journeyId: string) => void;
   onPress?: () => void;
@@ -22,6 +25,8 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
   journeyRecap,
   onBoost,
   onMeToo,
+  onPin,
+  isPinned = false,
   onPermission,
   onViewPermissions,
   onPress,
@@ -50,13 +55,29 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
         activeOpacity={0.85}
         style={{ overflow: 'hidden', borderRadius: 20 }}>
         <BlurView intensity={80} tint="dark" style={styles.glassBody}>
-        {/* Top row: star badge + category tag */}
+        {/* Top row: star badge + category tag + pin */}
         <View style={styles.topRow}>
           <View style={[styles.journeyBadge, { borderColor: categoryColor + "66" }]}>
             <Text style={[styles.star, { color: categoryColor }]}>⭐</Text>
             <Text style={styles.journeyLabel}>JOURNEY COMPLETE</Text>
           </View>
-          <CategoryBadge category={journeyRecap.dreamCategory} size="small" color={categoryColor} />
+          <View style={styles.topRowRight}>
+            <CategoryBadge category={journeyRecap.dreamCategory} size="small" color={categoryColor} />
+            {onPin && (
+              <TouchableOpacity
+                style={[styles.pinButton, isPinned && styles.pinButtonActive]}
+                onPress={() => onPin(journeyRecap.id)}
+                activeOpacity={0.6}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Bookmark
+                  size={16}
+                  color={isPinned ? "#FBF124" : "rgba(255, 255, 255, 0.5)"}
+                  fill={isPinned ? "#FBF124" : "none"}
+                  strokeWidth={2}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* Dream title */}
@@ -171,6 +192,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  topRowRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   journeyBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -180,6 +206,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     backgroundColor: "rgba(255, 255, 255, 0.06)",
+  },
+  pinButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+  },
+  pinButtonActive: {
+    backgroundColor: "rgba(251, 241, 36, 0.12)",
+    borderColor: "rgba(251, 241, 36, 0.3)",
   },
   star: {
     fontSize: 16,

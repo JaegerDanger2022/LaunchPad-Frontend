@@ -18,9 +18,9 @@ import { getThemeColors, Color } from '../constants/GlobalStyles';
 import { useFocusEffect } from '@react-navigation/native';
 import { VictoryCard as VictoryCardComponent } from '../components/community/VictoryCard';
 import { JourneyRecapCard } from '../components/community/JourneyRecapCard';
-import { VictoryCard, DreamCategory, PermissionSlip, PermissionType, CommunityFeedItem } from '../types/community';
+import { VictoryCard, DreamCategory, PermissionSlip, PermissionType, CommunityFeedItem, CardTypeFilter } from '../types/community';
 import { CATEGORY_LABELS } from '../constants/communityColors';
-import { fetchVictories } from '../config/api';
+import { fetchVictories, togglePinInspiration } from '../config/api';
 import Toast from 'react-native-toast-message';
 import { BottomNavbar } from '../components/BottomNavbar';
 import { PermissionSlipModal } from '../components/community/PermissionSlipModal';
@@ -47,6 +47,12 @@ const TIME_OPTIONS = [
   { label: 'All Time', value: 'all' },
   { label: 'This Week', value: 'week' },
   { label: 'This Month', value: 'month' },
+];
+
+const TYPE_OPTIONS: Array<{ label: string; value: CardTypeFilter }> = [
+  { label: 'All Types', value: 'all' },
+  { label: 'Milestones', value: 'victory_card' },
+  { label: 'Journey Recaps', value: 'journey_recap' },
 ];
 
 interface CommunityScreenProps {
@@ -82,12 +88,16 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
   const [refreshing, setRefreshing] = useState(false);
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const [showTimeMenu, setShowTimeMenu] = useState(false);
+  const [showTypeMenu, setShowTypeMenu] = useState(false);
 
   // Permission slip modals
   const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [selectedVictoryForPermission, setSelectedVictoryForPermission] = useState<VictoryCard | null>(null);
   const [showPermissionsList, setShowPermissionsList] = useState(false);
   const [permissionsToView, setPermissionsToView] = useState<PermissionSlip[]>([]);
+
+  // Pinned items (saved to inspiration)
+  const [pinnedItems, setPinnedItems] = useState<Set<string>>(new Set());
 
   // Scroll ref for scroll-to-top button
   const scrollRef = useRef<ScrollView>(null);
@@ -196,6 +206,14 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
     });
   };
 
+  const handleTypeChange = (value: string) => {
+    setShowTypeMenu(false);
+    setFilters({
+      ...filters,
+      cardType: value as CardTypeFilter,
+    });
+  };
+
   // Boost handler with optimistic update
   const handleBoost = async (victoryId: string) => {
     // Optimistic UI update
@@ -296,7 +314,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
       Toast.show({
         type: 'success',
         text1: result.added ? 'Me Too! 👥' : 'Removed',
-        text2: result.added ? 'Victory saved to your inspirations' : 'Removed from inspirations',
+        text2: result.added ? 'You resonate with this' : 'Resonance removed',
         visibilityTime: 2000,
       });
     } catch (err) {
@@ -311,6 +329,64 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
       Toast.show({
         type: 'error',
         text1: 'Failed to toggle Me Too',
+        text2: 'Please try again',
+        visibilityTime: 2000,
+      });
+    }
+  };
+
+  // Pin to inspiration handler
+  const handlePin = async (itemId: string) => {
+    if (!user?.uid) return;
+
+    const wasPinned = pinnedItems.has(itemId);
+
+    // Optimistic UI update
+    setPinnedItems(prev => {
+      const next = new Set(prev);
+      if (wasPinned) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
+      return next;
+    });
+
+    try {
+      const result = await togglePinInspiration(itemId, user.uid);
+
+      // Sync with server state
+      setPinnedItems(prev => {
+        const next = new Set(prev);
+        if (result.pinned) {
+          next.add(itemId);
+        } else {
+          next.delete(itemId);
+        }
+        return next;
+      });
+
+      Toast.show({
+        type: 'success',
+        text1: result.pinned ? 'Saved to Inspiration 📌' : 'Removed from Inspiration',
+        text2: result.pinned ? 'Find it in your Inspiration tab' : 'Unpinned from inspirations',
+        visibilityTime: 2000,
+      });
+    } catch (err) {
+      // Rollback optimistic update
+      setPinnedItems(prev => {
+        const next = new Set(prev);
+        if (wasPinned) {
+          next.add(itemId);
+        } else {
+          next.delete(itemId);
+        }
+        return next;
+      });
+
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to save',
         text2: 'Please try again',
         visibilityTime: 2000,
       });
@@ -434,6 +510,15 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
     (t) => t.value === filters.timeframe
   )?.label;
 
+  const currentTypeLabel = TYPE_OPTIONS.find(
+    (t) => t.value === filters.cardType
+  )?.label;
+
+  // Client-side type filtering
+  const filteredFeedItems = filters.cardType === 'all'
+    ? feedItems
+    : feedItems.filter(item => item.type === filters.cardType);
+
   const styles = createStyles(themeColors);
 
   // Bottom navbar height + safe area
@@ -452,7 +537,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
         backgroundColor={themeColors.bg_secondary}
         backgroundImage={require('../assets/images/community.png')}
         title="🏆 Victory Wall"
-        subtitle={`Proof of action, not perfection • ${feedItems.length} ${feedItems.length === 1 ? 'post' : 'posts'}`}
+        subtitle={`Proof of action, not perfection • ${filteredFeedItems.length} ${filteredFeedItems.length === 1 ? 'post' : 'posts'}`}
         titleStyle={{
           fontSize: 28,
           fontWeight: 'bold',
@@ -492,7 +577,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
           <View style={styles.filterButtonContainer}>
             <TouchableOpacity
               style={styles.filterButton}
-              onPress={() => setShowCategoryMenu(!showCategoryMenu)}
+              onPress={() => { setShowCategoryMenu(!showCategoryMenu); setShowTypeMenu(false); setShowTimeMenu(false); }}
             >
               <Text style={styles.filterButtonText} numberOfLines={1}>
                 {currentCategoryLabel} ▼
@@ -533,11 +618,52 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
             )}
           </View>
 
+          {/* Type Filter */}
+          <View style={styles.filterButtonContainer}>
+            <TouchableOpacity
+              style={styles.filterButton}
+              onPress={() => { setShowTypeMenu(!showTypeMenu); setShowCategoryMenu(false); setShowTimeMenu(false); }}
+            >
+              <Text style={styles.filterButtonText} numberOfLines={1}>
+                {currentTypeLabel} ▼
+              </Text>
+            </TouchableOpacity>
+            {showTypeMenu && (
+              <View style={styles.dropdown}>
+                <ScrollView
+                  style={styles.dropdownScroll}
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled={true}
+                >
+                  {TYPE_OPTIONS.map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={styles.dropdownItem}
+                      onPress={() => handleTypeChange(option.value)}
+                    >
+                      <Text
+                        style={[
+                          styles.dropdownItemText,
+                          filters.cardType === option.value &&
+                          styles.dropdownItemActive,
+                        ]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
+
           {/* Time Filter */}
           <View style={styles.filterButtonContainer}>
             <TouchableOpacity
               style={styles.filterButton}
-              onPress={() => setShowTimeMenu(!showTimeMenu)}
+              onPress={() => { setShowTimeMenu(!showTimeMenu); setShowCategoryMenu(false); setShowTypeMenu(false); }}
             >
               <Text style={styles.filterButtonText} numberOfLines={1}>
                 {currentTimeLabel} ▼
@@ -584,7 +710,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
           <VictoryCardSkeleton />
           <VictoryCardSkeleton />
         </>
-      ) : feedItems.length === 0 && !loading && !refreshing ? (
+      ) : filteredFeedItems.length === 0 && !loading && !refreshing ? (
         renderEmpty()
       ) : (
         <>
@@ -596,7 +722,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
               <VictoryCardSkeleton />
             </>
           ) : (
-            feedItems.map((item) => {
+            filteredFeedItems.map((item) => {
               const isOwnPost = item.userId === user?.uid;
 
               // Debug logging
@@ -617,6 +743,8 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
                     journeyRecap={item}
                     onBoost={!isOwnPost ? handleBoost : undefined}
                     onMeToo={!isOwnPost ? handleMeToo : undefined}
+                    onPin={!isOwnPost ? handlePin : undefined}
+                    isPinned={pinnedItems.has(item.id)}
                     onPermission={!isOwnPost ? handlePermissionClick : undefined}
                     onViewPermissions={handleViewPermissions}
                   />
@@ -629,6 +757,8 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
                     victory={item}
                     onBoost={!isOwnPost ? handleBoost : undefined}
                     onMeToo={!isOwnPost ? handleMeToo : undefined}
+                    onPin={!isOwnPost ? handlePin : undefined}
+                    isPinned={pinnedItems.has(item.id)}
                     onPermission={!isOwnPost ? handlePermissionClick : undefined}
                     onViewPermissions={handleViewPermissions}
                   />

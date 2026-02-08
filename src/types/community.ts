@@ -131,9 +131,12 @@ export interface CommunityStats {
   couragePoints: number;
 }
 
+export type CardTypeFilter = 'all' | 'victory_card' | 'journey_recap';
+
 export interface CommunityFilters {
   categories: DreamCategory[];
   timeframe: 'all' | 'week' | 'month';
+  cardType: CardTypeFilter;
 }
 
 export interface GivePermissionRequest {

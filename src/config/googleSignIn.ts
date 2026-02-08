@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 
 // Google Sign-In Web Client ID (from Firebase project)
 // Get this from: Firebase Console > Project Settings > Web API Key
-export const GOOGLE_WEB_CLIENT_ID = "191645644567-1u2v3w4x5y6z7a8b9c0d1e2f3g4h5i6j.apps.googleusercontent.com";
+export const GOOGLE_WEB_CLIENT_ID = "191645644567-vr3nnmpn79jdrd770jt3m7mjq2hqpu3n.apps.googleusercontent.com";
 
 let GoogleSigninInitialized = false;
 let GoogleSigninAvailable = false;

@@ -1134,6 +1134,53 @@ export async function toggleMeToo(
   }
 }
 
+export async function togglePinInspiration(
+  itemId: string,
+  userId: string,
+): Promise<{ success: boolean; pinned: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/users/${encodeURIComponent(userId)}/inspiration/${encodeURIComponent(itemId)}`;
+    if (__DEV__) {
+      console.log("[togglePinInspiration] Toggling pin at:", url);
+    }
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+
+    if (__DEV__) {
+      console.log("[togglePinInspiration] Response status:", response.status);
+    }
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        if (__DEV__) {
+          console.error("[togglePinInspiration] Error response:", errorData);
+        }
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    if (__DEV__) {
+      console.log("[togglePinInspiration] Success:", result);
+    }
+    return result;
+  } catch (error: any) {
+    if (__DEV__) {
+      console.error("[togglePinInspiration] Error:", error.message);
+    }
+    throw error;
+  }
+}
+
 export async function getUserCommunityStats(
   userId: string,
 ): Promise<CommunityStats> {
@@ -1779,6 +1826,42 @@ export async function savePushToken(
   } catch (error: any) {
     console.error("[savePushToken] Error:", error.message);
     // Don't throw - allow app to continue even if token save fails
+  }
+}
+
+/**
+ * Send a welcome push notification to a newly registered user.
+ * Called after the push token has been saved during signup.
+ */
+export async function sendWelcomeNotification(userId: string): Promise<void> {
+  try {
+    console.log(`[sendWelcomeNotification] Sending welcome notification for user: ${userId}`);
+
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/welcome-notification`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log(`[sendWelcomeNotification] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log("[sendWelcomeNotification] Success:", result);
+  } catch (error: any) {
+    console.error("[sendWelcomeNotification] Error:", error.message);
+    // Don't throw - welcome notification failure shouldn't block anything
   }
 }
 
