@@ -64,6 +64,15 @@
         "projectId": "b61e2f3e-f9e0-48b4-9e8c-22c94b9828b9"
       }
     },
-    "owner": "expocapstone"
+    "owner": "expocapstone",
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/b61e2f3e-f9e0-48b4-9e8c-22c94b9828b9"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }

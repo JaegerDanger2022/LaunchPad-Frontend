@@ -1,10 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useCallback, useState } from 'react';
-import { View } from 'react-native';
+import { View, Alert, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as SplashScreen from 'expo-splash-screen';
+import * as Updates from 'expo-updates';
 import React from 'react';
 import { AnimatedSplashScreen } from './src/components/animations/AnimatedSplashScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -410,6 +411,51 @@ export default function App() {
   // screens (auth or home with skeletons) handle their own loading states.
   const [initialCheckDone, setInitialCheckDone] = useState(false);
   const [splashComplete, setSplashComplete] = useState(false);
+
+  // Check for OTA updates
+  useEffect(() => {
+    async function checkForUpdates() {
+      if (__DEV__) {
+        console.log('[Updates] Skipping update check in development mode');
+        return;
+      }
+
+      try {
+        const update = await Updates.checkForUpdateAsync();
+
+        if (update.isAvailable) {
+          console.log('[Updates] Update available, fetching...');
+          await Updates.fetchUpdateAsync();
+
+          // Alert user about the update
+          Alert.alert(
+            'Update Available',
+            'A new version of the app is available. Restart now to use the latest version?',
+            [
+              {
+                text: 'Later',
+                style: 'cancel',
+                onPress: () => console.log('[Updates] User chose to update later'),
+              },
+              {
+                text: 'Restart',
+                onPress: async () => {
+                  console.log('[Updates] Reloading app with new update');
+                  await Updates.reloadAsync();
+                },
+              },
+            ]
+          );
+        } else {
+          console.log('[Updates] App is up to date');
+        }
+      } catch (error) {
+        console.error('[Updates] Error checking for updates:', error);
+      }
+    }
+
+    checkForUpdates();
+  }, []);
 
   useEffect(() => {
     // Initialize RevenueCat SDK
