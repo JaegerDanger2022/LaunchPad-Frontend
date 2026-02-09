@@ -7,25 +7,25 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:191645644567:android:381c05df5a920ad94be952",
+        "mobilesdk_app_id": "1:191645644567:android:d9f624b805d25c614be952",
         "android_client_info": {
-          "package_name": "com.capstone.launchpad.app"
+          "package_name": "com.capstone.launchpad"
         }
       },
       "oauth_client": [
         {
-          "client_id": "191645644567-4bmv38suj413e9sr2f8k83i53k4no9bf.apps.googleusercontent.com",
+          "client_id": "191645644567-koudi8ubl2cjkjau550oqjpc3qm3ld76.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.capstone.launchpad.app",
+            "package_name": "com.capstone.launchpad",
             "certificate_hash": "d7de92fbe12217e684e7368e6d31d93188aa6b0d"
           }
         },
         {
-          "client_id": "191645644567-klb1mgl2k204epemrje19banucnrfvl1.apps.googleusercontent.com",
+          "client_id": "191645644567-kuf5kloplkc0h4rk8n3u9dr32idl6vij.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.capstone.launchpad.app",
+            "package_name": "com.capstone.launchpad",
             "certificate_hash": "51e3fd29ac4bafd0cdff858ff0e917d13d575342"
           }
         },
