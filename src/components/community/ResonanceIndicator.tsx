@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import { useThemeStore } from '../../store/themeStore';
 
 interface ResonanceIndicatorProps {
   meTooCount: number;
@@ -16,6 +17,8 @@ export const ResonanceIndicator: React.FC<ResonanceIndicatorProps> = ({
   size = 'medium',
   disabled = false,
 }) => {
+  const { theme } = useThemeStore();
+  const isDark = theme === "dark";
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
   const isSmall = size === 'small';
@@ -159,8 +162,18 @@ export const ResonanceIndicator: React.FC<ResonanceIndicatorProps> = ({
       <View
         style={[
           styles.button,
-          hasUserMeTooed && styles.buttonActive,
-          hasResonance && styles.buttonResonance,
+          {
+            borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.2)',
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+          },
+          hasUserMeTooed && {
+            borderColor: 'rgba(251, 191, 36, 0.5)',
+            backgroundColor: 'rgba(251, 191, 36, 0.15)',
+          },
+          hasResonance && !hasUserMeTooed && {
+            borderColor: isDark ? 'rgba(251, 191, 36, 0.3)' : 'rgba(251, 191, 36, 0.4)',
+            backgroundColor: 'rgba(251, 191, 36, 0.12)',
+          },
           isSmall && styles.buttonSmall,
           disabled && styles.buttonDisabled,
         ]}
@@ -172,10 +185,20 @@ export const ResonanceIndicator: React.FC<ResonanceIndicatorProps> = ({
           <Text
             style={[
               styles.label,
-              hasUserMeTooed && styles.labelActive,
-              hasResonance && styles.labelResonance,
+              {
+                color: isDark ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.7)',
+              },
+              hasUserMeTooed && {
+                color: 'rgba(251, 191, 36, 1)',
+                fontWeight: '700',
+              },
+              hasResonance && !hasUserMeTooed && {
+                color: isDark ? 'rgba(255, 255, 255, 0.75)' : 'rgba(0, 0, 0, 0.8)',
+              },
               isSmall && styles.labelSmall,
-              disabled && styles.labelDisabled,
+              disabled && {
+                color: isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+              },
             ]}
           >
             {hasUserMeTooed && !disabled ? '✓ ' : ''}{getResonanceText()}
@@ -228,18 +251,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    // borderColor and backgroundColor are now dynamic
     position: 'relative',
     zIndex: 1,
-  },
-  buttonActive: {
-    borderColor: 'rgba(251, 191, 36, 0.4)',
-    backgroundColor: 'rgba(251, 191, 36, 0.12)',
-  },
-  buttonResonance: {
-    borderColor: 'rgba(251, 191, 36, 0.3)',
-    backgroundColor: 'rgba(251, 191, 36, 0.08)',
   },
   buttonSmall: {
     paddingHorizontal: 10,
@@ -262,18 +276,9 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.6)',
-  },
-  labelActive: {
-    color: 'rgba(251, 191, 36, 0.95)',
-  },
-  labelResonance: {
-    color: 'rgba(255, 255, 255, 0.75)',
+    // color is now dynamic
   },
   labelSmall: {
     fontSize: 12,
-  },
-  labelDisabled: {
-    color: 'rgba(255, 255, 255, 0.5)',
   },
 });

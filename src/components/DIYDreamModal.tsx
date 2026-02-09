@@ -52,41 +52,49 @@ const CHALLENGE_TYPES: Array<{
   value: ChallengeType;
   label: string;
   gif: any;
+  gifDark: any; // For light mode backgrounds
 }> = [
   {
     value: "power_move",
     label: "Power Move",
     gif: require("../assets/animations/PowerMove.png"),
+    gifDark: require("../assets/animations/PowerMove_dark.png"),
   },
   {
     value: "knowledge_quest",
     label: "Knowledge Quest",
     gif: require("../assets/animations/KnowledgeQuest.png"),
+    gifDark: require("../assets/animations/KnowledgeQuest_dark.png"),
   },
   {
     value: "prep_ritual",
     label: "Prep Ritual",
     gif: require("../assets/animations/PrepRitual.png"),
+    gifDark: require("../assets/animations/PrepRitual_dark.png"),
   },
   {
     value: "courage_check",
     label: "Courage Check",
     gif: require("../assets/animations/courageCheck.png"),
+    gifDark: require("../assets/animations/courageCheck_dark.png"),
   },
   {
     value: "skill_flex",
     label: "Skill Flex",
     gif: require("../assets/animations/SkillFlex.png"),
+    gifDark: require("../assets/animations/SkillFlex_dark.png"),
   },
   {
     value: "decision_point",
     label: "Decision Point",
     gif: require("../assets/animations/DecisionPoint.png"),
+    gifDark: require("../assets/animations/DecisionPoint_dark.png"),
   },
   {
     value: "celebration_moment",
     label: "Celebration",
     gif: require("../assets/animations/Celebration Moment.png"),
+    gifDark: require("../assets/animations/CelebrationMoment_dark.png"),
   },
 ];
 
@@ -526,7 +534,7 @@ export const DIYDreamModal: React.FC<DIYDreamModalProps> = ({
                                     },
                                   ]}>
                                   <Image
-                                    source={type.gif}
+                                    source={isDark ? type.gif : type.gifDark}
                                     style={[
                                       styles.challengeTypeGif,
                                       { opacity: isSelected ? 1 : 0.6 },

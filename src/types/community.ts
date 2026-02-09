@@ -88,6 +88,7 @@ export interface VictoriesResponse {
     totalPages: number;
     totalCount: number;
   };
+  pinnedItemIds?: string[];
 }
 
 // New response type for mixed feed

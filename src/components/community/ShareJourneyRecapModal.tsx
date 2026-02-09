@@ -14,6 +14,8 @@ import {
 import { JourneyRecap } from '../../types/community';
 import { JourneyRecapCard } from './JourneyRecapCard';
 import Toast from 'react-native-toast-message';
+import { useThemeStore } from '../../store/themeStore';
+import { getThemeColors } from '../../constants/GlobalStyles';
 
 interface ShareJourneyRecapModalProps {
   visible: boolean;
@@ -30,6 +32,10 @@ export const ShareJourneyRecapModal: React.FC<ShareJourneyRecapModalProps> = ({
   onShare,
   loading = false,
 }) => {
+  const { theme } = useThemeStore();
+  const colors = getThemeColors(theme);
+  const isDark = theme === 'dark';
+
   const [journeyStory, setJourneyStory] = useState('');
   const [keyMoment, setKeyMoment] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -84,26 +90,26 @@ export const ShareJourneyRecapModal: React.FC<ShareJourneyRecapModalProps> = ({
       presentationStyle="fullScreen"
       onRequestClose={() => {}}
     >
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg_primary }]}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           scrollEnabled={true}
           bounces={false}
         >
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { backgroundColor: colors.bg_secondary, borderBottomColor: colors.border }]}>
             <TouchableOpacity onPress={onClose} disabled={isSaving}>
-              <Text style={styles.closeButton}>✕</Text>
+              <Text style={[styles.closeButton, { color: colors.text_secondary }]}>✕</Text>
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Share Your Journey</Text>
+            <Text style={[styles.headerTitle, { color: colors.text_primary }]}>Share Your Journey</Text>
             <View style={styles.spacer} />
           </View>
 
           {/* Celebration Message */}
-          <View style={styles.celebrationSection}>
+          <View style={[styles.celebrationSection, { backgroundColor: isDark ? 'rgba(251, 191, 36, 0.15)' : '#FEF3C7' }]}>
             <Text style={styles.celebrationEmoji}>🎉</Text>
-            <Text style={styles.celebrationTitle}>Dream Complete!</Text>
-            <Text style={styles.celebrationText}>
+            <Text style={[styles.celebrationTitle, { color: isDark ? '#FCD34D' : '#78350F' }]}>Dream Complete!</Text>
+            <Text style={[styles.celebrationText, { color: isDark ? '#FDE68A' : '#92400E' }]}>
               You completed "{journeyRecap.dreamTitle}" with {journeyRecap.totalMilestones} milestones
               in {journeyRecap.durationDays} days. Share your journey to inspire others!
             </Text>
@@ -111,61 +117,61 @@ export const ShareJourneyRecapModal: React.FC<ShareJourneyRecapModalProps> = ({
 
           {/* Preview */}
           {journeyStory.trim() && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Preview</Text>
+            <View style={[styles.section, { backgroundColor: colors.bg_secondary }]}>
+              <Text style={[styles.sectionTitle, { color: colors.text_primary }]}>Preview</Text>
               <JourneyRecapCard journeyRecap={previewJourneyRecap} onBoost={() => {}} />
             </View>
           )}
 
           {/* Journey Story Input */}
-          <View style={styles.section}>
+          <View style={[styles.section, { backgroundColor: colors.bg_secondary }]}>
             <View style={styles.labelRow}>
-              <Text style={styles.label}>Your Journey Story *</Text>
-              <Text style={styles.charCounter}>{journeyStory.length}/500</Text>
+              <Text style={[styles.label, { color: colors.text_primary }]}>Your Journey Story *</Text>
+              <Text style={[styles.charCounter, { color: colors.text_secondary }]}>{journeyStory.length}/500</Text>
             </View>
-            <Text style={styles.helperText}>
+            <Text style={[styles.helperText, { color: colors.text_secondary }]}>
               Reflect on your journey. What did you learn? How did it change you?
             </Text>
             <TextInput
-              style={styles.textArea}
+              style={[styles.textArea, { borderColor: colors.border, color: colors.text_primary, backgroundColor: isDark ? colors.bg_primary : '#FFFFFF' }]}
               placeholder="Example: This dream taught me that I'm capable of more than I thought. The hardest part was..."
               value={journeyStory}
               onChangeText={(text) => setJourneyStory(text.slice(0, 500))}
               multiline
               maxLength={500}
               editable={!isSaving}
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.text_secondary}
             />
           </View>
 
           {/* Key Moment Input */}
-          <View style={styles.section}>
+          <View style={[styles.section, { backgroundColor: colors.bg_secondary }]}>
             <View style={styles.labelRow}>
-              <Text style={styles.label}>Most Memorable Moment (Optional)</Text>
-              <Text style={styles.charCounter}>{keyMoment.length}/200</Text>
+              <Text style={[styles.label, { color: colors.text_primary }]}>Most Memorable Moment (Optional)</Text>
+              <Text style={[styles.charCounter, { color: colors.text_secondary }]}>{keyMoment.length}/200</Text>
             </View>
-            <Text style={styles.helperText}>
+            <Text style={[styles.helperText, { color: colors.text_secondary }]}>
               What's one moment you'll never forget from this journey?
             </Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { borderColor: colors.border, color: colors.text_primary, backgroundColor: isDark ? colors.bg_primary : '#FFFFFF' }]}
               placeholder="Example: The day I realized I could actually do this..."
               value={keyMoment}
               onChangeText={(text) => setKeyMoment(text.slice(0, 200))}
               multiline
               maxLength={200}
               editable={!isSaving}
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.text_secondary}
             />
           </View>
 
           {/* Anonymous Toggle */}
-          <View style={styles.section}>
+          <View style={[styles.section, { backgroundColor: colors.bg_secondary }]}>
             <View style={styles.anonymousRow}>
-              <Text style={styles.label}>Share Anonymously</Text>
+              <Text style={[styles.label, { color: colors.text_primary }]}>Share Anonymously</Text>
               <Switch value={isAnonymous} onValueChange={setIsAnonymous} disabled={isSaving} />
             </View>
-            <Text style={styles.helperText}>
+            <Text style={[styles.helperText, { color: colors.text_secondary }]}>
               {isAnonymous
                 ? 'Your journey will show as "Someone in {your timezone}"'
                 : 'Your name will be visible to the community'}
@@ -175,14 +181,14 @@ export const ShareJourneyRecapModal: React.FC<ShareJourneyRecapModalProps> = ({
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={styles.buttonSecondary}
+              style={[styles.buttonSecondary, { borderColor: colors.border, backgroundColor: isDark ? colors.bg_primary : '#FFFFFF' }]}
               onPress={onClose}
               disabled={isSaving}
             >
-              <Text style={styles.buttonSecondaryText}>Skip for Now</Text>
+              <Text style={[styles.buttonSecondaryText, { color: colors.text_primary }]}>Skip for Now</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.buttonPrimary, isSaving && styles.buttonDisabled]}
+              style={[styles.buttonPrimary, { backgroundColor: isDark ? '#10B981' : '#FF8C00' }, isSaving && styles.buttonDisabled]}
               onPress={handleShare}
               disabled={isSaving}
             >
@@ -202,7 +208,6 @@ export const ShareJourneyRecapModal: React.FC<ShareJourneyRecapModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFBFC',
   },
   scrollContent: {
     paddingBottom: 40,
@@ -214,17 +219,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
   },
   closeButton: {
     fontSize: 24,
-    color: '#6B7280',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
   },
   spacer: {
     width: 24,
@@ -233,7 +234,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 24,
     alignItems: 'center',
-    backgroundColor: '#FEF3C7',
     marginTop: 12,
   },
   celebrationEmoji: {
@@ -243,31 +243,26 @@ const styles = StyleSheet.create({
   celebrationTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#78350F',
     marginBottom: 8,
   },
   celebrationText: {
     fontSize: 14,
-    color: '#92400E',
     textAlign: 'center',
     lineHeight: 20,
   },
   section: {
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
     marginTop: 12,
   },
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111827',
     marginBottom: 12,
   },
   label: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#111827',
     marginBottom: 8,
   },
   labelRow: {
@@ -278,33 +273,27 @@ const styles = StyleSheet.create({
   },
   charCounter: {
     fontSize: 11,
-    color: '#9CA3AF',
   },
   helperText: {
     fontSize: 12,
-    color: '#6B7280',
     marginBottom: 8,
     fontStyle: 'italic',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#111827',
     minHeight: 80,
     textAlignVertical: 'top',
   },
   textArea: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#111827',
     minHeight: 120,
     textAlignVertical: 'top',
   },
@@ -326,16 +315,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
   },
   buttonSecondaryText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
   },
   buttonPrimary: {
     flex: 1,
@@ -344,7 +330,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#10B981',
   },
   buttonPrimaryText: {
     fontSize: 14,

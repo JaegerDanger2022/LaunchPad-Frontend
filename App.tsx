@@ -61,7 +61,7 @@ export type TabParamList = {
   Home: undefined;
   AllDreams: undefined;
   EvidenceBoard: undefined;
-  Community: undefined;
+  Community: { highlightVictoryId?: string } | undefined;
   Analytics: undefined;
 };
 
@@ -141,7 +141,7 @@ const EvidenceBoardScreenWrapper = React.memo(({ navigation }: any) => {
   return <EvidenceBoardScreen onNavigate={onNavigate} />;
 });
 
-const CommunityScreenWrapper = React.memo(({ navigation }: any) => {
+const CommunityScreenWrapper = React.memo(({ navigation, route }: any) => {
   const onNavigate = useCallback((screen: string) => {
     if (TAB_SCREENS.has(screen)) {
       navigation.navigate(screen as keyof TabParamList);
@@ -149,7 +149,7 @@ const CommunityScreenWrapper = React.memo(({ navigation }: any) => {
       navigation.navigate(screen as keyof RootStackParamList);
     }
   }, [navigation]);
-  return <CommunityScreen onNavigate={onNavigate} />;
+  return <CommunityScreen onNavigate={onNavigate} highlightVictoryId={route.params?.highlightVictoryId} />;
 });
 
 const AnalyticsScreenWrapper = React.memo(({ navigation }: any) => {

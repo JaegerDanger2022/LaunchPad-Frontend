@@ -26,7 +26,7 @@ import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { StreakBadge } from "../components/streak/StreakBadge";
 import { fetchDreamsList } from "../config/api";
-import { scheduleLocalNotification } from "../services/notificationService";
+
 
 const dreamCreatingPhrases = [
   "Catching your dream…",
@@ -181,11 +181,8 @@ const AllDreamsScreen = ({
           stopPolling();
           await refreshDreamsFromCrud(uid);
           setIsCreating(false);
-          scheduleLocalNotification(
-            "Your dream is ready!",
-            "Luna finished building your roadmap. Jump in and start your first milestone.",
-            { type: "dream_ready" },
-          );
+          // Push notification is sent by the backend when the dream
+          // is created, so no local notification is needed here.
         }
       } catch {
         // keep polling on transient errors

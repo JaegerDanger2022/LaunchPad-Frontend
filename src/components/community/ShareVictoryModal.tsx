@@ -305,11 +305,11 @@ export const ShareVictoryModal: React.FC<ShareVictoryModalProps> = ({
                       paddingVertical: 12,
                       paddingHorizontal: 12,
                       borderWidth: 1,
-                      borderColor: isActive ? "#2D5BFF" : colors.border,
+                      borderColor: isActive ? (isDark ? "#2D5BFF" : "#FF8C00") : colors.border,
                       borderRadius: 8,
                       alignItems: "center",
                       backgroundColor: isActive
-                        ? "#2D5BFF"
+                        ? (isDark ? "#2D5BFF" : "#FF8C00")
                         : isDark
                           ? colors.bg_primary
                           : "#FFFFFF",

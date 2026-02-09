@@ -1,9 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useThemeStore } from '../../store/themeStore';
+import { getThemeColors } from '../../constants/GlobalStyles';
 
 export const VictoryCardSkeleton: React.FC = () => {
   const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const { theme } = useThemeStore();
+  const themeColors = getThemeColors(theme);
 
   useEffect(() => {
     const shimmer = Animated.loop(
@@ -27,17 +31,30 @@ export const VictoryCardSkeleton: React.FC = () => {
 
   const opacity = shimmerAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.25, 0.55],
+    outputRange: [0.3, 0.7],
   });
 
-  const skeletonColor = 'rgba(255, 255, 255, 0.18)';
+  // Theme-aware skeleton colors - matches Community Wins skeleton
+  const skeletonColor = theme === "dark" ? "#d1d1d1" : "#D0D0D0";
 
   return (
-    <View style={styles.cardWrapper}>
+    <View style={[
+      styles.cardWrapper,
+      {
+        borderColor: themeColors.border,
+      }
+    ]}>
       {/* Accent strip placeholder */}
-      <View style={styles.accentStrip} />
+      <Animated.View style={[
+        styles.accentStrip,
+        { backgroundColor: skeletonColor, opacity }
+      ]} />
 
-      <BlurView intensity={40} tint="dark" style={styles.glassBody}>
+      <LinearGradient
+        colors={[themeColors.bg_secondary, themeColors.bg_secondary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.glassBody}>
         {/* Top row: badge + category pill */}
         <View style={styles.topRow}>
           <Animated.View style={[styles.badgePill, { opacity, backgroundColor: skeletonColor }]} />
@@ -67,7 +84,7 @@ export const VictoryCardSkeleton: React.FC = () => {
           <Animated.View style={[styles.actionPill, { opacity, backgroundColor: skeletonColor }]} />
           <Animated.View style={[styles.actionPillShort, { opacity, backgroundColor: skeletonColor }]} />
         </View>
-      </BlurView>
+      </LinearGradient>
     </View>
   );
 };
@@ -79,19 +96,18 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    shadowColor: 'rgba(255, 255, 255, 0.08)',
+    // borderColor is now dynamic
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
+    shadowOpacity: 0.5,
     shadowRadius: 12,
     elevation: 4,
   },
   accentStrip: {
     height: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    // backgroundColor and opacity are now dynamic
   },
   glassBody: {
-    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    // colors are now from LinearGradient
     padding: 18,
     gap: 12,
   },
@@ -146,7 +162,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'transparent',
   },
   actionRow: {
     flexDirection: 'row',

@@ -20,7 +20,10 @@ import { useAuthStore } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { getThemeColors } from "../constants/GlobalStyles";
 import { showManageSubscriptions } from "../config/revenuecat";
-import { updateUserTimezone, updateUserNotificationPreferences } from "../config/api";
+import {
+  updateUserTimezone,
+  updateUserNotificationPreferences,
+} from "../config/api";
 import Toast from "react-native-toast-message";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -185,7 +188,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     }
   };
 
-  const handleNotificationChange = async (time: string | null, enabled: boolean) => {
+  const handleNotificationChange = async (
+    time: string | null,
+    enabled: boolean,
+  ) => {
     if (!user?.uid) return;
 
     try {
@@ -197,7 +203,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       Toast.show({
         type: "success",
         text1: enabled ? "Notifications Enabled" : "Notifications Disabled",
-        text2: enabled && time ? `Daily reminder set for ${getNotificationTimeLabel(time)}` : "You won't receive daily reminders",
+        text2:
+          enabled && time
+            ? `Daily reminder set for ${getNotificationTimeLabel(time)}`
+            : "You won't receive daily reminders",
         visibilityTime: 2000,
       });
     } catch (error) {
@@ -215,21 +224,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
     // Convert 24-hour time to 12-hour format
     const timeMap: Record<string, string> = {
-      '06:00': '6:00 AM',
-      '07:00': '7:00 AM',
-      '08:00': '8:00 AM',
-      '09:00': '9:00 AM',
-      '10:00': '10:00 AM',
-      '12:00': '12:00 PM',
-      '13:00': '1:00 PM',
-      '14:00': '2:00 PM',
-      '15:00': '3:00 PM',
-      '16:00': '4:00 PM',
-      '17:00': '5:00 PM',
-      '18:00': '6:00 PM',
-      '19:00': '7:00 PM',
-      '20:00': '8:00 PM',
-      '21:00': '9:00 PM',
+      "06:00": "6:00 AM",
+      "07:00": "7:00 AM",
+      "08:00": "8:00 AM",
+      "09:00": "9:00 AM",
+      "10:00": "10:00 AM",
+      "12:00": "12:00 PM",
+      "13:00": "1:00 PM",
+      "14:00": "2:00 PM",
+      "15:00": "3:00 PM",
+      "16:00": "4:00 PM",
+      "17:00": "5:00 PM",
+      "18:00": "6:00 PM",
+      "19:00": "7:00 PM",
+      "20:00": "8:00 PM",
+      "21:00": "9:00 PM",
     };
 
     return timeMap[time] || time;
@@ -240,34 +249,34 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
     // Extract readable label from timezone value
     const timezoneMap: Record<string, string> = {
-      'America/New_York': 'Eastern Time (ET)',
-      'America/Chicago': 'Central Time (CT)',
-      'America/Denver': 'Mountain Time (MT)',
-      'America/Los_Angeles': 'Pacific Time (PT)',
-      'America/Anchorage': 'Alaska Time (AKT)',
-      'Pacific/Honolulu': 'Hawaii Time (HT)',
-      'Europe/London': 'London (GMT/BST)',
-      'Europe/Paris': 'Paris (CET/CEST)',
-      'Europe/Berlin': 'Berlin (CET/CEST)',
-      'Europe/Athens': 'Athens (EET/EEST)',
-      'Europe/Moscow': 'Moscow (MSK)',
-      'Asia/Dubai': 'Dubai (GST)',
-      'Asia/Kolkata': 'Mumbai (IST)',
-      'Asia/Bangkok': 'Bangkok (ICT)',
-      'Asia/Singapore': 'Singapore (SGT)',
-      'Asia/Hong_Kong': 'Hong Kong (HKT)',
-      'Asia/Tokyo': 'Tokyo (JST)',
-      'Asia/Seoul': 'Seoul (KST)',
-      'Australia/Sydney': 'Sydney (AEDT/AEST)',
-      'Australia/Melbourne': 'Melbourne (AEDT/AEST)',
-      'Australia/Brisbane': 'Brisbane (AEST)',
-      'Pacific/Auckland': 'Auckland (NZDT/NZST)',
-      'America/Sao_Paulo': 'São Paulo (BRT)',
-      'America/Argentina/Buenos_Aires': 'Buenos Aires (ART)',
-      'America/Santiago': 'Santiago (CLT)',
-      'Africa/Cairo': 'Cairo (EET)',
-      'Africa/Johannesburg': 'Johannesburg (SAST)',
-      'Africa/Lagos': 'Lagos (WAT)',
+      "America/New_York": "Eastern Time (ET)",
+      "America/Chicago": "Central Time (CT)",
+      "America/Denver": "Mountain Time (MT)",
+      "America/Los_Angeles": "Pacific Time (PT)",
+      "America/Anchorage": "Alaska Time (AKT)",
+      "Pacific/Honolulu": "Hawaii Time (HT)",
+      "Europe/London": "London (GMT/BST)",
+      "Europe/Paris": "Paris (CET/CEST)",
+      "Europe/Berlin": "Berlin (CET/CEST)",
+      "Europe/Athens": "Athens (EET/EEST)",
+      "Europe/Moscow": "Moscow (MSK)",
+      "Asia/Dubai": "Dubai (GST)",
+      "Asia/Kolkata": "Mumbai (IST)",
+      "Asia/Bangkok": "Bangkok (ICT)",
+      "Asia/Singapore": "Singapore (SGT)",
+      "Asia/Hong_Kong": "Hong Kong (HKT)",
+      "Asia/Tokyo": "Tokyo (JST)",
+      "Asia/Seoul": "Seoul (KST)",
+      "Australia/Sydney": "Sydney (AEDT/AEST)",
+      "Australia/Melbourne": "Melbourne (AEDT/AEST)",
+      "Australia/Brisbane": "Brisbane (AEST)",
+      "Pacific/Auckland": "Auckland (NZDT/NZST)",
+      "America/Sao_Paulo": "São Paulo (BRT)",
+      "America/Argentina/Buenos_Aires": "Buenos Aires (ART)",
+      "America/Santiago": "Santiago (CLT)",
+      "Africa/Cairo": "Cairo (EET)",
+      "Africa/Johannesburg": "Johannesburg (SAST)",
+      "Africa/Lagos": "Lagos (WAT)",
     };
 
     return timezoneMap[timezone] || timezone;
@@ -428,7 +437,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                         ? "rgba(255, 255, 255, 0.1)"
                         : "rgba(0, 0, 0, 0.05)",
                   }}>
-                  {/* <SettingRow
+                  <SettingRow
                     icon="🎨"
                     label="Theme"
                     value={theme === "light" ? "Light" : "Dark"}
@@ -442,7 +451,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                         visibilityTime: 1500,
                       });
                     }}
-                  /> */}
+                  />
                   <SettingRow
                     icon="🌍"
                     label="Timezone"
@@ -453,7 +462,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   <SettingRow
                     icon="🔔"
                     label="Daily Reminders"
-                    value={getNotificationTimeLabel(userData?.pref_notification_time || null)}
+                    value={getNotificationTimeLabel(
+                      userData?.pref_notification_time || null,
+                    )}
                     showArrow
                     onPress={() => setShowNotificationModal(true)}
                   />

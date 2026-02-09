@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, forwardRef } from 'react';
 import {
   View,
   Text,
@@ -30,7 +30,7 @@ interface ParallaxHeaderProps extends ScrollViewProps {
   children: React.ReactNode;
 }
 
-export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
+export const ParallaxHeader = forwardRef<ScrollView, ParallaxHeaderProps>(({
   title,
   subtitle,
   backgroundImage,
@@ -46,7 +46,7 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
   children,
   contentContainerStyle,
   ...scrollViewProps
-}) => {
+}, ref) => {
   const scrollY = useRef(new Animated.Value(0)).current;
 
   // Handle onEndReached for infinite scroll
@@ -236,6 +236,7 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
       </Animated.View>
 
       <Animated.ScrollView
+        ref={ref}
         {...scrollViewProps}
         scrollEventThrottle={1}
         onScroll={Animated.event(
@@ -253,4 +254,4 @@ export const ParallaxHeader: React.FC<ParallaxHeaderProps> = ({
       </Animated.ScrollView>
     </View>
   );
-};
+});

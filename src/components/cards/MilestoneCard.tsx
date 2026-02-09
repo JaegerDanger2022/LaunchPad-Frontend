@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Lock } from "lucide-react-native";
 import { Color, ChallengeTypeName } from "../../constants/GlobalStyles";
+import { useThemeStore } from "../../store/themeStore";
 
 interface MilestoneCardProps {
   id: string;
@@ -29,6 +30,18 @@ const challengeTypeAnimations: Record<string, any> = {
   custom_dream: require("../../assets/images/customDream.png"), // Custom dream uses static image
 };
 
+// Dark mode versions (for light mode backgrounds) - located in main assets folder
+const challengeTypeAnimationsDark: Record<string, any> = {
+  power_move: require("../../assets/PowerMove_dark.png"),
+  knowledge_quest: require("../../assets/KnowledgeQuest_dark.png"),
+  courage_check: require("../../assets/courageCheck_dark.png"),
+  skill_flex: require("../../assets/SkillFlex_dark.png"),
+  decision_point: require("../../assets/DecisionPoint_dark.png"),
+  celebration_moment: require("../../assets/CelebrationMoment_dark.png"),
+  prep_ritual: require("../../assets/PrepRitual_dark.png"),
+  custom_dream: require("../../assets/images/customDream.png"), // Custom dream uses same image
+};
+
 export const MilestoneCard: React.FC<MilestoneCardProps> = ({
   id,
   title,
@@ -41,10 +54,30 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
   status,
   onPress,
 }) => {
+  const { theme } = useThemeStore();
+  const isDark = theme === "dark";
+
   // Determine which animation to use (priority: prop > challengeType mapping > fallback to image)
+  // Use dark images in light mode for better visibility
   const animationSource =
     animation ||
-    (challengeType ? challengeTypeAnimations[challengeType] : null);
+    (challengeType
+      ? isDark
+        ? challengeTypeAnimations[challengeType]
+        : challengeTypeAnimationsDark[challengeType] || challengeTypeAnimations[challengeType]
+      : null);
+
+  // Light mode gradient colors based on bgColor (challenge type color)
+  const getLightGradient = () => {
+    // Create a soft gradient using the accent color
+    const baseColor = bgColor;
+    return [
+      `${baseColor}15`, // Very light version (15% opacity)
+      `${baseColor}08`, // Even lighter (8% opacity)
+    ];
+  };
+
+  const cardBg = isDark ? "#2B2D56" : "#FFFFFF";
 
   return (
     <TouchableOpacity
@@ -57,7 +90,7 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
         height: 100,
         borderRadius: 12,
         overflow: "hidden",
-        backgroundColor: "#2B2D56",
+        backgroundColor: cardBg,
         borderWidth: 2,
         borderColor: bgColor,
         opacity: isLocked ? 0.5 : 1,
@@ -70,7 +103,7 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
             height: "100%",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "#2B2D56",
+            backgroundColor: cardBg,
           }}>
           <Image
             source={animationSource || image}
@@ -86,7 +119,7 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
           style={{
             width: 100,
             height: "100%",
-            backgroundColor: "#2B2D56",
+            backgroundColor: cardBg,
           }}
         />
       )}
@@ -99,9 +132,9 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
           paddingVertical: 16,
           justifyContent: "space-between",
         }}
-        colors={["#2B2D56", "#2B2D56"]}
+        colors={isDark ? ["#2B2D56", "#2B2D56"] : getLightGradient()}
         start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}>
+        end={{ x: 1, y: 0 }}>
         {/* Title and Status Badge */}
         <View
           style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
@@ -109,7 +142,7 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
             style={{
               fontFamily: "InriaSans-Bold",
               fontSize: 16,
-              color: "#FFFFFF",
+              color: isDark ? "#FFFFFF" : "#000000",
               fontWeight: "700",
               flex: 1,
             }}
@@ -177,7 +210,7 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
           />
           <Text
             style={{
-              color: "#B0B0B0",
+              color: isDark ? "#B0B0B0" : "#6B7280",
               fontSize: 12,
               fontWeight: "400",
               fontFamily: "InriaSans-Regular",

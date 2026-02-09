@@ -53,7 +53,9 @@
       "Bash(copy \"C:\\\\Users\\\\mkmen\\\\Downloads\\\\android\\\\playstore-icon.png\" \"C:\\\\Users\\\\mkmen\\\\Documents\\\\GitHub\\\\BUSINESS_REPOS\\\\PacksLight---Expo-Frontend\\\\assets\\\\icon.png\")",
       "Bash(magick:*)",
       "Bash(convert:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(where:*)",
+      "Bash(ffmpeg:*)"
     ]
   }
 }

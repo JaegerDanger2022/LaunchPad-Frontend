@@ -7,8 +7,8 @@ import {
   Animated,
   Platform,
   ScrollView,
+  Image,
 } from 'react-native';
-import { VideoView, useVideoPlayer } from 'expo-video';
 import * as Haptics from 'expo-haptics';
 
 interface NotificationTimeScreenProps {
@@ -53,15 +53,6 @@ const NotificationTimeScreen = ({ navigation, route }: NotificationTimeScreenPro
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
-
-  // Setup video player for Luna background
-  const videoSource = require('../../assets/animations/ondoarding/Luna floating.mp4');
-  const player = useVideoPlayer(videoSource, (player) => {
-    player.loop = true;
-    player.muted = true;
-    player.audioMixingMode = 'mixWithOthers';
-    player.play();
-  });
 
   // Animate in when component mounts
   useEffect(() => {
@@ -114,13 +105,11 @@ const NotificationTimeScreen = ({ navigation, route }: NotificationTimeScreenPro
 
   return (
     <View style={styles.container}>
-      {/* Video Background */}
-      <VideoView
-        player={player}
+      {/* Static last frame of Luna video */}
+      <Image
+        source={require('../../assets/animations/ondoarding/luna-floating-last-frame.jpg')}
         style={styles.videoBackground}
-        contentFit="cover"
-        nativeControls={false}
-        allowsFullscreen={false}
+        resizeMode="cover"
       />
 
       {/* Luna's Dialogue Header - Fixed at top */}

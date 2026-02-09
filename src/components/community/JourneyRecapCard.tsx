@@ -4,11 +4,12 @@ import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { Bookmark } from "lucide-react-native";
 import { JourneyRecap } from "../../types/community";
-import { CATEGORY_COLORS } from "../../constants/communityColors";
-import { CategoryBadge } from "./CategoryBadge";
+
+
 import { CourageBoostButton } from "./CourageBoostButton";
-import { MeTooButton } from "./MeTooButton";
+import { ResonanceIndicator } from "./ResonanceIndicator";
 import { formatDate } from "../../utils/communityUtils";
+import { useThemeStore } from "../../store/themeStore";
 
 interface JourneyRecapCardProps {
   journeyRecap: JourneyRecap;
@@ -31,6 +32,8 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
   onViewPermissions,
   onPress,
 }) => {
+  const { theme } = useThemeStore();
+  const isDark = theme === "dark";
   const categoryColor = '#10B981'; // Green for all journey cards
 
   const userInfo = journeyRecap.isAnonymous
@@ -40,7 +43,14 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
   const formattedDate = formatDate(journeyRecap.createdAt);
 
   return (
-    <View style={styles.cardWrapper}>
+    <View style={[
+      styles.cardWrapper,
+      {
+        borderColor: isDark ? "rgba(255, 255, 255, 0.18)" : "rgba(0, 0, 0, 0.1)",
+        backgroundColor: isDark ? "rgba(30, 41, 59, 0.4)" : "rgba(255, 255, 255, 0.6)",
+        shadowColor: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.1)",
+      }
+    ]}>
       {/* Colored accent strip — gradient fade for journey cards */}
       <LinearGradient
         colors={[categoryColor, categoryColor + "00"]}
@@ -54,25 +64,51 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
         onPress={onPress}
         activeOpacity={0.85}
         style={{ overflow: 'hidden', borderRadius: 20 }}>
-        <BlurView intensity={80} tint="dark" style={styles.glassBody}>
+        <BlurView
+          intensity={isDark ? 80 : 60}
+          tint={isDark ? "dark" : "light"}
+          style={[
+            styles.glassBody,
+            {
+              backgroundColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)",
+            }
+          ]}>
         {/* Top row: star badge + category tag + pin */}
         <View style={styles.topRow}>
-          <View style={[styles.journeyBadge, { borderColor: categoryColor + "66" }]}>
+          <View style={[
+            styles.journeyBadge,
+            {
+              borderColor: categoryColor + "66",
+              backgroundColor: isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(0, 0, 0, 0.03)",
+            }
+          ]}>
             <Text style={[styles.star, { color: categoryColor }]}>⭐</Text>
-            <Text style={styles.journeyLabel}>JOURNEY COMPLETE</Text>
+            <Text style={[
+              styles.journeyLabel,
+              { color: isDark ? "rgba(255, 255, 255, 0.85)" : "rgba(0, 0, 0, 0.7)" }
+            ]}>JOURNEY COMPLETE</Text>
           </View>
           <View style={styles.topRowRight}>
-            <CategoryBadge category={journeyRecap.dreamCategory} size="small" color={categoryColor} />
             {onPin && (
               <TouchableOpacity
-                style={[styles.pinButton, isPinned && styles.pinButtonActive]}
+                style={[
+                  styles.pinButton,
+                  {
+                    backgroundColor: isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(0, 0, 0, 0.05)",
+                    borderColor: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.1)",
+                  },
+                  isPinned && {
+                    backgroundColor: isDark ? "rgba(251, 241, 36, 0.3)" : "rgba(251, 191, 36, 0.4)",
+                    borderColor: isDark ? "rgba(251, 241, 36, 0.6)" : "rgba(251, 191, 36, 0.8)",
+                  }
+                ]}
                 onPress={() => onPin(journeyRecap.id)}
                 activeOpacity={0.6}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Bookmark
                   size={16}
-                  color={isPinned ? "#FBF124" : "rgba(255, 255, 255, 0.5)"}
-                  fill={isPinned ? "#FBF124" : "none"}
+                  color={isPinned ? (isDark ? "#FBF124" : "#D97706") : (isDark ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.4)")}
+                  fill={isPinned ? (isDark ? "#FBF124" : "#D97706") : "none"}
                   strokeWidth={2}
                 />
               </TouchableOpacity>
@@ -81,72 +117,134 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
         </View>
 
         {/* Dream title */}
-        <Text style={styles.dreamTitle}>
+        <Text style={[
+          styles.dreamTitle,
+          { color: isDark ? "#FFFFFF" : "#000000" }
+        ]}>
           {(journeyRecap.dreamTitle || "DREAM").toUpperCase()}
         </Text>
 
         {/* Stats row — milestones + days in glass pills */}
-        <View style={styles.statsRow}>
+        <View style={[
+          styles.statsRow,
+          { backgroundColor: isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(0, 0, 0, 0.04)" }
+        ]}>
           <View style={styles.statPill}>
-            <Text style={styles.statValue}>{journeyRecap.totalMilestones}</Text>
-            <Text style={styles.statLabel}>Milestones</Text>
+            <Text style={[
+              styles.statValue,
+              { color: isDark ? "#FFFFFF" : "#000000" }
+            ]}>{journeyRecap.totalMilestones}</Text>
+            <Text style={[
+              styles.statLabel,
+              { color: isDark ? "rgba(255, 255, 255, 0.45)" : "rgba(0, 0, 0, 0.45)" }
+            ]}>Milestones</Text>
           </View>
-          <View style={styles.statDivider} />
+          <View style={[
+            styles.statDivider,
+            { backgroundColor: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.12)" }
+          ]} />
           <View style={styles.statPill}>
-            <Text style={styles.statValue}>
+            <Text style={[
+              styles.statValue,
+              { color: isDark ? "#FFFFFF" : "#000000" }
+            ]}>
               {journeyRecap.durationDays === 0 ? "<1" : journeyRecap.durationDays}
             </Text>
-            <Text style={styles.statLabel}>
+            <Text style={[
+              styles.statLabel,
+              { color: isDark ? "rgba(255, 255, 255, 0.45)" : "rgba(0, 0, 0, 0.45)" }
+            ]}>
               {journeyRecap.durationDays === 1 ? "Day" : "Days"}
             </Text>
           </View>
         </View>
 
         {/* Journey story quote */}
-        <Text style={styles.storyText}>"{journeyRecap.journeyStory}"</Text>
+        <Text style={[
+          styles.storyText,
+          { color: isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)" }
+        ]}>"{journeyRecap.journeyStory}"</Text>
 
         {/* Key moment highlight */}
         {journeyRecap.keyMoment && (
-          <View style={[styles.keyMomentSection, { borderLeftColor: categoryColor }]}>
-            <Text style={styles.keyMomentLabel}>Most memorable moment</Text>
-            <Text style={styles.keyMomentText}>"{journeyRecap.keyMoment}"</Text>
+          <View style={[
+            styles.keyMomentSection,
+            {
+              borderLeftColor: categoryColor,
+              backgroundColor: isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(0, 0, 0, 0.04)",
+            }
+          ]}>
+            <Text style={[
+              styles.keyMomentLabel,
+              { color: isDark ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.5)" }
+            ]}>Most memorable moment</Text>
+            <Text style={[
+              styles.keyMomentText,
+              { color: isDark ? "rgba(255, 255, 255, 0.65)" : "rgba(0, 0, 0, 0.65)" }
+            ]}>"{journeyRecap.keyMoment}"</Text>
           </View>
         )}
 
         {/* Meta: date + author */}
         <View style={styles.metaRow}>
-          <Text style={styles.dateText}>{formattedDate}</Text>
-          <Text style={styles.metaDot}>•</Text>
-          <Text style={styles.userInfo}>{userInfo}</Text>
+          <Text style={[
+            styles.dateText,
+            { color: isDark ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 0, 0, 0.4)" }
+          ]}>{formattedDate}</Text>
+          <Text style={[
+            styles.metaDot,
+            { color: isDark ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.3)" }
+          ]}>•</Text>
+          <Text style={[
+            styles.userInfo,
+            { color: isDark ? "rgba(255, 255, 255, 0.45)" : "rgba(0, 0, 0, 0.45)" }
+          ]}>{userInfo}</Text>
         </View>
 
         {/* Divider */}
-        <View style={styles.divider} />
+        <View style={[
+          styles.divider,
+          { backgroundColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)" }
+        ]} />
 
         {/* Action footer */}
         <View style={styles.actionRow}>
-          {onMeToo && (
-            <MeTooButton
-              meTooCount={journeyRecap.meTooCount}
-              hasUserMeTooed={journeyRecap.hasUserMeTooed}
-              onPress={() => onMeToo(journeyRecap.id)}
-              size="medium"
-            />
-          )}
+          <ResonanceIndicator
+            meTooCount={journeyRecap.meTooCount}
+            hasUserMeTooed={journeyRecap.hasUserMeTooed}
+            onPress={onMeToo ? () => onMeToo(journeyRecap.id) : undefined}
+            size="medium"
+            disabled={!onMeToo}
+          />
 
           {onPermission && (
             <TouchableOpacity
-              style={styles.ghostButton}
+              style={[
+                styles.ghostButton,
+                {
+                  borderColor: isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.15)",
+                  backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.03)",
+                }
+              ]}
               onPress={() => onPermission(journeyRecap.id)}
               activeOpacity={0.6}>
               <Text style={styles.ghostIcon}>💬</Text>
-              <Text style={styles.ghostText}>Permission</Text>
+              <Text style={[
+                styles.ghostText,
+                { color: isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.7)" }
+              ]}>Permission</Text>
             </TouchableOpacity>
           )}
 
           {journeyRecap.permissionsCount > 0 && onViewPermissions && (
             <TouchableOpacity
-              style={[styles.ghostButton, styles.ghostButtonAccent]}
+              style={[
+                styles.ghostButton,
+                {
+                  borderColor: isDark ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.2)",
+                  backgroundColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)",
+                }
+              ]}
               onPress={() => onViewPermissions(journeyRecap.id)}
               activeOpacity={0.6}>
               <Text style={styles.ghostIcon}>💬</Text>
@@ -170,9 +268,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.18)",
-    backgroundColor: "rgba(30, 41, 59, 0.4)", // Semi-transparent dark background for blur effect
-    shadowColor: "rgba(255, 255, 255, 0.12)",
+    // borderColor, backgroundColor, and shadowColor are now dynamic
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 12,
@@ -182,7 +278,7 @@ const styles = StyleSheet.create({
     height: 3,
   },
   glassBody: {
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    // backgroundColor is now dynamic
     padding: 18,
     gap: 10,
   },
@@ -205,7 +301,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    // backgroundColor is now dynamic
   },
   pinButton: {
     width: 32,
@@ -213,13 +309,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.06)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.12)",
-  },
-  pinButtonActive: {
-    backgroundColor: "rgba(251, 241, 36, 0.12)",
-    borderColor: "rgba(251, 241, 36, 0.3)",
+    // backgroundColor and borderColor are now dynamic
   },
   star: {
     fontSize: 16,
@@ -228,13 +319,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
     letterSpacing: 1.2,
-    color: "rgba(255, 255, 255, 0.85)",
+    // color is now dynamic
   },
   // Title
   dreamTitle: {
     fontSize: 19,
     fontWeight: "700",
-    color: "#FFFFFF",
+    // color is now dynamic
     letterSpacing: 0.4,
     lineHeight: 25,
     marginTop: 2,
@@ -244,7 +335,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    // backgroundColor is now dynamic
     borderRadius: 12,
     paddingVertical: 10,
     marginVertical: 2,
@@ -256,38 +347,38 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#FFFFFF",
+    // color is now dynamic
   },
   statLabel: {
     fontSize: 11,
-    color: "rgba(255, 255, 255, 0.45)",
+    // color is now dynamic
     marginTop: 2,
     fontWeight: "500",
   },
   statDivider: {
     width: 1,
     height: 36,
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    // backgroundColor is now dynamic
   },
   // Story
   storyText: {
     fontSize: 14,
     fontStyle: "italic",
-    color: "rgba(255, 255, 255, 0.7)",
+    // color is now dynamic
     lineHeight: 20,
   },
   // Key moment
   keyMomentSection: {
     paddingVertical: 10,
     paddingHorizontal: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    // backgroundColor is now dynamic
     borderRadius: 10,
     borderLeftWidth: 3,
   },
   keyMomentLabel: {
     fontSize: 10,
     fontWeight: "700",
-    color: "rgba(255, 255, 255, 0.5)",
+    // color is now dynamic
     marginBottom: 3,
     textTransform: "uppercase",
     letterSpacing: 0.6,
@@ -295,7 +386,7 @@ const styles = StyleSheet.create({
   keyMomentText: {
     fontSize: 13,
     fontStyle: "italic",
-    color: "rgba(255, 255, 255, 0.65)",
+    // color is now dynamic
     lineHeight: 18,
   },
   // Meta
@@ -306,20 +397,20 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 11,
-    color: "rgba(255, 255, 255, 0.4)",
+    // color is now dynamic
   },
   metaDot: {
     fontSize: 10,
-    color: "rgba(255, 255, 255, 0.3)",
+    // color is now dynamic
   },
   userInfo: {
     fontSize: 12,
-    color: "rgba(255, 255, 255, 0.45)",
+    // color is now dynamic
   },
   // Divider
   divider: {
     height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    // backgroundColor is now dynamic
     marginVertical: 2,
   },
   // Actions
@@ -337,12 +428,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.15)",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-  },
-  ghostButtonAccent: {
-    borderColor: "rgba(255, 255, 255, 0.2)",
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    // borderColor and backgroundColor are now dynamic
   },
   ghostIcon: {
     fontSize: 14,
@@ -350,6 +436,6 @@ const styles = StyleSheet.create({
   ghostText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "rgba(255, 255, 255, 0.7)",
+    // color is now dynamic
   },
 });

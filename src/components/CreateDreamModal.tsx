@@ -284,10 +284,19 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
       console.log('[CreateDreamModal] Response object:', res);
 
       if (res.conversation_complete) {
-        console.log('[CreateDreamModal] Conversation complete, closing modal and showing loading state');
+        console.log('[CreateDreamModal] Conversation complete, showing final message before closing');
+
+        // Show the final AI message so the user can read it
+        setCurrentUserMessage('');
+        userMessageOpacity.setValue(1);
+        replaceAiMessage(accumulatedMessage);
+
+        // Wait for typewriter to finish (20ms per char + 300ms fade + buffer)
+        const typewriterDuration = accumulatedMessage.length * 20 + 300;
+        const displayPause = 1500; // Let user read the message
+        await new Promise(resolve => setTimeout(resolve, typewriterDuration + displayPause));
 
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        // Close modal immediately and trigger the loading state on parent screen
         onClose();
         onDreamCreating?.();
       } else {

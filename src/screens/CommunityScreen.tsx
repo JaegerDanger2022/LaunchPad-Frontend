@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
+  Animated,
   ActivityIndicator,
   TouchableOpacity,
   RefreshControl,
@@ -57,9 +58,10 @@ const TYPE_OPTIONS: Array<{ label: string; value: CardTypeFilter }> = [
 
 interface CommunityScreenProps {
   onNavigate?: (screen: string, params?: any) => void;
+  highlightVictoryId?: string;
 }
 
-export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) => {
+export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate, highlightVictoryId }) => {
   // Get theme
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
@@ -101,6 +103,47 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
 
   // Scroll ref for scroll-to-top button
   const scrollRef = useRef<ScrollView>(null);
+
+  // Highlight victory card when navigated from HomeScreen
+  const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null);
+  const highlightAnim = useRef(new Animated.Value(0)).current;
+  const cardPositions = useRef<Record<string, number>>({});
+  const hasScrolledToHighlight = useRef(false);
+
+  // When highlightVictoryId changes, reset scroll tracking
+  useEffect(() => {
+    if (highlightVictoryId) {
+      hasScrolledToHighlight.current = false;
+    }
+  }, [highlightVictoryId]);
+
+  // After feed loads, scroll to highlighted card
+  useEffect(() => {
+    if (!highlightVictoryId || hasScrolledToHighlight.current || loading || feedItems.length === 0) return;
+
+    // Small delay for layout measurements to complete
+    const timer = setTimeout(() => {
+      const yPos = cardPositions.current[highlightVictoryId];
+      if (yPos != null && scrollRef.current) {
+        scrollRef.current.scrollTo({ y: yPos, animated: true });
+      }
+      // Trigger highlight animation
+      setActiveHighlightId(highlightVictoryId);
+      highlightAnim.setValue(1);
+      Animated.timing(highlightAnim, {
+        toValue: 0,
+        duration: 1500,
+        useNativeDriver: false,
+      }).start(() => setActiveHighlightId(null));
+      hasScrolledToHighlight.current = true;
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [highlightVictoryId, loading, feedItems]);
+
+  const handleCardLayout = useCallback((id: string, y: number) => {
+    cardPositions.current[id] = y;
+  }, []);
 
   // Fetch feed from backend (streaming) - includes victories and journey recaps
   const loadFeed = async (page: number, reset: boolean = false) => {
@@ -153,7 +196,12 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
     if (!user?.uid) return;
     try {
       const response = await fetchInspirationVictories(user.uid);
-      setPinnedItems(new Set(response.victories.map(v => v.id)));
+      // Use pinnedItemIds (includes both victory cards and journey recaps)
+      // Fall back to victory IDs for backwards compatibility
+      const ids = response.pinnedItemIds?.length
+        ? response.pinnedItemIds
+        : response.victories.map(v => v.id);
+      setPinnedItems(new Set(ids));
     } catch {
       // Silent fail — pins will just show as unpinned
     }
@@ -557,16 +605,16 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
         titleStyle={{
           fontSize: 28,
           fontWeight: 'bold',
-          color: theme === 'dark' ? '#FFFFFF' : Color.colorBlack,
+          color: '#FFFFFF', // Always white for visibility over background image
         }}
         subtitleStyle={{
           fontSize: 14,
-          color: theme === 'dark' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.7)',
+          color: 'rgba(255, 255, 255, 0.9)', // Always white for visibility over background image
         }}
         stickyHeaderTitleStyle={{
           fontSize: 20,
           fontWeight: 'bold',
-          color: themeColors.text_primary,
+          color: themeColors.text_primary, // Uses theme text color when scrolled
         }}
         parallaxHeight={200}
         headerHeight={80}
@@ -740,36 +788,46 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate }) 
           ) : (
             filteredFeedItems.map((item) => {
               const isOwnPost = item.userId === user?.uid;
+              const isHighlighted = activeHighlightId === item.id;
 
-              if (item.type === 'journey_recap') {
-                // Render Journey Recap Card
-                return (
-                  <JourneyRecapCard
-                    key={item.id}
-                    journeyRecap={item}
-                    onBoost={!isOwnPost ? handleBoost : undefined}
-                    onMeToo={!isOwnPost ? handleMeToo : undefined}
-                    onPin={!isOwnPost ? handlePin : undefined}
-                    isPinned={pinnedItems.has(item.id)}
-                    onPermission={!isOwnPost ? handlePermissionClick : undefined}
-                    onViewPermissions={handleViewPermissions}
-                  />
-                );
-              } else {
-                // Render Victory Card
-                return (
-                  <VictoryCardComponent
-                    key={item.id}
-                    victory={item}
-                    onBoost={!isOwnPost ? handleBoost : undefined}
-                    onMeToo={!isOwnPost ? handleMeToo : undefined}
-                    onPin={!isOwnPost ? handlePin : undefined}
-                    isPinned={pinnedItems.has(item.id)}
-                    onPermission={!isOwnPost ? handlePermissionClick : undefined}
-                    onViewPermissions={handleViewPermissions}
-                  />
-                );
-              }
+              const cardContent = item.type === 'journey_recap' ? (
+                <JourneyRecapCard
+                  journeyRecap={item}
+                  onBoost={!isOwnPost ? handleBoost : undefined}
+                  onMeToo={!isOwnPost ? handleMeToo : undefined}
+                  onPin={!isOwnPost ? handlePin : undefined}
+                  isPinned={pinnedItems.has(item.id)}
+                  onPermission={!isOwnPost ? handlePermissionClick : undefined}
+                  onViewPermissions={handleViewPermissions}
+                />
+              ) : (
+                <VictoryCardComponent
+                  victory={item}
+                  onBoost={!isOwnPost ? handleBoost : undefined}
+                  onMeToo={!isOwnPost ? handleMeToo : undefined}
+                  onPin={!isOwnPost ? handlePin : undefined}
+                  isPinned={pinnedItems.has(item.id)}
+                  onPermission={!isOwnPost ? handlePermissionClick : undefined}
+                  onViewPermissions={handleViewPermissions}
+                />
+              );
+
+              return (
+                <Animated.View
+                  key={item.id}
+                  onLayout={(e) => handleCardLayout(item.id, e.nativeEvent.layout.y)}
+                  style={isHighlighted ? {
+                    borderRadius: 20,
+                    borderWidth: 2,
+                    borderColor: highlightAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['rgba(255, 107, 53, 0)', 'rgba(255, 107, 53, 0.8)'],
+                    }),
+                  } : undefined}
+                >
+                  {cardContent}
+                </Animated.View>
+              );
             })
           )}
           {renderFooter()}

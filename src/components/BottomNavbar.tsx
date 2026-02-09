@@ -26,6 +26,9 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = React.memo(({
   const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
 
+  // Darken unselected tab color in light mode for better visibility
+  const unselectedColor = theme === "dark" ? themeColors.text_secondary : "#6B7280";
+
   const tabs = [
     { id: "home", icon: HomeIcon, label: "Home", screen: "Home" },
     { id: "dreams", icon: Goal, label: "Dreams", screen: "AllDreams" },
@@ -66,7 +69,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = React.memo(({
                 <IconComponent
                   size={24}
                   color={
-                    isActive ? Color.colorOrangered : themeColors.text_secondary
+                    isActive ? Color.colorOrangered : unselectedColor
                   }
                   strokeWidth={isActive ? 2.5 : 2}
                 />
@@ -77,7 +80,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = React.memo(({
                   {
                     color: isActive
                       ? Color.colorOrangered
-                      : themeColors.text_secondary,
+                      : unselectedColor,
                     fontWeight: isActive ? "600" : "400",
                   },
                 ]}>

@@ -34,7 +34,7 @@ export const Color = {
 export const ChallengeTypeColors = {
   power_move: "#FF6B6B",
   knowledge_quest: "#4ECDC4",
-  prep_ritual: "#FFD93D",
+  prep_ritual: "#e7c51a",
   courage_check: "#FF6B9D",
   skill_flex: "#6BCB77",
   decision_point: "#A78BFA",

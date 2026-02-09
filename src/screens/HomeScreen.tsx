@@ -12,14 +12,17 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { Plus, Settings } from "lucide-react-native";
-import { Color, getThemeColors, ChallengeTypeColors } from "../constants/GlobalStyles";
+import {
+  Color,
+  getThemeColors,
+  ChallengeTypeColors,
+} from "../constants/GlobalStyles";
 import { AvatarIcon } from "../components/icons/SVGIcons";
 import { GoalCard, type GoalCardData } from "../components/GoalCard";
 import { CreateDreamModal } from "../components/CreateDreamModal";
@@ -43,7 +46,11 @@ import { useAuthStore } from "../store/authStore";
 import { useCommunityStore } from "../store/communityStore";
 import { useThemeStore } from "../store/themeStore";
 import { areDependenciesCompleted } from "../utils/dependencyChecker";
-import { fetchVictories, fetchInspirationVictories, togglePinInspiration } from "../config/api";
+import {
+  fetchVictories,
+  fetchInspirationVictories,
+  togglePinInspiration,
+} from "../config/api";
 import Toast from "react-native-toast-message";
 import {
   VictoryCard as VictoryCardType,
@@ -57,8 +64,10 @@ const HomeScreen = ({
   onNavigate: (screen: string, params?: any) => void;
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>("recents");
-  const [isDreamChoiceModalVisible, setIsDreamChoiceModalVisible] = useState(false);
-  const [isCreateDreamModalVisible, setIsCreateDreamModalVisible] = useState(false);
+  const [isDreamChoiceModalVisible, setIsDreamChoiceModalVisible] =
+    useState(false);
+  const [isCreateDreamModalVisible, setIsCreateDreamModalVisible] =
+    useState(false);
   const [isDIYDreamModalVisible, setIsDIYDreamModalVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [recentVictories, setRecentVictories] = useState<CommunityFeedItem[]>(
@@ -187,7 +196,7 @@ const HomeScreen = ({
       if (user?.uid) {
         loadInspirationVictories();
       }
-    }, [user?.uid, loadInspirationVictories])
+    }, [user?.uid, loadInspirationVictories]),
   );
 
   useEffect(() => {
@@ -253,22 +262,22 @@ const HomeScreen = ({
     if (!user?.uid) return;
 
     // Optimistic removal
-    setInspirationVictories(prev => prev.filter(v => v.id !== victoryId));
+    setInspirationVictories((prev) => prev.filter((v) => v.id !== victoryId));
 
     try {
       await togglePinInspiration(victoryId, user.uid);
       Toast.show({
-        type: 'success',
-        text1: 'Removed from Inspiration',
+        type: "success",
+        text1: "Removed from Inspiration",
         visibilityTime: 1500,
       });
     } catch (err) {
       // Rollback — reload from server
       await loadInspirationVictories();
       Toast.show({
-        type: 'error',
-        text1: 'Failed to unpin',
-        text2: 'Please try again',
+        type: "error",
+        text1: "Failed to unpin",
+        text2: "Please try again",
         visibilityTime: 2000,
       });
     }
@@ -291,8 +300,8 @@ const HomeScreen = ({
               meTooCount: previousState ? v.meTooCount - 1 : v.meTooCount + 1,
               hasUserMeTooed: !previousState,
             }
-          : v
-      )
+          : v,
+      ),
     );
 
     try {
@@ -301,9 +310,13 @@ const HomeScreen = ({
       setRecentVictories((prev) =>
         prev.map((v) =>
           v.id === victoryId
-            ? { ...v, meTooCount: result.newCount, hasUserMeTooed: result.added }
-            : v
-        )
+            ? {
+                ...v,
+                meTooCount: result.newCount,
+                hasUserMeTooed: result.added,
+              }
+            : v,
+        ),
       );
     } catch {
       // Rollback on error
@@ -311,8 +324,8 @@ const HomeScreen = ({
         prev.map((v) =>
           v.id === victoryId
             ? { ...v, meTooCount: previousCount, hasUserMeTooed: previousState }
-            : v
-        )
+            : v,
+        ),
       );
     }
   };
@@ -367,7 +380,9 @@ const HomeScreen = ({
       let progress = 0;
       const milestones = dream.roadmap?.milestones;
       if (milestones && milestones.length > 0) {
-        const completed = milestones.filter((m: any) => m.status === "completed").length;
+        const completed = milestones.filter(
+          (m: any) => m.status === "completed",
+        ).length;
         progress = (completed / milestones.length) * 100;
       } else if (dream._metadata) {
         const total = dream._metadata.milestones_count || 0;
@@ -413,15 +428,24 @@ const HomeScreen = ({
           zIndex: 100,
           backgroundColor: themeColors.bg_primary,
         }}>
-        <TouchableOpacity onPress={() => onNavigate("Settings")} activeOpacity={0.6} style={{ padding: 4 }}>
-          <Settings size={30} color={themeColors.text_secondary} strokeWidth={2} />
+        <TouchableOpacity
+          onPress={() => onNavigate("Settings")}
+          activeOpacity={0.6}
+          style={{ padding: 4 }}>
+          <Settings
+            size={30}
+            color={themeColors.text_secondary}
+            strokeWidth={2}
+          />
         </TouchableOpacity>
         {userData?.streak && userData.streak.current_streak > 0 ? (
           <StreakBadge
             streakCount={userData.streak.current_streak}
             size="medium"
           />
-        ) : <View />}
+        ) : (
+          <View />
+        )}
       </View>
 
       <Animated.ScrollView
@@ -528,49 +552,217 @@ const HomeScreen = ({
               zIndex: 10,
             }}>
             {(() => {
-              const noDreams = !loading && userData && (!userData.dreams || userData.dreams.length === 0) && !userData.dreams_count;
+              const noDreams =
+                !loading &&
+                userData &&
+                (!userData.dreams || userData.dreams.length === 0) &&
+                !userData.dreams_count;
               return (
-              <>
-                <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+                <>
+                  <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
 
-                <Animated.View
-                  style={{
-                    opacity: fadeAnim,
-                    transform: [{ translateY: slideAnim }],
-                  }}>
-                  {activeTab === "recents" ? (
-                    /* Goal Cards Carousel, Skeletons, No Recents, or No Dreams */
-                    noDreams ? (
+                  <Animated.View
+                    style={{
+                      opacity: fadeAnim,
+                      transform: [{ translateY: slideAnim }],
+                    }}>
+                    {activeTab === "recents" ? (
+                      /* Goal Cards Carousel, Skeletons, No Recents, or No Dreams */
+                      noDreams ? (
+                        <View
+                          style={{
+                            alignItems: "center",
+                            justifyContent: "center",
+                            paddingVertical: 48,
+                            paddingHorizontal: 24,
+                          }}>
+                          <View
+                            style={{
+                              width: 96,
+                              height: 96,
+                              borderRadius: 48,
+                              backgroundColor:
+                                theme === "dark"
+                                  ? "rgba(251, 99, 34, 0.15)"
+                                  : "rgba(251, 99, 34, 0.1)",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              marginBottom: 20,
+                            }}>
+                            <Plus size={40} color={Color.colorOrangered} />
+                          </View>
+                          <Text
+                            style={{
+                              fontSize: 20,
+                              fontWeight: "700",
+                              color: themeColors.text_primary,
+                              fontFamily: "InstrumentSans-Bold",
+                              marginBottom: 8,
+                              textAlign: "center",
+                            }}>
+                            Create a Dream
+                          </Text>
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              color: themeColors.text_secondary,
+                              fontFamily: "InstrumentSans-Regular",
+                              textAlign: "center",
+                              lineHeight: 20,
+                              marginBottom: 24,
+                            }}>
+                            You don't have any dreams yet. Tap the button below
+                            to get started.
+                          </Text>
+                          <TouchableOpacity
+                            onPress={handleAddDreamPress}
+                            activeOpacity={0.8}
+                            style={{
+                              backgroundColor: Color.colorOrangered,
+                              borderRadius: 28,
+                              paddingHorizontal: 28,
+                              paddingVertical: 12,
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 8,
+                            }}>
+                            <Plus size={20} color={Color.colorWhite} />
+                            <Text
+                              style={{
+                                fontSize: 16,
+                                fontWeight: "700",
+                                color: Color.colorWhite,
+                                fontFamily: "InstrumentSans-Bold",
+                              }}>
+                              New Dream
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      ) : loading ||
+                        isRefreshing ||
+                        (dreamCardsData.length === 0 &&
+                          (userData?.recents?.length ||
+                            (userData?.dreams_count &&
+                              (!userData.dreams ||
+                                userData.dreams.length === 0)))) ? (
+                        <SkeletonDreamCardsCarousel />
+                      ) : dreamCardsData.length > 0 ? (
+                        <Animated.ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerStyle={{
+                            paddingTop: 20,
+                          }}
+                          snapToInterval={columnWidth + 14}
+                          decelerationRate="fast">
+                          {dreamCardsData.map((item, index) => (
+                            <View
+                              key={index}
+                              style={{
+                                width: columnWidth,
+                                marginRight:
+                                  index < dreamCardsData.length - 1 ? 14 : 0,
+                              }}>
+                              <GoalCard
+                                data={item}
+                                onPress={() => {
+                                  if (
+                                    item.status === "active" &&
+                                    item.threadId
+                                  ) {
+                                    addToRecents(item.threadId);
+                                  }
+                                  onNavigate("Dream", {
+                                    threadId: item.threadId,
+                                  });
+                                }}
+                              />
+                            </View>
+                          ))}
+                        </Animated.ScrollView>
+                      ) : (
+                        <NoRecentsState />
+                      )
+                    ) : /* Inspiration Tab - Saved Victories */
+                    loading || inspirationLoading || isRefreshing ? (
+                      <VictoryCardSkeleton />
+                    ) : inspirationVictories.length > 0 ? (
+                      <Animated.ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{
+                          paddingRight: 17,
+                        }}
+                        snapToInterval={width - 20}
+                        decelerationRate="fast"
+                        style={{ marginLeft: -17 }}>
+                        {inspirationVictories.map((item) => {
+                          // Type guard - we've already added type field
+                          if (item.type !== "victory_card") return null;
+                          const victory = item;
+
+                          return (
+                            <View
+                              key={victory.id}
+                              style={{ width: width - 20 }}>
+                              <VictoryCard
+                                victory={victory}
+                                onPin={() => handleUnpin(victory.id)}
+                                isPinned={true}
+                                onPress={() =>
+                                  onNavigate("Community", {
+                                    highlightVictoryId: victory.id,
+                                  })
+                                }
+                              />
+                            </View>
+                          );
+                        })}
+                      </Animated.ScrollView>
+                    ) : (
+                      /* No Inspiration Yet Placeholder */
                       <View
                         style={{
                           alignItems: "center",
                           justifyContent: "center",
-                          paddingVertical: 48,
-                          paddingHorizontal: 24,
+                          paddingVertical: 60,
+                          paddingHorizontal: 40,
                         }}>
+                        {/* Decorative Circle Background */}
                         <View
                           style={{
-                            width: 96,
-                            height: 96,
-                            borderRadius: 48,
-                            backgroundColor: theme === "dark" ? "rgba(251, 99, 34, 0.15)" : "rgba(251, 99, 34, 0.1)",
+                            width: 120,
+                            height: 120,
+                            borderRadius: 60,
+                            backgroundColor: "#F0F0F0",
                             alignItems: "center",
                             justifyContent: "center",
-                            marginBottom: 20,
+                            marginBottom: 24,
                           }}>
-                          <Plus size={40} color={Color.colorOrangered} />
+                          {/* Lightbulb Icon */}
+                          <Text
+                            style={{
+                              fontSize: 60,
+                              opacity: 0.6,
+                            }}>
+                            💡
+                          </Text>
                         </View>
+
+                        {/* Main Text */}
                         <Text
                           style={{
                             fontSize: 20,
                             fontWeight: "700",
                             color: themeColors.text_primary,
                             fontFamily: "InstrumentSans-Bold",
-                            marginBottom: 8,
+                            marginBottom: 12,
                             textAlign: "center",
                           }}>
-                          Create a Dream
+                          No Inspiration Yet
                         </Text>
+
+                        {/* Subtitle */}
                         <Text
                           style={{
                             fontSize: 14,
@@ -580,175 +772,34 @@ const HomeScreen = ({
                             lineHeight: 20,
                             marginBottom: 24,
                           }}>
-                          You don't have any dreams yet. Tap the button below to get started.
+                          Visit the Community Wall and tap "Me Too" on victories
+                          that inspire you to save them here
                         </Text>
-                        <TouchableOpacity
-                          onPress={handleAddDreamPress}
-                          activeOpacity={0.8}
+
+                        {/* Decorative Dots */}
+                        <View
                           style={{
-                            backgroundColor: Color.colorOrangered,
-                            borderRadius: 28,
-                            paddingHorizontal: 28,
-                            paddingVertical: 12,
                             flexDirection: "row",
-                            alignItems: "center",
-                            gap: 8,
+                            gap: 6,
+                            marginTop: 12,
                           }}>
-                          <Plus size={20} color={Color.colorWhite} />
-                          <Text
-                            style={{
-                              fontSize: 16,
-                              fontWeight: "700",
-                              color: Color.colorWhite,
-                              fontFamily: "InstrumentSans-Bold",
-                            }}>
-                            New Dream
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    ) : loading || isRefreshing || (dreamCardsData.length === 0 && (userData?.recents?.length || (userData?.dreams_count && (!userData.dreams || userData.dreams.length === 0)))) ? (
-                      <SkeletonDreamCardsCarousel />
-                    ) : dreamCardsData.length > 0 ? (
-                      <Animated.ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{
-                          paddingTop: 20,
-                        }}
-                        snapToInterval={columnWidth + 14}
-                        decelerationRate="fast">
-                        {dreamCardsData.map((item, index) => (
-                          <View
-                            key={index}
-                            style={{
-                              width: columnWidth,
-                              marginRight:
-                                index < dreamCardsData.length - 1 ? 14 : 0,
-                            }}>
-                            <GoalCard
-                              data={item}
-                              onPress={() => {
-                                if (item.status === "active" && item.threadId) {
-                                  addToRecents(item.threadId);
-                                }
-                                onNavigate("Dream", { threadId: item.threadId });
+                          {[1, 2, 3].map((dot) => (
+                            <View
+                              key={dot}
+                              style={{
+                                width: 6,
+                                height: 6,
+                                borderRadius: 3,
+                                backgroundColor:
+                                  dot === 2 ? "#00D4AA" : "#E0E0E0",
                               }}
                             />
-                          </View>
-                        ))}
-                      </Animated.ScrollView>
-                    ) : (
-                      <NoRecentsState />
-                    )
-                  ) : /* Inspiration Tab - Saved Victories */
-                  loading || inspirationLoading || isRefreshing ? (
-                    <VictoryCardSkeleton />
-                  ) : inspirationVictories.length > 0 ? (
-                    <Animated.ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={{
-                        paddingRight: 17,
-                      }}
-                      snapToInterval={width - 20}
-                      decelerationRate="fast"
-                      style={{ marginLeft: -17 }}>
-                      {inspirationVictories.map((item) => {
-                        // Type guard - we've already added type field
-                        if (item.type !== "victory_card") return null;
-                        const victory = item;
-
-                        return (
-                          <View key={victory.id} style={{ width: width - 20 }}>
-                            <VictoryCard
-                              victory={victory}
-                              onPin={() => handleUnpin(victory.id)}
-                              isPinned={true}
-                            />
-                          </View>
-                        );
-                      })}
-                    </Animated.ScrollView>
-                  ) : (
-                    /* No Inspiration Yet Placeholder */
-                    <View
-                      style={{
-                        alignItems: "center",
-                        justifyContent: "center",
-                        paddingVertical: 60,
-                        paddingHorizontal: 40,
-                      }}>
-                      {/* Decorative Circle Background */}
-                      <View
-                        style={{
-                          width: 120,
-                          height: 120,
-                          borderRadius: 60,
-                          backgroundColor: "#F0F0F0",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          marginBottom: 24,
-                        }}>
-                        {/* Lightbulb Icon */}
-                        <Text
-                          style={{
-                            fontSize: 60,
-                            opacity: 0.6,
-                          }}>
-                          💡
-                        </Text>
+                          ))}
+                        </View>
                       </View>
-
-                      {/* Main Text */}
-                      <Text
-                        style={{
-                          fontSize: 20,
-                          fontWeight: "700",
-                          color: themeColors.text_primary,
-                          fontFamily: "InstrumentSans-Bold",
-                          marginBottom: 12,
-                          textAlign: "center",
-                        }}>
-                        No Inspiration Yet
-                      </Text>
-
-                      {/* Subtitle */}
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          color: themeColors.text_secondary,
-                          fontFamily: "InstrumentSans-Regular",
-                          textAlign: "center",
-                          lineHeight: 20,
-                          marginBottom: 24,
-                        }}>
-                        Visit the Community Wall and tap "Me Too" on victories that
-                        inspire you to save them here
-                      </Text>
-
-                      {/* Decorative Dots */}
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          gap: 6,
-                          marginTop: 12,
-                        }}>
-                        {[1, 2, 3].map((dot) => (
-                          <View
-                            key={dot}
-                            style={{
-                              width: 6,
-                              height: 6,
-                              borderRadius: 3,
-                              backgroundColor: dot === 2 ? "#00D4AA" : "#E0E0E0",
-                            }}
-                          />
-                        ))}
-                      </View>
-                    </View>
-                  )}
-                </Animated.View>
-              </>
+                    )}
+                  </Animated.View>
+                </>
               );
             })()}
           </View>
@@ -857,9 +908,21 @@ const HomeScreen = ({
                   if (item.type !== "victory_card") return null;
                   const victory = item;
 
+                  const challengeColor = victory.challengeType
+                    ? ChallengeTypeColors[
+                        victory.challengeType as keyof typeof ChallengeTypeColors
+                      ] || Color.colorOrangered
+                    : Color.colorOrangered;
+
                   return (
-                    <View
+                    <TouchableOpacity
                       key={victory.id}
+                      activeOpacity={0.85}
+                      onPress={() =>
+                        onNavigate("Community", {
+                          highlightVictoryId: victory.id,
+                        })
+                      }
                       style={{
                         borderRadius: 20,
                         overflow: "hidden",
@@ -867,125 +930,146 @@ const HomeScreen = ({
                           index < recentVictories.length - 1 ? 12 : 0,
                         width: width - 34,
                         borderWidth: 1,
-                        borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.18)" : "rgba(0, 0, 0, 0.1)",
+                        borderColor:
+                          theme === "dark"
+                            ? "rgba(255, 255, 255, 0.18)"
+                            : "rgba(0, 0, 0, 0.1)",
                       }}>
                       {/* Gradient accent strip — matches Community VictoryCard */}
                       <LinearGradient
                         colors={[
-                          victory.challengeType
-                            ? ChallengeTypeColors[victory.challengeType as keyof typeof ChallengeTypeColors] || Color.colorOrangered
-                            : Color.colorOrangered,
-                          (victory.challengeType
-                            ? ChallengeTypeColors[victory.challengeType as keyof typeof ChallengeTypeColors] || Color.colorOrangered
-                            : Color.colorOrangered) + "00",
+                          challengeColor,
+                          challengeColor + "00",
                         ]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
                         style={{ height: 3 }}
                       />
-                      <BlurView
-                        intensity={60}
-                        tint={theme === "dark" ? "dark" : "light"}
+                      <LinearGradient
+                        colors={
+                          theme === "dark"
+                            ? ["rgba(43, 45, 86, 0.4)", "rgba(43, 45, 86, 0.6)"]
+                            : [`${challengeColor}15`, `${challengeColor}08`]
+                        }
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
                         style={{
                           flex: 1,
                           paddingHorizontal: 18,
                           paddingVertical: 18,
                           flexDirection: "column",
                           gap: 14,
-                          backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
                         }}>
-                      {/* Avatar and User Info Row */}
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 12,
-                        }}>
-                        {/* Avatar Circle */}
+                        {/* Avatar and User Info Row */}
                         <View
                           style={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: 24,
-                            backgroundColor: "rgba(180, 197, 253, 0.4)",
+                            flexDirection: "row",
                             alignItems: "center",
-                            justifyContent: "center",
+                            gap: 12,
                           }}>
-                          <AvatarIcon
-                            size={28}
-                            color={Color.colorLightsteelblue}
-                          />
+                          {/* Avatar Circle */}
+                          <View
+                            style={{
+                              width: 48,
+                              height: 48,
+                              borderRadius: 24,
+                              backgroundColor: "rgba(180, 197, 253, 0.4)",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}>
+                            {victory.isAnonymous ? (
+                              <AvatarIcon
+                                size={28}
+                                color={Color.colorLightsteelblue}
+                              />
+                            ) : (
+                              <Text
+                                style={{
+                                  fontSize: 20,
+                                  fontFamily: "InstrumentSans-Bold",
+                                  fontWeight: "700",
+                                  color: Color.colorLightsteelblue,
+                                }}>
+                                {victory.userDisplayName
+                                  .charAt(0)
+                                  .toUpperCase()}
+                              </Text>
+                            )}
+                          </View>
+
+                          {/* User Name */}
+                          <View style={{ flex: 1 }}>
+                            <Text
+                              style={{
+                                color: themeColors.text_primary,
+                                fontFamily: "InstrumentSans-Bold",
+                                fontWeight: "700",
+                                fontSize: 16,
+                              }}>
+                              {victory.userDisplayName}
+                            </Text>
+                          </View>
                         </View>
 
-                        {/* User Name */}
-                        <View style={{ flex: 1 }}>
+                        {/* Milestone Title */}
+                        <Text
+                          style={{
+                            fontSize: 15,
+                            fontWeight: "600",
+                            textAlign: "left",
+                            color: themeColors.text_primary,
+                            fontFamily: "InstrumentSans-SemiBold",
+                            lineHeight: 20,
+                          }}>
+                          {victory.milestoneTitle}
+                        </Text>
+
+                        {/* Evidence Snippet - only show if proof exists */}
+                        {victory.evidenceSnippet ? (
                           <Text
                             style={{
-                              color: themeColors.text_primary,
-                              fontFamily: "InstrumentSans-Bold",
-                              fontWeight: "700",
-                              fontSize: 16,
+                              fontSize: 14,
+                              textAlign: "left",
+                              color: themeColors.text_secondary,
+                              fontFamily: "InstrumentSans-Regular",
+                              fontWeight: "400",
+                              lineHeight: 20,
+                              fontStyle: "italic",
                             }}>
-                            {victory.userDisplayName}
+                            {victory.evidenceSnippet}
+                          </Text>
+                        ) : null}
+
+                        {/* Stats Row */}
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            marginTop: "auto",
+                          }}>
+                          <ResonanceIndicator
+                            meTooCount={victory.meTooCount}
+                            hasUserMeTooed={victory.hasUserMeTooed}
+                            onPress={
+                              victory.userId !== user?.uid
+                                ? () => handleMeToo(victory.id)
+                                : undefined
+                            }
+                            size="small"
+                            disabled={victory.userId === user?.uid}
+                          />
+                          <Text
+                            style={{
+                              color: "#A0A0A0",
+                              fontSize: 11,
+                              fontFamily: "InstrumentSans-Regular",
+                            }}>
+                            {formatDate(victory.createdAt)}
                           </Text>
                         </View>
-                      </View>
-
-                      {/* Milestone Title */}
-                      <Text
-                        style={{
-                          fontSize: 15,
-                          fontWeight: "600",
-                          textAlign: "left",
-                          color: themeColors.text_primary,
-                          fontFamily: "InstrumentSans-SemiBold",
-                          lineHeight: 20,
-                        }}>
-                        {victory.milestoneTitle}
-                      </Text>
-
-                      {/* Evidence Snippet - only show if proof exists */}
-                      {victory.evidenceSnippet ? (
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            textAlign: "left",
-                            color: themeColors.text_secondary,
-                            fontFamily: "InstrumentSans-Regular",
-                            fontWeight: "400",
-                            lineHeight: 20,
-                            fontStyle: "italic",
-                          }}>
-                          {victory.evidenceSnippet}
-                        </Text>
-                      ) : null}
-
-                      {/* Stats Row */}
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          marginTop: "auto",
-                        }}>
-                        <ResonanceIndicator
-                          meTooCount={victory.meTooCount}
-                          hasUserMeTooed={victory.hasUserMeTooed}
-                          onPress={victory.userId !== user?.uid ? () => handleMeToo(victory.id) : undefined}
-                          size="small"
-                          disabled={victory.userId === user?.uid}
-                        />
-                        <Text
-                          style={{
-                            color: "#A0A0A0",
-                            fontSize: 11,
-                            fontFamily: "InstrumentSans-Regular",
-                          }}>
-                          {formatDate(victory.createdAt)}
-                        </Text>
-                      </View>
-                      </BlurView>
-                    </View>
+                      </LinearGradient>
+                    </TouchableOpacity>
                   );
                 })}
               </Animated.ScrollView>

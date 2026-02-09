@@ -64,6 +64,7 @@ export const UpNextHeroCard: React.FC<UpNextHeroCardProps> = ({
     <Animated.View
       style={{
         marginHorizontal: 17,
+        marginTop: 4,
         marginBottom: 20,
         height: 180,
         opacity: heroOpacity,
@@ -75,15 +76,16 @@ export const UpNextHeroCard: React.FC<UpNextHeroCardProps> = ({
         shadowRadius: 16,
         shadowOpacity: isLocked ? 0.3 : 0.6,
         elevation: 10,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: cardColor,
       }}>
       <BlurView
         intensity={isDark ? 40 : 60}
         tint={isDark ? "dark" : "light"}
         style={{
           flex: 1,
-          borderRadius: 16,
-          borderWidth: 1,
-          borderColor: cardColor,
+          borderRadius: 15,
           backgroundColor: isDark
             ? "rgba(43,45,86,0.6)"
             : "rgba(255,255,255,0.6)",

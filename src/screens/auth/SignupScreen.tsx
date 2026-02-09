@@ -58,6 +58,15 @@ const steps: Step[] = [
 
 const SignupScreen = ({ navigation, route }: any) => {
   const params = route?.params;
+
+  // Video plays once from start to end, then stays on the last frame
+  const videoSource = require('../../assets/animations/ondoarding/Luna floating.mp4');
+  const player = useVideoPlayer(videoSource, (player) => {
+    player.loop = false;
+    player.muted = true;
+    player.audioMixingMode = 'mixWithOthers';
+    player.play();
+  });
   const [currentStepIndex, setCurrentStepIndex] = useState(params?.emailError ? 1 : 0);
   const [formData, setFormData] = useState({
     name: params?.name || '',
@@ -82,15 +91,6 @@ const SignupScreen = ({ navigation, route }: any) => {
       setFieldError(params.emailError);
     }
   }, [params?.emailError]);
-
-  // Setup video player for Luna background
-  const videoSource = require('../../assets/animations/ondoarding/Luna floating.mp4');
-  const player = useVideoPlayer(videoSource, (player) => {
-    player.loop = true;
-    player.muted = true;
-    player.audioMixingMode = 'mixWithOthers';
-    player.play();
-  });
 
   // Animation values for fade in/out transitions
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -206,7 +206,7 @@ const SignupScreen = ({ navigation, route }: any) => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
-        {/* Video Background */}
+        {/* Video Background — shared player from context */}
         <VideoView
           player={player}
           style={styles.videoBackground}
