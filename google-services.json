@@ -14,19 +14,19 @@
       },
       "oauth_client": [
         {
-          "client_id": "191645644567-koudi8ubl2cjkjau550oqjpc3qm3ld76.apps.googleusercontent.com",
+          "client_id": "191645644567-4o2jeknq8hkkr7nr5thbet0pd1p2llvc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.capstone.launchpad",
+            "certificate_hash": "a228097af79223ed72b4be48789eefa367a723f0"
+          }
+        },
+        {
+          "client_id": "191645644567-frvm4o9luh2jkb50no6779fknpi7m30j.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.capstone.launchpad",
             "certificate_hash": "d7de92fbe12217e684e7368e6d31d93188aa6b0d"
-          }
-        },
-        {
-          "client_id": "191645644567-kuf5kloplkc0h4rk8n3u9dr32idl6vij.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.capstone.launchpad",
-            "certificate_hash": "51e3fd29ac4bafd0cdff858ff0e917d13d575342"
           }
         },
         {
