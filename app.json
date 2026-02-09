@@ -38,7 +38,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.launchpad.app",
+      "bundleIdentifier": "com.capstone.launchpad.app",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "We need microphone access to record voice messages about your dreams"
       }
@@ -48,7 +48,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#050938"
       },
-      "package": "com.launchpad.app",
+      "package": "com.capstone.launchpad.app",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "googleServicesFile": "./google-services.json",
