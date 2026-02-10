@@ -1,16 +1,15 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   Alert,
-  Animated,
-  PanResponder,
-  Dimensions,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
+import { ChevronLeft } from "lucide-react-native";
 import { ProfileHeader } from "../components/settings/ProfileHeader";
 import { SettingRow } from "../components/settings/SettingRow";
 import { StatsRings } from "../components/settings/StatsRings";
@@ -26,9 +25,6 @@ import {
 } from "../config/api";
 import Toast from "react-native-toast-message";
 
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-const DRAG_THRESHOLD = 100;
-
 interface SettingsScreenProps {
   onNavigate?: (screen: string) => void;
 }
@@ -41,45 +37,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const themeColors = getThemeColors(theme);
   const [showTimezoneModal, setShowTimezoneModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
-
-  const translateY = useRef(new Animated.Value(0)).current;
-  const backdropOpacity = useRef(new Animated.Value(1)).current;
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, g) => g.dy > 5,
-      onPanResponderGrant: () => {},
-      onPanResponderMove: (_, g) => {
-        if (g.dy > 0) translateY.setValue(g.dy);
-      },
-      onPanResponderRelease: (_, g) => {
-        if (g.dy > DRAG_THRESHOLD || g.vy > 0.5) {
-          Animated.parallel([
-            Animated.timing(translateY, {
-              toValue: SCREEN_HEIGHT,
-              duration: 250,
-              useNativeDriver: true,
-            }),
-            Animated.timing(backdropOpacity, {
-              toValue: 0,
-              duration: 250,
-              useNativeDriver: true,
-            }),
-          ]).start(() => {
-            onNavigate?.("Settings");
-          });
-        } else {
-          Animated.spring(translateY, {
-            toValue: 0,
-            useNativeDriver: true,
-            tension: 50,
-            friction: 8,
-          }).start();
-        }
-      },
-    }),
-  ).current;
 
   // Calculate user stats
   const dreamCount = userData?.dreams?.length || 0;
@@ -291,44 +248,35 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      <Animated.View
-        style={[
-          StyleSheet.absoluteFill,
-          { backgroundColor: "rgba(0,0,0,0.5)", opacity: backdropOpacity },
-        ]}
-      />
-      <Animated.View
-        style={[styles.animatedContent, { transform: [{ translateY }] }]}>
-        <SafeAreaView
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: themeColors.bg_primary },
+      ]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => onNavigate?.("Settings")}
+          style={styles.backButton}>
+          <ChevronLeft size={24} color={themeColors.text_primary} />
+        </TouchableOpacity>
+        <Text
           style={[
-            styles.container,
-            { backgroundColor: themeColors.bg_primary },
+            styles.headerTitle,
+            { color: themeColors.text_primary },
           ]}>
-          {/* Drag handle */}
-          <View
-            {...panResponder.panHandlers}
-            style={styles.dragHandleContainer}>
-            <View style={styles.dragHandle} />
-          </View>
-          {/* Header */}
-          <View {...panResponder.panHandlers} style={styles.modalHeader}>
-            <Text
-              style={[
-                styles.modalHeaderTitle,
-                { color: themeColors.text_primary },
-              ]}>
-              Settings
-            </Text>
-          </View>
+          Settings
+        </Text>
+        <View style={{ width: 24 }} />
+      </View>
 
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={[
-              styles.scrollContent,
-              { paddingBottom: 40 },
-            ]}
-            showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 40 },
+        ]}
+        showsVerticalScrollIndicator={false}>
             {/* Profile Header */}
             {userData && (
               <ProfileHeader
@@ -594,42 +542,32 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               </View>
             </View>
 
-            {/* Bottom spacing */}
-            <View style={{ height: 40 }} />
-          </ScrollView>
-        </SafeAreaView>
-      </Animated.View>
-    </View>
+        {/* Bottom spacing */}
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  animatedContent: {
-    flex: 1,
-    marginTop: 50,
-  },
   container: {
     flex: 1,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
   },
-  dragHandleContainer: {
+  header: {
+    flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-  },
-  dragHandle: {
-    width: 40,
-    height: 4,
-    backgroundColor: "#CCCCCC",
-    borderRadius: 2,
-  },
-  modalHeader: {
+    justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingBottom: 12,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255, 255, 255, 0.1)",
   },
-  modalHeaderTitle: {
-    fontSize: 28,
-    fontWeight: "800",
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
     fontFamily: "InstrumentSans-Bold",
   },
   scrollView: {

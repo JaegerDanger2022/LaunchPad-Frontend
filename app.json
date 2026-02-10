@@ -29,7 +29,8 @@
           "microphonePermission": "We need microphone access to record voice messages about your dreams"
         }
       ],
-      "./plugins/removeMediaPlaybackPermission.js"
+      "./plugins/removeMediaPlaybackPermission.js",
+      "expo-asset"
     ],
     "notification": {
       "icon": "./assets/notification-icon.png",

@@ -6,10 +6,6 @@ export const PERMISSION_TEMPLATES: Record<number, string> = {
   2: 'Permission granted to be proud of this',
   3: 'Permission granted to inspire the rest of us',
   4: 'dynamic', // Changes based on dream category
-  5: 'Permission granted to take up space',
-  6: 'Permission granted to celebrate loudly',
-  7: 'Permission granted to rest after this win',
-  8: 'Permission granted to believe this is just the beginning',
 };
 
 // Category-specific permission texts for type 4
@@ -50,9 +46,5 @@ export function getPermissionOptions(
     { type: 2, text: PERMISSION_TEMPLATES[2] },
     { type: 3, text: PERMISSION_TEMPLATES[3] },
     { type: 4, text: CATEGORY_PERMISSIONS[dreamCategory] || 'Permission granted to own this moment' },
-    { type: 5, text: PERMISSION_TEMPLATES[5] },
-    { type: 6, text: PERMISSION_TEMPLATES[6] },
-    { type: 7, text: PERMISSION_TEMPLATES[7] },
-    { type: 8, text: PERMISSION_TEMPLATES[8] },
   ];
 }

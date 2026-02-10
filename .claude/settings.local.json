@@ -55,7 +55,17 @@
       "Bash(convert:*)",
       "Bash(grep:*)",
       "Bash(where:*)",
-      "Bash(ffmpeg:*)"
+      "Bash(ffmpeg:*)",
+      "Bash(identify:*)",
+      "Bash(npx create-vite@latest PacksLight-Website --template react-ts)",
+      "Bash(move PacksLight-Website LaunchPad-Website)",
+      "Bash(npx tailwindcss init:*)",
+      "Bash(node_modules/.bin/tailwindcss init:*)",
+      "Bash(npx expo prebuild:*)",
+      "Bash(git rm:*)",
+      "Bash(test -f:*)",
+      "Bash(git restore:*)",
+      "Bash(npx expo config:*)"
     ]
   }
 }

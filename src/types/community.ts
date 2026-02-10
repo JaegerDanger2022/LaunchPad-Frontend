@@ -14,7 +14,7 @@ export type DreamCategory =
 
 export type ImpactLevel = 'critical' | 'high' | 'medium' | 'low';
 
-export type PermissionType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+export type PermissionType = 1 | 2 | 3 | 4;
 
 export interface PermissionSlip {
   id: string;

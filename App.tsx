@@ -225,8 +225,11 @@ const SettingsModalWrapper = React.memo(({ navigation }: any) => {
       setTimeout(() => {
         navigation.navigate('HomeTabs', { screen: screen as keyof TabParamList });
       }, 100);
+    } else if (screen === 'PrivacyPolicy' || screen === 'TermsOfService' || screen === 'HelpSupport' || screen === 'ChangePassword') {
+      // Navigate to info screens on top of Settings modal (don't close Settings first)
+      navigation.navigate(screen as keyof RootStackParamList);
     } else {
-      // Close the Settings modal first, then navigate to the other screen
+      // For other screens, close the Settings modal first, then navigate
       navigation.goBack();
       setTimeout(() => {
         navigation.navigate(screen as keyof RootStackParamList);
@@ -275,9 +278,6 @@ const ChangePasswordScreenWrapper = React.memo(({ navigation }: any) => {
   const onNavigate = useCallback((screen: string) => {
     if (screen === 'Settings') {
       navigation.goBack();
-      setTimeout(() => {
-        navigation.navigate('HomeTabs', { screen: 'Settings' });
-      }, 100);
     } else {
       navigation.navigate(screen as keyof RootStackParamList);
     }
@@ -460,15 +460,6 @@ function AppNavigator() {
           }}
         />
         <Stack.Screen
-          name="ChangePassword"
-          component={ChangePasswordScreenWrapper}
-          options={{
-            presentation: 'transparentModal',
-            headerShown: false,
-            animation: 'slide_from_bottom',
-          }}
-        />
-        <Stack.Screen
           name="Paywall"
           component={PaywallScreenWrapper}
           options={{
@@ -477,41 +468,34 @@ function AppNavigator() {
             animation: 'slide_from_bottom',
           }}
         />
+      </Stack.Group>
+
+      {/* Full-screen card screens (Settings and sub-screens) */}
+      <Stack.Group
+        screenOptions={{
+          presentation: 'card',
+          headerShown: false,
+          animation: 'slide_from_right',
+        }}>
         <Stack.Screen
           name="Settings"
           component={SettingsModalWrapper}
-          options={{
-            presentation: 'transparentModal',
-            headerShown: false,
-            animation: 'slide_from_bottom',
-          }}
         />
         <Stack.Screen
           name="PrivacyPolicy"
           component={PrivacyPolicyScreenWrapper}
-          options={{
-            presentation: 'card',
-            headerShown: false,
-            animation: 'slide_from_right',
-          }}
         />
         <Stack.Screen
           name="TermsOfService"
           component={TermsOfServiceScreenWrapper}
-          options={{
-            presentation: 'card',
-            headerShown: false,
-            animation: 'slide_from_right',
-          }}
         />
         <Stack.Screen
           name="HelpSupport"
           component={HelpSupportScreenWrapper}
-          options={{
-            presentation: 'card',
-            headerShown: false,
-            animation: 'slide_from_right',
-          }}
+        />
+        <Stack.Screen
+          name="ChangePassword"
+          component={ChangePasswordScreenWrapper}
         />
       </Stack.Group>
     </Stack.Navigator>
@@ -533,6 +517,12 @@ export default function App() {
     async function checkForUpdates() {
       if (__DEV__) {
         console.log('[Updates] Skipping update check in development mode');
+        return;
+      }
+
+      // Only run if expo-updates is available (not in dev builds)
+      if (!Updates.isEnabled) {
+        console.log('[Updates] Updates module not available in this build');
         return;
       }
 
