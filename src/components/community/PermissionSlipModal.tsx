@@ -6,9 +6,10 @@ import {
   Modal,
   TouchableOpacity,
   ActivityIndicator,
-  SafeAreaView,
   ScrollView,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { X } from 'lucide-react-native';
 import { DreamCategory, PermissionType } from '../../types/community';
@@ -37,6 +38,7 @@ export const PermissionSlipModal: React.FC<PermissionSlipModalProps> = ({
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
   const themeColors = getThemeColors(theme);
+  const insets = useSafeAreaInsets();
 
   const permissionOptions = getPermissionOptions(dreamCategory);
 
@@ -71,8 +73,11 @@ export const PermissionSlipModal: React.FC<PermissionSlipModalProps> = ({
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
+      <View style={styles.container}>
+        <View style={[styles.content, {
+          marginTop: Platform.OS === 'android' ? insets.top : 0,
+          marginBottom: Platform.OS === 'android' ? insets.bottom : 0,
+        }]}>
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity
@@ -148,7 +153,7 @@ export const PermissionSlipModal: React.FC<PermissionSlipModalProps> = ({
             </TouchableOpacity>
           </View>
         </View>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 };

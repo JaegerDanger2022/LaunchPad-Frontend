@@ -6,6 +6,7 @@ import {
   Modal,
   StyleSheet,
   TouchableWithoutFeedback,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
@@ -73,7 +74,8 @@ export const DreamChoiceModal: React.FC<DreamChoiceModalProps> = ({
                 styles.modalContent,
                 {
                   backgroundColor: themeColors.bg_primary,
-                  paddingBottom: Math.max(insets.bottom + 24, 24),
+                  marginTop: Platform.OS === 'android' ? insets.top : 0,
+                  marginBottom: Platform.OS === 'android' ? insets.bottom : 0,
                 },
               ]}>
               {/* Header */}

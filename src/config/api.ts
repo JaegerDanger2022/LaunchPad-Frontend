@@ -4,7 +4,12 @@ export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000";
 
 import { StreakData } from "../types/index";
-import { SHOWCASE_UID, getShowcaseUserData, getShowcaseDreamsList, getShowcaseDreamDetail } from "./showcaseSeed";
+import {
+  SHOWCASE_UID,
+  getShowcaseUserData,
+  getShowcaseDreamsList,
+  getShowcaseDreamDetail,
+} from "./showcaseSeed";
 import {
   VictoryCard,
   VictoriesResponse,
@@ -254,26 +259,26 @@ export interface CustomMilestoneInput {
   title: string;
   description?: string;
   challengeType:
-    | 'power_move'
-    | 'knowledge_quest'
-    | 'prep_ritual'
-    | 'courage_check'
-    | 'skill_flex'
-    | 'decision_point'
-    | 'celebration_moment';
+    | "power_move"
+    | "knowledge_quest"
+    | "prep_ritual"
+    | "courage_check"
+    | "skill_flex"
+    | "decision_point"
+    | "celebration_moment";
 }
 
 export async function createCustomDream(
   userId: string,
   dreamTitle: string,
   milestones: CustomMilestoneInput[],
-  cardColor?: string
+  cardColor?: string,
 ): Promise<string> {
   try {
-    console.log('[API] Creating custom dream for userId:', userId);
-    console.log('[API] Dream title:', dreamTitle);
-    console.log('[API] Milestones:', milestones);
-    console.log('[API] Card color:', cardColor);
+    console.log("[API] Creating custom dream for userId:", userId);
+    console.log("[API] Dream title:", dreamTitle);
+    console.log("[API] Milestones:", milestones);
+    console.log("[API] Card color:", cardColor);
 
     const payload = {
       user_id: userId,
@@ -281,47 +286,49 @@ export async function createCustomDream(
       card_color: cardColor,
       milestones: milestones.map((m, index) => ({
         title: m.title,
-        description: m.description || '',
+        description: m.description || "",
         challenge_type: m.challengeType,
         order: index + 1,
-        streak_eligible: false,  // ✅ ALWAYS false for custom milestones
+        streak_eligible: false, // ✅ ALWAYS false for custom milestones
       })),
     };
 
     const response = await fetch(`${API_BASE_URL}/dreams/create-custom`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
     });
 
-    console.log(`[API] Response status: ${response.status} ${response.statusText}`);
+    console.log(
+      `[API] Response status: ${response.status} ${response.statusText}`,
+    );
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
       try {
         const errorData = await response.json();
-        console.error('[API] Error response data:', errorData);
+        console.error("[API] Error response data:", errorData);
         errorMessage = errorData.detail || errorData.message || errorMessage;
       } catch (parseError) {
-        console.error('[API] Could not parse error response as JSON');
+        console.error("[API] Could not parse error response as JSON");
       }
       throw new Error(errorMessage);
     }
 
     const result = await response.json();
-    console.log('[API] Custom dream created successfully:', result);
+    console.log("[API] Custom dream created successfully:", result);
     const threadId = result?.thread_id || null;
-    console.log('[API] Thread ID:', threadId);
+    console.log("[API] Thread ID:", threadId);
 
     if (!threadId) {
-      throw new Error('No thread_id returned from server');
+      throw new Error("No thread_id returned from server");
     }
 
     return threadId;
   } catch (error: any) {
-    console.error('[API] Error creating custom dream:', error);
+    console.error("[API] Error creating custom dream:", error);
     throw error;
   }
 }
@@ -346,7 +353,9 @@ export async function startConversation(
   userId: string,
   prefTimezone?: string,
 ): Promise<StartConversationResponse> {
-  const payload: { user_id: string; pref_timezone?: string } = { user_id: userId };
+  const payload: { user_id: string; pref_timezone?: string } = {
+    user_id: userId,
+  };
   if (prefTimezone) {
     payload.pref_timezone = prefTimezone;
   }
@@ -780,7 +789,7 @@ export async function updatePlan(userId: string, plan: string): Promise<void> {
  */
 export async function updateUserTimezone(
   userId: string,
-  timezone: string
+  timezone: string,
 ): Promise<void> {
   try {
     const response = await fetch(`${API_BASE_URL}/users/${userId}/timezone`, {
@@ -803,21 +812,26 @@ export async function updateUserTimezone(
 
 export async function updateUserNotificationPreferences(
   userId: string,
-  notificationTime: string | null
+  notificationTime: string | null,
 ): Promise<void> {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}/notification-preferences`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pref_notification_time: notificationTime }),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/users/${userId}/notification-preferences`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pref_notification_time: notificationTime }),
+      },
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || `HTTP ${response.status}`);
     }
 
-    console.log(`[updateUserNotificationPreferences] Notification time updated to: ${notificationTime}`);
+    console.log(
+      `[updateUserNotificationPreferences] Notification time updated to: ${notificationTime}`,
+    );
   } catch (error: any) {
     console.error("[updateUserNotificationPreferences] Error:", error.message);
     throw error;
@@ -941,11 +955,12 @@ export async function createVictory(
 export async function giveCourageBoost(
   itemId: string,
   userId: string,
-  itemType: 'victory_card' | 'journey_recap' = 'victory_card',
+  itemType: "victory_card" | "journey_recap" = "victory_card",
 ): Promise<CourageBoostResponse> {
   try {
     // Backend expects giver_user_id as a query parameter
-    const basePath = itemType === 'journey_recap' ? 'journey-recaps' : 'victories';
+    const basePath =
+      itemType === "journey_recap" ? "journey-recaps" : "victories";
     const url = `${API_BASE_URL}/${basePath}/${itemId}/boost?giver_user_id=${encodeURIComponent(userId)}`;
 
     if (__DEV__) {
@@ -1092,10 +1107,11 @@ export async function getVictoryPermissions(
 export async function toggleMeToo(
   itemId: string,
   userId: string,
-  itemType: 'victory_card' | 'journey_recap' = 'victory_card',
+  itemType: "victory_card" | "journey_recap" = "victory_card",
 ): Promise<import("../types/community").MeTooResponse> {
   try {
-    const basePath = itemType === 'journey_recap' ? 'journey-recaps' : 'victories';
+    const basePath =
+      itemType === "journey_recap" ? "journey-recaps" : "victories";
     const url = `${API_BASE_URL}/${basePath}/${itemId}/metoo?user_id=${encodeURIComponent(userId)}`;
     if (__DEV__) {
       console.log("[toggleMeToo] Toggling Me Too at:", url);
@@ -1224,7 +1240,7 @@ export async function getUserCommunityStats(
  */
 export async function checkVictoryExists(
   userId: string,
-  milestoneId: string
+  milestoneId: string,
 ): Promise<boolean> {
   try {
     const url = `${API_BASE_URL}/victories/check?user_id=${encodeURIComponent(userId)}&milestone_id=${encodeURIComponent(milestoneId)}`;
@@ -1245,7 +1261,10 @@ export async function checkVictoryExists(
       }
       // For other errors, log but don't throw (fail gracefully)
       if (__DEV__) {
-        console.warn("[checkVictoryExists] Error checking victory:", response.status);
+        console.warn(
+          "[checkVictoryExists] Error checking victory:",
+          response.status,
+        );
       }
       return false;
     }
@@ -1268,7 +1287,7 @@ export async function fetchInspirationVictories(
     const url = `${API_BASE_URL}/users/${userId}/inspiration`;
 
     if (__DEV__) {
-      console.log("[fetchInspirationVictories] Fetching from:", url);
+      // console.log("[fetchInspirationVictories] Fetching from:", url);
     }
 
     const response = await fetch(url, {
@@ -1277,19 +1296,20 @@ export async function fetchInspirationVictories(
     });
 
     if (__DEV__) {
-      console.log(
-        "[fetchInspirationVictories] Response status:",
-        response.status,
-      );
+      // console.log(
+      //   "[fetchInspirationVictories] Response status:",
+      //   response.status,
+      // );
     }
 
     if (!response.ok) {
       // If endpoint doesn't exist yet (404), return empty array gracefully
       if (response.status === 404) {
         if (__DEV__) {
-          console.warn(
-            "[fetchInspirationVictories] Endpoint not implemented yet, returning empty array",
-          );
+          console
+            .warn
+            // "[fetchInspirationVictories] Endpoint not implemented yet, returning empty array",
+            ();
         }
         return {
           victories: [],
@@ -1309,12 +1329,12 @@ export async function fetchInspirationVictories(
 
     const result = await response.json();
     if (__DEV__) {
-      console.log("[fetchInspirationVictories] Success:", result);
+      // console.log("[fetchInspirationVictories] Success:", result);
     }
     return result as VictoriesResponse;
   } catch (error: any) {
     if (__DEV__) {
-      console.error("[fetchInspirationVictories] Error:", error.message);
+      // console.error("[fetchInspirationVictories] Error:", error.message);
     }
     // Return empty array instead of throwing for better UX
     return {
@@ -1488,7 +1508,9 @@ function needsSequentialDependencies(milestones: any[]): boolean {
 
   // Check if ALL milestones have no dependencies
   return milestones.every(
-    (m: any) => !m.dependencies || (Array.isArray(m.dependencies) && m.dependencies.length === 0)
+    (m: any) =>
+      !m.dependencies ||
+      (Array.isArray(m.dependencies) && m.dependencies.length === 0),
   );
 }
 
@@ -1518,7 +1540,7 @@ function generateSequentialDependencies(milestones: any[]): any[] {
  */
 async function updateDreamDependencies(
   threadId: string,
-  milestones: any[]
+  milestones: any[],
 ): Promise<void> {
   try {
     console.log(`[API] Updating dependencies for dream ${threadId}`);
@@ -1539,7 +1561,9 @@ async function updateDreamDependencies(
       throw new Error(`Failed to update dependencies: ${response.status}`);
     }
 
-    console.log(`[API] Successfully updated sequential dependencies for dream ${threadId}`);
+    console.log(
+      `[API] Successfully updated sequential dependencies for dream ${threadId}`,
+    );
   } catch (error: any) {
     console.error("[API] Error updating dream dependencies:", error.message);
     // Don't throw - we can still use the local version with dependencies
@@ -1555,13 +1579,20 @@ export async function fetchDreamDetails(
     if (_userId === SHOWCASE_UID) {
       const detail = getShowcaseDreamDetail(threadId);
       if (detail) {
-        console.log("[fetchDreamDetails] Returning showcase seed for", threadId);
+        console.log(
+          "[fetchDreamDetails] Returning showcase seed for",
+          threadId,
+        );
         return detail;
       }
     }
 
-    console.log(`[fetchDreamDetails] Fetching dream details for threadId: ${threadId}`);
-    console.log(`[fetchDreamDetails] URL: ${API_BASE_URL}/dreams-crud/${threadId}`);
+    console.log(
+      `[fetchDreamDetails] Fetching dream details for threadId: ${threadId}`,
+    );
+    console.log(
+      `[fetchDreamDetails] URL: ${API_BASE_URL}/dreams-crud/${threadId}`,
+    );
 
     // Fetch from dreams CRUD collection endpoint
     const response = await fetch(`${API_BASE_URL}/dreams-crud/${threadId}`, {
@@ -1571,7 +1602,9 @@ export async function fetchDreamDetails(
       },
     });
 
-    console.log(`[fetchDreamDetails] Response status: ${response.status} ${response.statusText}`);
+    console.log(
+      `[fetchDreamDetails] Response status: ${response.status} ${response.statusText}`,
+    );
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -1579,7 +1612,10 @@ export async function fetchDreamDetails(
       try {
         const errorData = await response.json();
         errorDetail = errorData;
-        console.error("[fetchDreamDetails] Error response data:", JSON.stringify(errorData, null, 2));
+        console.error(
+          "[fetchDreamDetails] Error response data:",
+          JSON.stringify(errorData, null, 2),
+        );
         errorMessage = errorData.detail || errorData.message || errorMessage;
       } catch (parseError) {
         console.error("[fetchDreamDetails] Could not parse error response");
@@ -1610,19 +1646,21 @@ export async function fetchDreamDetails(
       const milestones = dreamData.roadmap.milestones;
 
       if (needsSequentialDependencies(milestones)) {
-        console.log(`[API] Dream ${threadId} has no dependencies - auto-generating sequential dependencies`);
+        console.log(
+          `[API] Dream ${threadId} has no dependencies - auto-generating sequential dependencies`,
+        );
 
         const updatedMilestones = generateSequentialDependencies(milestones);
 
         // Update in backend (fire and forget)
-        updateDreamDependencies(threadId, updatedMilestones).catch(err => {
-          console.warn('[API] Failed to persist sequential dependencies:', err);
+        updateDreamDependencies(threadId, updatedMilestones).catch((err) => {
+          console.warn("[API] Failed to persist sequential dependencies:", err);
         });
 
         // Update local copy immediately
         dreamData.roadmap.milestones = updatedMilestones;
 
-        console.log('[API] Sequential dependencies generated:', {
+        console.log("[API] Sequential dependencies generated:", {
           milestoneCount: updatedMilestones.length,
           sample: updatedMilestones.slice(0, 3).map((m: any) => ({
             id: m.id,
@@ -1631,10 +1669,14 @@ export async function fetchDreamDetails(
           })),
         });
       } else {
-        console.log(`[API] Dream ${threadId} already has dependencies - skipping auto-generation`);
+        console.log(
+          `[API] Dream ${threadId} already has dependencies - skipping auto-generation`,
+        );
       }
     } else if (dreamData?.is_custom) {
-      console.log(`[API] Dream ${threadId} is a custom dream - skipping dependency auto-generation`);
+      console.log(
+        `[API] Dream ${threadId} is a custom dream - skipping dependency auto-generation`,
+      );
     }
 
     return dreamData;
@@ -1733,7 +1775,7 @@ export interface AddMilestoneRequest {
   title: string;
   challenge_type: string;
   description?: string;
-  streak_eligible?: boolean;  // Optional, but always set to false for custom milestones
+  streak_eligible?: boolean; // Optional, but always set to false for custom milestones
 }
 
 export interface AddMilestoneResponse {
@@ -1755,7 +1797,7 @@ export async function addMilestoneToRoadmap(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...data,
-        streak_eligible: false,  // ✅ ALWAYS false for custom milestones
+        streak_eligible: false, // ✅ ALWAYS false for custom milestones
       }),
     });
 
@@ -1881,16 +1923,23 @@ export async function savePushToken(
  */
 export async function sendWelcomeNotification(userId: string): Promise<void> {
   try {
-    console.log(`[sendWelcomeNotification] Sending welcome notification for user: ${userId}`);
+    console.log(
+      `[sendWelcomeNotification] Sending welcome notification for user: ${userId}`,
+    );
 
-    const response = await fetch(`${API_BASE_URL}/users/${userId}/welcome-notification`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${API_BASE_URL}/users/${userId}/welcome-notification`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
 
-    console.log(`[sendWelcomeNotification] Response status: ${response.status}`);
+    console.log(
+      `[sendWelcomeNotification] Response status: ${response.status}`,
+    );
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
