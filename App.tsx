@@ -28,6 +28,8 @@ import PledgeScreen from './src/screens/auth/PledgeScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
 import { ChangePasswordScreen } from './src/screens/auth/ChangePasswordScreen';
 import { PrivacyPolicyScreen } from './src/screens/PrivacyPolicyScreen';
+import { TermsOfServiceScreen } from './src/screens/TermsOfServiceScreen';
+import { HelpSupportScreen } from './src/screens/HelpSupportScreen';
 import { useAuthStore } from './src/store/authStore';
 import { useThemeStore } from './src/store/themeStore';
 import { useNotificationStore } from './src/store/notificationStore';
@@ -58,6 +60,8 @@ export type RootStackParamList = {
   Paywall: undefined;
   Settings: undefined;
   PrivacyPolicy: undefined;
+  TermsOfService: undefined;
+  HelpSupport: undefined;
 };
 
 export type TabParamList = {
@@ -303,6 +307,28 @@ const PrivacyPolicyScreenWrapper = React.memo(({ navigation }: any) => {
   return <PrivacyPolicyScreen onNavigate={onNavigate} />;
 });
 
+const TermsOfServiceScreenWrapper = React.memo(({ navigation }: any) => {
+  const onNavigate = useCallback((screen: string) => {
+    if (screen === 'Settings') {
+      navigation.goBack();
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList);
+    }
+  }, [navigation]);
+  return <TermsOfServiceScreen onNavigate={onNavigate} />;
+});
+
+const HelpSupportScreenWrapper = React.memo(({ navigation }: any) => {
+  const onNavigate = useCallback((screen: string) => {
+    if (screen === 'Settings') {
+      navigation.goBack();
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList);
+    }
+  }, [navigation]);
+  return <HelpSupportScreen onNavigate={onNavigate} />;
+});
+
 // Auth Navigator
 function AuthNavigator({ initialRoute = 'Login' }: { initialRoute?: string }) {
   return (
@@ -463,6 +489,24 @@ function AppNavigator() {
         <Stack.Screen
           name="PrivacyPolicy"
           component={PrivacyPolicyScreenWrapper}
+          options={{
+            presentation: 'card',
+            headerShown: false,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="TermsOfService"
+          component={TermsOfServiceScreenWrapper}
+          options={{
+            presentation: 'card',
+            headerShown: false,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="HelpSupport"
+          component={HelpSupportScreenWrapper}
           options={{
             presentation: 'card',
             headerShown: false,

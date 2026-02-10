@@ -157,6 +157,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const handleOpenLink = (linkType: string) => {
     if (linkType === "Privacy Policy") {
       onNavigate?.("PrivacyPolicy");
+    } else if (linkType === "Terms of Service") {
+      onNavigate?.("TermsOfService");
+    } else if (linkType === "Help & Support") {
+      onNavigate?.("HelpSupport");
     } else {
       Toast.show({
         type: "info",
