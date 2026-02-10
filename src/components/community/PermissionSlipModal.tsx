@@ -215,8 +215,8 @@ const createStyles = (isDark: boolean, themeColors: any) =>
       gap: 12,
     },
     optionButtonSelected: {
-      borderColor: isDark ? 'rgba(45,91,255,0.6)' : '#2D5BFF',
-      backgroundColor: isDark ? 'rgba(45,91,255,0.12)' : '#F0F5FF',
+      borderColor: isDark ? 'rgba(45,91,255,0.6)' : '#FF7A00',
+      backgroundColor: isDark ? 'rgba(45,91,255,0.12)' : 'rgba(255,122,0,0.08)',
     },
     radioOuter: {
       width: 22,
@@ -228,13 +228,13 @@ const createStyles = (isDark: boolean, themeColors: any) =>
       alignItems: 'center',
     },
     radioOuterSelected: {
-      borderColor: '#2D5BFF',
+      borderColor: isDark ? '#2D5BFF' : '#FF7A00',
     },
     radioInner: {
       width: 11,
       height: 11,
       borderRadius: 5.5,
-      backgroundColor: '#2D5BFF',
+      backgroundColor: isDark ? '#2D5BFF' : '#FF7A00',
     },
     optionText: {
       flex: 1,
@@ -277,7 +277,7 @@ const createStyles = (isDark: boolean, themeColors: any) =>
       borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#2D5BFF',
+      backgroundColor: isDark ? '#2D5BFF' : '#FF7A00',
     },
     buttonPrimaryText: {
       fontSize: 14,

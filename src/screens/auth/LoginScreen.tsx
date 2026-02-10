@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,13 +8,15 @@ import {
   Platform,
   ActivityIndicator,
   ScrollView,
+  Animated,
 } from "react-native";
+import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { EyeIcon, EyeOffIcon } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import Svg, { Path, G } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { DarkTheme, Color } from "../../constants/GlobalStyles";
+import { Color } from "../../constants/GlobalStyles";
 import { useAuthStore } from "../../store/authStore";
 
 const GoogleIcon = () => (
@@ -39,6 +41,64 @@ const GoogleIcon = () => (
     </G>
   </Svg>
 );
+
+// Animated background blob component
+const AnimatedBlob: React.FC<{
+  delay: number;
+  size: number;
+  color: string;
+  top?: string;
+  bottom?: string;
+  left?: string;
+  right?: string;
+}> = ({ delay, size, color, top, bottom, left, right }) => {
+  const animatedValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(animatedValue, {
+          toValue: 1,
+          duration: 3000,
+          delay,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedValue, {
+          toValue: 0,
+          duration: 3000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  const scale = animatedValue.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [1, 1.1, 1],
+  });
+
+  const translateY = animatedValue.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, 15, 0],
+  });
+
+  const style: any = {
+    position: "absolute",
+    width: size,
+    height: size,
+    borderRadius: size / 2,
+    backgroundColor: color,
+    opacity: 0.3,
+    transform: [{ scale }, { translateY }],
+  };
+
+  if (top) style.top = top;
+  if (bottom) style.bottom = bottom;
+  if (left) style.left = left;
+  if (right) style.right = right;
+
+  return <Animated.View style={style} />;
+};
 
 const LoginScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState("");
@@ -76,7 +136,36 @@ const LoginScreen = ({ navigation }: any) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1, backgroundColor: DarkTheme.bg_primary }}>
+      style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+      {/* Animated Background Blobs */}
+      <AnimatedBlob delay={0} size={288} color="#FF6B35" top="80" left="80" />
+      <AnimatedBlob
+        delay={700}
+        size={288}
+        color="#A855F7"
+        top="160"
+        right="80"
+      />
+      <AnimatedBlob
+        delay={1000}
+        size={288}
+        color="rgba(255, 107, 53, 0.5)"
+        bottom="80"
+        left="50%"
+      />
+
+      {/* Blur Overlay */}
+      <BlurView
+        intensity={50}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+      />
+
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
@@ -88,7 +177,7 @@ const LoginScreen = ({ navigation }: any) => {
               style={{
                 fontSize: 34,
                 fontWeight: "700",
-                color: Color.colorWhite,
+                color: "#1A1A1A",
                 fontFamily: "InstrumentSans-Bold",
                 marginBottom: 8,
               }}>
@@ -110,7 +199,7 @@ const LoginScreen = ({ navigation }: any) => {
               }}>
               <Text
                 style={{
-                  color: "#ff6b6b",
+                  color: "#E74C3C",
                   fontSize: 14,
                   fontFamily: "InstrumentSans-Regular",
                 }}>
@@ -125,7 +214,7 @@ const LoginScreen = ({ navigation }: any) => {
               style={{
                 fontSize: 13,
                 fontWeight: "600",
-                color: DarkTheme.text_secondary,
+                color: "#666666",
                 fontFamily: "InstrumentSans-Bold",
                 marginBottom: 8,
                 textTransform: "uppercase",
@@ -135,18 +224,18 @@ const LoginScreen = ({ navigation }: any) => {
             </Text>
             <TextInput
               style={{
-                backgroundColor: DarkTheme.bg_secondary,
+                backgroundColor: "#F9F9F9",
                 borderWidth: 1,
-                borderColor: error ? "rgba(231,76,60,0.5)" : DarkTheme.border,
+                borderColor: error ? "rgba(231,76,60,0.5)" : "#E0E0E0",
                 borderRadius: 12,
                 paddingHorizontal: 16,
                 paddingVertical: 14,
                 fontSize: 16,
                 fontFamily: "InstrumentSans-Regular",
-                color: Color.colorWhite,
+                color: "#1A1A1A",
               }}
               placeholder="you@example.com"
-              placeholderTextColor={DarkTheme.text_tertiary}
+              placeholderTextColor="#A0A0A0"
               keyboardType="email-address"
               autoCapitalize="none"
               value={email}
@@ -164,7 +253,7 @@ const LoginScreen = ({ navigation }: any) => {
               style={{
                 fontSize: 13,
                 fontWeight: "600",
-                color: DarkTheme.text_secondary,
+                color: "#666666",
                 fontFamily: "InstrumentSans-Bold",
                 marginBottom: 8,
                 textTransform: "uppercase",
@@ -176,9 +265,9 @@ const LoginScreen = ({ navigation }: any) => {
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                backgroundColor: DarkTheme.bg_secondary,
+                backgroundColor: "#F9F9F9",
                 borderWidth: 1,
-                borderColor: error ? "rgba(231,76,60,0.5)" : DarkTheme.border,
+                borderColor: error ? "rgba(231,76,60,0.5)" : "#E0E0E0",
                 borderRadius: 12,
                 paddingHorizontal: 16,
               }}>
@@ -188,10 +277,10 @@ const LoginScreen = ({ navigation }: any) => {
                   paddingVertical: 14,
                   fontSize: 16,
                   fontFamily: "InstrumentSans-Regular",
-                  color: Color.colorWhite,
+                  color: "#1A1A1A",
                 }}
                 placeholder="••••••••"
-                placeholderTextColor={DarkTheme.text_tertiary}
+                placeholderTextColor="#A0A0A0"
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={(text) => {
@@ -204,9 +293,9 @@ const LoginScreen = ({ navigation }: any) => {
                 onPress={() => setShowPassword(!showPassword)}
                 disabled={loading}>
                 {showPassword ? (
-                  <EyeOffIcon size={20} color={DarkTheme.text_tertiary} />
+                  <EyeOffIcon size={20} color="#A0A0A0" />
                 ) : (
-                  <EyeIcon size={20} color={DarkTheme.text_tertiary} />
+                  <EyeIcon size={20} color="#A0A0A0" />
                 )}
               </TouchableOpacity>
             </View>
@@ -267,20 +356,16 @@ const LoginScreen = ({ navigation }: any) => {
               marginVertical: 24,
               gap: 12,
             }}>
-            <View
-              style={{ flex: 1, height: 1, backgroundColor: DarkTheme.border }}
-            />
+            <View style={{ flex: 1, height: 1, backgroundColor: "#E0E0E0" }} />
             <Text
               style={{
                 fontSize: 13,
-                color: DarkTheme.text_tertiary,
+                color: "#A0A0A0",
                 fontFamily: "InstrumentSans-Regular",
               }}>
               or continue with
             </Text>
-            <View
-              style={{ flex: 1, height: 1, backgroundColor: DarkTheme.border }}
-            />
+            <View style={{ flex: 1, height: 1, backgroundColor: "#E0E0E0" }} />
           </View>
 
           {/* Google Sign-In */}
@@ -294,9 +379,9 @@ const LoginScreen = ({ navigation }: any) => {
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: DarkTheme.bg_secondary,
+                backgroundColor: "#FFFFFF",
                 borderWidth: 1,
-                borderColor: DarkTheme.border,
+                borderColor: "#E0E0E0",
                 borderRadius: 12,
                 paddingVertical: 15,
                 gap: 10,
@@ -305,7 +390,7 @@ const LoginScreen = ({ navigation }: any) => {
               <Text
                 style={{
                   fontSize: 16,
-                  color: Color.colorWhite,
+                  color: "#1A1A1A",
                   fontFamily: "InstrumentSans-Bold",
                   fontWeight: "600",
                 }}>
@@ -328,7 +413,7 @@ const LoginScreen = ({ navigation }: any) => {
             <Text
               style={{
                 fontSize: 14,
-                color: DarkTheme.text_secondary,
+                color: "#666666",
                 fontFamily: "InstrumentSans-Regular",
               }}>
               Don't have an account?

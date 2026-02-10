@@ -3,14 +3,14 @@
     "name": "LaunchPad",
     "slug": "launchpad",
     "scheme": "launchpad",
-    "version": "1.0.0",
+    "version": "0.10",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
+      "resizeMode": "cover",
       "backgroundColor": "#050938"
     },
     "plugins": [
@@ -23,13 +23,13 @@
           "mode": "production"
         }
       ],
-      "expo-video",
       [
         "expo-audio",
         {
           "microphonePermission": "We need microphone access to record voice messages about your dreams"
         }
-      ]
+      ],
+      "./plugins/removeMediaPlaybackPermission.js"
     ],
     "notification": {
       "icon": "./assets/notification-icon.png",
@@ -39,11 +39,13 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.capstone.launchpad",
+      "icon": "./assets/icon.png",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "We need microphone access to record voice messages about your dreams"
       }
     },
     "android": {
+      "icon": "./assets/icon.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#050938"

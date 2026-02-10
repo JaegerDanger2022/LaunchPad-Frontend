@@ -11,7 +11,6 @@ interface MilestoneCardProps {
   bgColor: string;
   duration: string;
   image?: any;
-  animation?: any;
   challengeType?: string;
   isLocked?: boolean;
   status?: string;
@@ -30,15 +29,15 @@ const challengeTypeAnimations: Record<string, any> = {
   custom_dream: require("../../assets/images/customDream.png"), // Custom dream uses static image
 };
 
-// Dark mode versions (for light mode backgrounds) - located in main assets folder
+// Dark mode versions (for light mode backgrounds) - located in animations folder
 const challengeTypeAnimationsDark: Record<string, any> = {
-  power_move: require("../../assets/PowerMove_dark.png"),
-  knowledge_quest: require("../../assets/KnowledgeQuest_dark.png"),
-  courage_check: require("../../assets/courageCheck_dark.png"),
-  skill_flex: require("../../assets/SkillFlex_dark.png"),
-  decision_point: require("../../assets/DecisionPoint_dark.png"),
-  celebration_moment: require("../../assets/CelebrationMoment_dark.png"),
-  prep_ritual: require("../../assets/PrepRitual_dark.png"),
+  power_move: require("../../assets/animations/PowerMove_dark.png"),
+  knowledge_quest: require("../../assets/animations/KnowledgeQuest_dark.png"),
+  courage_check: require("../../assets/animations/courageCheck_dark.png"),
+  skill_flex: require("../../assets/animations/SkillFlex_dark.png"),
+  decision_point: require("../../assets/animations/DecisionPoint_dark.png"),
+  celebration_moment: require("../../assets/animations/CelebrationMoment_dark.png"),
+  prep_ritual: require("../../assets/animations/PrepRitual_dark.png"),
   custom_dream: require("../../assets/images/customDream.png"), // Custom dream uses same image
 };
 
@@ -48,7 +47,6 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
   bgColor,
   duration,
   image,
-  animation,
   challengeType,
   isLocked = false,
   status,
@@ -57,15 +55,24 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
   const { theme } = useThemeStore();
   const isDark = theme === "dark";
 
-  // Determine which animation to use (priority: prop > challengeType mapping > fallback to image)
-  // Use dark images in light mode for better visibility
-  const animationSource =
-    animation ||
-    (challengeType
-      ? isDark
-        ? challengeTypeAnimations[challengeType]
-        : challengeTypeAnimationsDark[challengeType] || challengeTypeAnimations[challengeType]
-      : null);
+  // Determine which icon to use based on theme and challenge type
+  // Light mode uses dark icons for visibility, dark mode uses light icons
+  const animationSource = challengeType
+    ? !isDark
+      ? challengeTypeAnimationsDark[challengeType] || challengeTypeAnimations[challengeType]
+      : challengeTypeAnimations[challengeType]
+    : null;
+
+  // Debug logging
+  console.log('[MilestoneCard] Icon selection:', {
+    title: title.substring(0, 30),
+    challengeType,
+    isDark,
+    usingDarkIcon: !isDark,
+    selectedIcon: !isDark ? 'dark' : 'light',
+    hasAnimationSource: !!animationSource,
+    hasImage: !!image,
+  });
 
   // Light mode gradient colors based on bgColor (challenge type color)
   const getLightGradient = () => {
@@ -78,6 +85,9 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
   };
 
   const cardBg = isDark ? "#2B2D56" : "#FFFFFF";
+
+  // Icon background should match the gradient color (lighter tint of accent color)
+  const iconBg = isDark ? "#2B2D56" : `${bgColor}15`;
 
   return (
     <TouchableOpacity
@@ -103,7 +113,7 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
             height: "100%",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: cardBg,
+            backgroundColor: iconBg,
           }}>
           <Image
             source={animationSource || image}
@@ -119,7 +129,7 @@ export const MilestoneCard: React.FC<MilestoneCardProps> = ({
           style={{
             width: 100,
             height: "100%",
-            backgroundColor: cardBg,
+            backgroundColor: iconBg,
           }}
         />
       )}

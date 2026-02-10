@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useCallback, useState } from 'react';
-import { View, Alert, Platform } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { useEffect, useCallback, useState, useRef } from 'react';
+import { View, Alert, Platform, Animated } from 'react-native';
+import { NavigationContainer, useIsFocused } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as SplashScreen from 'expo-splash-screen';
@@ -27,6 +27,7 @@ import NotificationTimeScreen from './src/screens/auth/NotificationTimeScreen';
 import PledgeScreen from './src/screens/auth/PledgeScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
 import { ChangePasswordScreen } from './src/screens/auth/ChangePasswordScreen';
+import { PrivacyPolicyScreen } from './src/screens/PrivacyPolicyScreen';
 import { useAuthStore } from './src/store/authStore';
 import { useThemeStore } from './src/store/themeStore';
 import { useNotificationStore } from './src/store/notificationStore';
@@ -56,6 +57,7 @@ export type RootStackParamList = {
   ChangePassword: undefined;
   Paywall: undefined;
   Settings: undefined;
+  PrivacyPolicy: undefined;
 };
 
 export type TabParamList = {
@@ -75,7 +77,33 @@ const Tab = createBottomTabNavigator<TabParamList>();
 
 const TAB_SCREENS = new Set<string>(['Home', 'AllDreams', 'EvidenceBoard', 'Community', 'Analytics']);
 
-// Memoized wrapper components — no fade HOC, no per-render theme subscription
+// Fade-in animation wrapper for tab screens
+const FadeInTabWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const isFocused = useIsFocused();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isFocused) {
+      // Fade in when screen becomes focused
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      // Reset opacity when screen loses focus
+      fadeAnim.setValue(0);
+    }
+  }, [isFocused, fadeAnim]);
+
+  return (
+    <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+      {children}
+    </Animated.View>
+  );
+};
+
+// Memoized wrapper components with fade-in animation
 const HomeScreenWrapper = React.memo(({ navigation }: any) => {
   const onNavigate = useCallback((screen: string, params?: any) => {
     if (TAB_SCREENS.has(screen)) {
@@ -84,7 +112,11 @@ const HomeScreenWrapper = React.memo(({ navigation }: any) => {
       navigation.navigate(screen as keyof RootStackParamList, params);
     }
   }, [navigation]);
-  return <HomeScreen onNavigate={onNavigate} />;
+  return (
+    <FadeInTabWrapper>
+      <HomeScreen onNavigate={onNavigate} />
+    </FadeInTabWrapper>
+  );
 });
 
 const MilestoneScreenWrapper = React.memo(({ navigation, route }: any) => {
@@ -112,7 +144,11 @@ const AllDreamsScreenWrapper = React.memo(({ navigation, route }: any) => {
       navigation.navigate(screen as keyof RootStackParamList, params);
     }
   }, [navigation]);
-  return <AllDreamsScreen onNavigate={onNavigate} creatingDream={route.params?.creatingDream === true} />;
+  return (
+    <FadeInTabWrapper>
+      <AllDreamsScreen onNavigate={onNavigate} creatingDream={route.params?.creatingDream === true} />
+    </FadeInTabWrapper>
+  );
 });
 
 const DreamPageWrapper = React.memo(({ navigation, route }: any) => {
@@ -139,7 +175,11 @@ const EvidenceBoardScreenWrapper = React.memo(({ navigation }: any) => {
       navigation.navigate(screen as keyof RootStackParamList, params);
     }
   }, [navigation]);
-  return <EvidenceBoardScreen onNavigate={onNavigate} />;
+  return (
+    <FadeInTabWrapper>
+      <EvidenceBoardScreen onNavigate={onNavigate} />
+    </FadeInTabWrapper>
+  );
 });
 
 const CommunityScreenWrapper = React.memo(({ navigation, route }: any) => {
@@ -150,7 +190,11 @@ const CommunityScreenWrapper = React.memo(({ navigation, route }: any) => {
       navigation.navigate(screen as keyof RootStackParamList);
     }
   }, [navigation]);
-  return <CommunityScreen onNavigate={onNavigate} highlightVictoryId={route.params?.highlightVictoryId} />;
+  return (
+    <FadeInTabWrapper>
+      <CommunityScreen onNavigate={onNavigate} highlightVictoryId={route.params?.highlightVictoryId} />
+    </FadeInTabWrapper>
+  );
 });
 
 const AnalyticsScreenWrapper = React.memo(({ navigation }: any) => {
@@ -161,7 +205,11 @@ const AnalyticsScreenWrapper = React.memo(({ navigation }: any) => {
       navigation.navigate(screen as keyof RootStackParamList);
     }
   }, [navigation]);
-  return <AnalyticsScreen onNavigate={onNavigate} />;
+  return (
+    <FadeInTabWrapper>
+      <AnalyticsScreen onNavigate={onNavigate} />
+    </FadeInTabWrapper>
+  );
 });
 
 const SettingsModalWrapper = React.memo(({ navigation }: any) => {
@@ -174,7 +222,11 @@ const SettingsModalWrapper = React.memo(({ navigation }: any) => {
         navigation.navigate('HomeTabs', { screen: screen as keyof TabParamList });
       }, 100);
     } else {
-      navigation.navigate(screen as keyof RootStackParamList);
+      // Close the Settings modal first, then navigate to the other screen
+      navigation.goBack();
+      setTimeout(() => {
+        navigation.navigate(screen as keyof RootStackParamList);
+      }, 100);
     }
   }, [navigation]);
   return <SettingsScreen onNavigate={onNavigate} />;
@@ -238,6 +290,17 @@ const PaywallScreenWrapper = React.memo(({ navigation }: any) => {
     }
   }, [navigation]);
   return <PaywallScreen onClose={onClose} />;
+});
+
+const PrivacyPolicyScreenWrapper = React.memo(({ navigation }: any) => {
+  const onNavigate = useCallback((screen: string) => {
+    if (screen === 'Settings') {
+      navigation.goBack();
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList);
+    }
+  }, [navigation]);
+  return <PrivacyPolicyScreen onNavigate={onNavigate} />;
 });
 
 // Auth Navigator
@@ -395,6 +458,15 @@ function AppNavigator() {
             presentation: 'transparentModal',
             headerShown: false,
             animation: 'slide_from_bottom',
+          }}
+        />
+        <Stack.Screen
+          name="PrivacyPolicy"
+          component={PrivacyPolicyScreenWrapper}
+          options={{
+            presentation: 'card',
+            headerShown: false,
+            animation: 'slide_from_right',
           }}
         />
       </Stack.Group>

@@ -1,15 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, StyleSheet, Animated } from "react-native";
-import { useVideoPlayer, VideoView } from "expo-video";
-import { useEventListener } from "expo";
+import LottieView from "lottie-react-native";
 
 interface DreamCompleteVideoOverlayProps {
   visible: boolean;
   onComplete: () => void;
-  duration?: number; // Optional duration override (uses video length by default)
+  duration?: number; // Optional duration override (uses animation length by default)
 }
-
-const videoSource = require("../../assets/animations/FinalCelebration.mp4");
 
 export const DreamCompleteVideoOverlay: React.FC<
   DreamCompleteVideoOverlayProps
@@ -17,12 +14,7 @@ export const DreamCompleteVideoOverlay: React.FC<
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [hasPlayed, setHasPlayed] = useState(false);
   const hasCalledComplete = useRef(false);
-
-  const player = useVideoPlayer(videoSource, (player) => {
-    player.muted = false;
-    player.audioMixingMode = 'mixWithOthers';
-    player.loop = false;
-  });
+  const lottieRef = useRef<LottieView>(null);
 
   useEffect(() => {
     if (visible && !hasPlayed) {
@@ -32,15 +24,13 @@ export const DreamCompleteVideoOverlay: React.FC<
       // Show overlay immediately (no fade in to avoid stutter)
       fadeAnim.setValue(1);
 
-      // Play video from beginning
-      player.currentTime = 0;
-      player.play();
+      // Play animation from beginning
+      lottieRef.current?.play();
       setHasPlayed(true);
     }
   }, [visible, hasPlayed]);
 
-  // Detect when video finishes playing
-  useEventListener(player, 'playToEnd', () => {
+  const handleAnimationFinish = () => {
     if (!hasCalledComplete.current) {
       hasCalledComplete.current = true;
 
@@ -50,7 +40,7 @@ export const DreamCompleteVideoOverlay: React.FC<
         onComplete();
       }, 200);
     }
-  });
+  };
 
   if (!visible) return null;
 
@@ -58,11 +48,12 @@ export const DreamCompleteVideoOverlay: React.FC<
     <Animated.View
       style={[styles.overlay, { opacity: fadeAnim }]}
       pointerEvents="none">
-      <VideoView
-        player={player}
+      <LottieView
+        ref={lottieRef}
+        source={require("../../assets/animations/FinalCelebration.json")}
+        loop={false}
         style={styles.video}
-        contentFit="cover"
-        nativeControls={false}
+        onAnimationFinish={handleAnimationFinish}
       />
     </Animated.View>
   );

@@ -155,12 +155,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   const handleOpenLink = (linkType: string) => {
-    Toast.show({
-      type: "info",
-      text1: "Coming Soon",
-      text2: `${linkType} will be available soon`,
-      visibilityTime: 2000,
-    });
+    if (linkType === "Privacy Policy") {
+      onNavigate?.("PrivacyPolicy");
+    } else {
+      Toast.show({
+        type: "info",
+        text1: "Coming Soon",
+        text2: `${linkType} will be available soon`,
+        visibilityTime: 2000,
+      });
+    }
   };
 
   const handleTimezoneChange = async (timezone: string) => {

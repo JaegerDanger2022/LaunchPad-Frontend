@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { StyleSheet, Animated } from "react-native";
-import { useVideoPlayer, VideoView } from "expo-video";
-import { useEventListener } from "expo";
+import LottieView from "lottie-react-native";
 
 interface AnimatedSplashScreenProps {
   isAppReady: boolean;
@@ -11,8 +10,6 @@ interface AnimatedSplashScreenProps {
 const MINIMUM_DISPLAY_MS = 3000;
 const SAFETY_TIMEOUT_MS = 10000;
 
-const videoSource = require("../../assets/animations/Splash.mp4");
-
 export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
   isAppReady,
   onAnimationComplete,
@@ -20,13 +17,6 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const [minimumTimePassed, setMinimumTimePassed] = useState(false);
   const hasStartedFadeOut = useRef(false);
-
-  const player = useVideoPlayer(videoSource, (player) => {
-    player.muted = true;
-    player.audioMixingMode = 'mixWithOthers';
-    player.loop = true;
-    player.play();
-  });
 
   const fadeOut = () => {
     if (hasStartedFadeOut.current) return;
@@ -66,11 +56,12 @@ export const AnimatedSplashScreen: React.FC<AnimatedSplashScreenProps> = ({
       style={[styles.container, { opacity: fadeAnim }]}
       pointerEvents="none"
     >
-      <VideoView
-        player={player}
+      <LottieView
+        source={require("../../assets/animations/Splash.json")}
+        autoPlay
+        loop
+        resizeMode="cover"
         style={styles.video}
-        contentFit="cover"
-        nativeControls={false}
       />
     </Animated.View>
   );

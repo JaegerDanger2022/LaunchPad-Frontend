@@ -22,8 +22,7 @@ import { getThemeColors } from '../constants/GlobalStyles';
 import { startConversation, sendConversationTurn } from '../config/api';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import { useEventListener } from 'expo';
+import LottieView from 'lottie-react-native';
 
 interface CreateDreamModalProps {
   visible: boolean;
@@ -32,6 +31,13 @@ interface CreateDreamModalProps {
 }
 
 type ChatStatus = 'rendering' | 'waiting' | 'sending';
+
+// Chatbox animation segments at 30fps
+const ANIMATION_SEGMENTS = {
+  rendering: { start: 0, end: 135 },      // 0s - 4.5s (AI typing)
+  waiting: { start: 150, end: 285 },      // 5s - 9.5s (user input)
+  sending: { start: 330, end: 420 },      // 11s - 14s (processing)
+};
 
 export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
   visible,
@@ -58,83 +64,16 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
   const aiMessageOpacity = useRef(new Animated.Value(1)).current;
   const userMessageOpacity = useRef(new Animated.Value(1)).current;
 
-  // Video player for Luna header
-  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const isSeekingRef = useRef(false);
-  const chatStatusRef = useRef(chatStatus);
-  chatStatusRef.current = chatStatus;
+  // Lottie animation ref for Luna header
+  const lottieRef = useRef<LottieView>(null);
 
-  const player = useVideoPlayer(require('../assets/animations/chatbox/Chatbox.mp4'), (player) => {
-    player.muted = true;
-    player.audioMixingMode = 'mixWithOthers';
-    player.loop = false;
-    player.timeUpdateEventInterval = 0.1;
-    player.play();
-  });
-
-  // Track when video is loaded
-  useEventListener(player, 'statusChange', ({ status }) => {
-    if (status === 'readyToPlay' && !isVideoLoaded) {
-      setIsVideoLoaded(true);
-    }
-  });
-
-  // Handle playback time updates for manual looping
-  useEventListener(player, 'timeUpdate', ({ currentTime }) => {
-    if (isSeekingRef.current) return;
-
-    try {
-      switch (chatStatusRef.current) {
-        case 'rendering':
-          if (currentTime >= 4.5) {
-            isSeekingRef.current = true;
-            player.currentTime = 0;
-            setTimeout(() => { isSeekingRef.current = false; }, 100);
-          }
-          break;
-        case 'waiting':
-          if (currentTime >= 9.5) {
-            isSeekingRef.current = true;
-            player.currentTime = 5;
-            setTimeout(() => { isSeekingRef.current = false; }, 100);
-          }
-          break;
-        case 'sending':
-          if (currentTime >= 14) {
-            isSeekingRef.current = true;
-            player.currentTime = 11;
-            setTimeout(() => { isSeekingRef.current = false; }, 100);
-          }
-          break;
-      }
-    } catch (error) {
-      isSeekingRef.current = false;
-    }
-  });
-
-  // Handle chat status changes and jump to appropriate video segment
+  // Control Lottie animation segments based on chat status
   useEffect(() => {
-    if (!isVideoLoaded || isSeekingRef.current) return;
+    if (!lottieRef.current) return;
 
-    isSeekingRef.current = true;
-    try {
-      switch (chatStatus) {
-        case 'rendering':
-          player.currentTime = 0;
-          break;
-        case 'waiting':
-          player.currentTime = 5;
-          break;
-        case 'sending':
-          player.currentTime = 11;
-          break;
-      }
-    } catch (error) {
-      console.debug('[CreateDreamModal] seek interrupted');
-    } finally {
-      setTimeout(() => { isSeekingRef.current = false; }, 100);
-    }
-  }, [chatStatus, isVideoLoaded]);
+    const segment = ANIMATION_SEGMENTS[chatStatus];
+    lottieRef.current.play(segment.start, segment.end);
+  }, [chatStatus]);
 
   // Typewriter effect for AI messages
   useEffect(() => {
@@ -150,7 +89,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
       clearTimeout(typewriterRef.current);
     }
 
-    setChatStatus('rendering');
+    setChatStatus('rendering'); // AI is typing
     setCurrentAiMessage(fullAiMessage); // Set immediately so condition is true
     setDisplayedAiMessage('');
     let currentIndex = 0;
@@ -166,7 +105,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
         console.log('[CreateDreamModal] Full message:', fullAiMessage);
         console.log('[CreateDreamModal] Full message length:', fullAiMessage.length);
         console.log('[CreateDreamModal] Final currentIndex:', currentIndex);
-        setChatStatus('waiting');
+        setChatStatus('waiting'); // Ready for user input
       }
     };
 
@@ -237,9 +176,9 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
       setInputText('');
       setSending(true);
       setCreatingDream(false);
+      setChatStatus('sending'); // Loading initial greeting
       setFullAiMessage('');
       setDisplayedAiMessage('');
-      setChatStatus('sending');
       aiMessageOpacity.setValue(1);
       userMessageOpacity.setValue(1);
 
@@ -270,7 +209,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
     setNewUserMessage(text);
     setInputText('');
     setSending(true);
-    setChatStatus('sending');
+    setChatStatus('sending'); // Processing user input
 
     try {
       let accumulatedMessage = '';
@@ -310,8 +249,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
     } catch (err: any) {
       console.error('[CreateDreamModal] sendConversationTurn failed:', err);
       Alert.alert('Error', err.message || 'Something went wrong. Please try again.');
-      setChatStatus('waiting');
-    } finally {
+      } finally {
       setSending(false);
     }
   };
@@ -335,7 +273,7 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
     setInputText('');
     setSending(false);
     setCreatingDream(false);
-    setChatStatus('waiting');
+    setChatStatus('waiting'); // Reset to waiting state
     setFullAiMessage('');
     setDisplayedAiMessage('');
     onClose();
@@ -370,14 +308,16 @@ export const CreateDreamModal: React.FC<CreateDreamModalProps> = ({
 
                 {/* Main Chat Area */}
                 <View style={styles.chatArea}>
-                  {/* Luna Video Header (replaces avatar) */}
+                  {/* Luna Lottie Animation Header */}
                   <View style={styles.videoHeaderContainer}>
                     <View style={styles.videoPortal}>
-                      <VideoView
-                        player={player}
+                      <LottieView
+                        ref={lottieRef}
+                        source={require('../assets/animations/chatbox/Chatbox.json')}
+                        autoPlay
+                        loop
+                        resizeMode="cover"
                         style={styles.video}
-                        contentFit="cover"
-                        nativeControls={false}
                       />
                     </View>
                   </View>

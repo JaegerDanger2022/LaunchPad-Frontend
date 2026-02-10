@@ -142,7 +142,7 @@ export const UpNextHeroCard: React.FC<UpNextHeroCardProps> = ({
               flexDirection: "row",
               alignItems: "center",
               gap: 6,
-              backgroundColor: isDark ? "rgba(168,85,247,0.25)" : "#6B21A8",
+              backgroundColor: isDark ? "rgba(168,85,247,0.25)" : Color.colorOrangered,
               borderRadius: 8,
               height: 32,
               paddingHorizontal: 10,

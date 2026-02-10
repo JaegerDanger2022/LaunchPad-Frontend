@@ -11,6 +11,7 @@ import { BlurView } from "expo-blur";
 import { HomeIcon, EvidenceIcon } from "./icons/SVGIcons";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { useThemeStore } from "../store/themeStore";
+import { useAuthStore } from "../store/authStore";
 import { Goal, Users, BarChart2 } from "lucide-react-native";
 
 interface BottomNavbarProps {
@@ -23,6 +24,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = React.memo(({
   activeTab = "home",
 }) => {
   const { theme } = useThemeStore();
+  const { isPremium } = useAuthStore();
   const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
 
@@ -73,6 +75,29 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = React.memo(({
                   }
                   strokeWidth={isActive ? 2.5 : 2}
                 />
+                {/* Premium badge for Analytics tab */}
+                {tab.id === "analytics" && !isPremium && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      top: -4,
+                      right: -8,
+                      backgroundColor: Color.colorOrangered,
+                      borderRadius: 8,
+                      paddingHorizontal: 4,
+                      paddingVertical: 1,
+                    }}>
+                    <Text
+                      style={{
+                        color: "#fff",
+                        fontSize: 8,
+                        fontWeight: "700",
+                        fontFamily: "InstrumentSans-Bold",
+                      }}>
+                      PRO
+                    </Text>
+                  </View>
+                )}
               </View>
               <Text
                 style={[

@@ -57,7 +57,7 @@ export const DreamCard: React.FC<DreamCardProps> = ({
   onPress,
   isDark = false,
 }) => {
-  const textColor = isDark ? "#ffffff" : (isSelected ? "#ffffff" : "#000000");
+  const textColor = isDark ? "#ffffff" : "#000000";
 
   return (
     <TouchableOpacity

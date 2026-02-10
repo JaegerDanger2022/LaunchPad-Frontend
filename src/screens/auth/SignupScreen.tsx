@@ -12,7 +12,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import LottieView from 'lottie-react-native';
 import { EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
@@ -59,15 +59,22 @@ const steps: Step[] = [
 const SignupScreen = ({ navigation, route }: any) => {
   const params = route?.params;
 
-  // Video plays once from start to end, then stays on the last frame
-  const videoSource = require('../../assets/animations/ondoarding/Luna floating.mp4');
-  const player = useVideoPlayer(videoSource, (player) => {
-    player.loop = false;
-    player.muted = true;
-    player.audioMixingMode = 'mixWithOthers';
-    player.play();
-  });
+  // Lottie animation control
+  const lottieRef = useRef<LottieView>(null);
+  const isFirstPlay = useRef(true);
   const [currentStepIndex, setCurrentStepIndex] = useState(params?.emailError ? 1 : 0);
+
+  // Handle animation loop
+  const handleAnimationFinish = () => {
+    if (isFirstPlay.current) {
+      isFirstPlay.current = false;
+      // After first play, loop between frames 32-96 (2s-6s at 16fps)
+      lottieRef.current?.play(32, 96);
+    } else {
+      // Continue looping the middle section
+      lottieRef.current?.play(32, 96);
+    }
+  };
   const [formData, setFormData] = useState({
     name: params?.name || '',
     email: params?.email || '',
@@ -206,13 +213,15 @@ const SignupScreen = ({ navigation, route }: any) => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
-        {/* Video Background — shared player from context */}
-        <VideoView
-          player={player}
+        {/* Lottie Animation Background */}
+        <LottieView
+          ref={lottieRef}
+          source={require('../../assets/animations/ondoarding/Luna floating.json')}
+          autoPlay
+          loop={false}
+          resizeMode="cover"
           style={styles.videoBackground}
-          contentFit="cover"
-          nativeControls={false}
-          allowsFullscreen={false}
+          onAnimationFinish={handleAnimationFinish}
         />
 
         {/* Luna's Dialogue Header - Fixed at top */}

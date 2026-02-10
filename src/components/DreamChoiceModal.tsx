@@ -10,10 +10,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { Pencil } from 'lucide-react-native';
+import LottieView from 'lottie-react-native';
 import { getThemeColors } from '../constants/GlobalStyles';
 import { useThemeStore } from '../store/themeStore';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import { useEventListener } from 'expo';
 
 interface DreamChoiceModalProps {
   visible: boolean;
@@ -21,8 +20,6 @@ interface DreamChoiceModalProps {
   onSelectLuna: () => void;
   onSelectDIY: () => void;
 }
-
-const videoSource = require('../assets/animations/ondoarding/Luna floating.mp4');
 
 export const DreamChoiceModal: React.FC<DreamChoiceModalProps> = ({
   visible,
@@ -35,37 +32,30 @@ export const DreamChoiceModal: React.FC<DreamChoiceModalProps> = ({
   const insets = useSafeAreaInsets();
   const isDark = theme === 'dark';
 
-  // Luna video state
-  const isSeekingRef = useRef(false);
+  // Lottie animation ref
+  const lottieRef = useRef<LottieView>(null);
+  const isFirstPlay = useRef(true);
 
-  const player = useVideoPlayer(videoSource, (player) => {
-    player.muted = true;
-    player.audioMixingMode = 'mixWithOthers';
-    player.loop = false;
-    player.timeUpdateEventInterval = 0.1;
-    player.currentTime = 2;
-  });
-
-  // Simple forward loop: 2s → 6s → seek back to 2s
-  useEventListener(player, 'timeUpdate', ({ currentTime }) => {
-    if (isSeekingRef.current) return;
-
-    if (currentTime >= 6) {
-      isSeekingRef.current = true;
-      player.currentTime = 2;
-      setTimeout(() => { isSeekingRef.current = false; }, 100);
+  // Handle animation loop - loop between frames 32-96 (2s-6s at 16fps)
+  const handleAnimationFinish = () => {
+    if (isFirstPlay.current) {
+      isFirstPlay.current = false;
+      lottieRef.current?.play(32, 96);
+    } else {
+      lottieRef.current?.play(32, 96);
     }
-  });
+  };
 
   // Play/pause based on modal visibility
   useEffect(() => {
-    if (visible) {
-      isSeekingRef.current = true;
-      player.currentTime = 2;
-      player.play();
-      setTimeout(() => { isSeekingRef.current = false; }, 100);
-    } else {
-      player.pause();
+    if (visible && lottieRef.current) {
+      if (isFirstPlay.current) {
+        lottieRef.current.play();
+      } else {
+        lottieRef.current.play(32, 96);
+      }
+    } else if (!visible && lottieRef.current) {
+      lottieRef.current.pause();
     }
   }, [visible]);
 
@@ -130,11 +120,14 @@ export const DreamChoiceModal: React.FC<DreamChoiceModalProps> = ({
                       },
                     ]}>
                     <View style={styles.iconCircle}>
-                      <VideoView
-                        player={player}
+                      <LottieView
+                        ref={lottieRef}
+                        source={require('../assets/animations/ondoarding/Luna floating.json')}
+                        autoPlay
+                        loop={false}
+                        resizeMode="cover"
                         style={styles.lunaVideo}
-                        contentFit="cover"
-                        nativeControls={false}
+                        onAnimationFinish={handleAnimationFinish}
                       />
                     </View>
                     <Text

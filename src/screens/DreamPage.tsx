@@ -31,7 +31,6 @@ interface Milestone {
   bgColor: string;
   duration: string;
   image?: any;
-  animation?: any;
   challengeType?: string;
   roadmapId?: string;
   milestoneId?: string;
@@ -39,35 +38,8 @@ interface Milestone {
   rawMilestone?: any; // Store raw milestone object for dependency checking
 }
 
-// Animation mapping for challenge types (using PNGs for all types)
-const challengeTypeAnimations: Record<string, any> = {
-  power_move: require("../assets/animations/PowerMove.png"),
-  knowledge_quest: require("../assets/animations/KnowledgeQuest.png"),
-  courage_check: require("../assets/animations/courageCheck.png"),
-  skill_flex: require("../assets/animations/SkillFlex.png"),
-  decision_point: require("../assets/animations/DecisionPoint.png"),
-  celebration_moment: require("../assets/animations/Celebration Moment.png"),
-  prep_ritual: require("../assets/animations/PrepRitual.png"),
-};
-
 // Custom dream image
 const customDreamImage = require("../assets/images/customDream.png");
-
-// Helper function to get animation or fallback to image
-const getAnimationOrImage = (challengeType: string, isCustomDream: boolean) => {
-  // If it's a custom dream, always use the custom dream image
-  if (isCustomDream) {
-    return {
-      animation: null,
-      image: customDreamImage,
-    };
-  }
-
-  return {
-    animation: challengeTypeAnimations[challengeType] || null,
-    image: customDreamImage, // Use custom dream image as fallback
-  };
-};
 
 const DreamPage = ({
   threadId,
@@ -208,10 +180,8 @@ const DreamPage = ({
     const isCustomDream = dream.is_custom === true;
 
     return dream.roadmap.milestones.map((milestone: any, milestoneIndex: number) => {
-      const { animation, image } = getAnimationOrImage(
-        milestone.challenge_type,
-        isCustomDream
-      );
+      // For custom dreams, use the custom dream image
+      const image = isCustomDream ? customDreamImage : undefined;
 
       // For custom dreams, prioritize dream_card_bg (user's chosen color)
       // For AI dreams, use challenge type color
@@ -230,7 +200,7 @@ const DreamPage = ({
         bgColor,
         duration: milestone.time_estimate || "60 mins",
         image,
-        animation,
+        // Don't pass animation prop - let MilestoneCard handle theme-aware icon selection
         challengeType: milestone.challenge_type,
         roadmapId: dream.thread_id,
         milestoneId: milestone.id,

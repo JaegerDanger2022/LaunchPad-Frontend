@@ -17,7 +17,7 @@ export const MessageBubbleExample: React.FC = () => {
         role="mascot"
         text="Hey there! 👋 I'm Luna, your dream companion. Let's create something amazing together!"
         theme="dark"
-        mascotVideoSource={require('../assets/animations/chatbox/Chatbox.mp4')}
+        mascotVideoSource={require('../assets/animations/chatbox/Chatbox.json')}
       />
 
       {/* Example 2: User message */}
@@ -47,7 +47,7 @@ export const MessageBubbleExample: React.FC = () => {
           role="mascot"
           text="Perfect choice! React and TypeScript are excellent for building scalable applications."
           theme="light"
-          mascotVideoSource={require('../assets/animations/chatbox/Chatbox.mp4')}
+          mascotVideoSource={require('../assets/animations/chatbox/Chatbox.json')}
         />
 
         <MessageBubble
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
  *        theme={theme}
  *        mascotVideoSource={
  *          msg.role === 'assistant'
- *            ? require('../assets/animations/chatbox/Chatbox.mp4')
+ *            ? require('../assets/animations/chatbox/Chatbox.json')
  *            : undefined
  *        }
  *      />

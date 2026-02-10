@@ -2,14 +2,13 @@ import React, { ReactNode } from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import { useEventListener } from 'expo';
+import LottieView from 'lottie-react-native';
 
 export interface MessageBubbleProps {
   role: 'user' | 'mascot';
   text: string;
   theme?: 'light' | 'dark';
-  mascotVideoSource?: any; // For the mascot avatar video
+  mascotVideoSource?: any; // For the mascot avatar animation (Lottie JSON)
   videoStyle?: ViewStyle;
   onVideoLoad?: () => void;
 }
@@ -63,23 +62,6 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     alignItems: 'flex-end',
   };
 
-  // Video player for mascot avatar
-  const player = useVideoPlayer(mascotVideoSource ?? null, (player) => {
-    if (mascotVideoSource) {
-      player.muted = true;
-      player.audioMixingMode = 'mixWithOthers';
-      player.loop = true;
-      player.play();
-    }
-  });
-
-  // Track when video loads for callback
-  useEventListener(player, 'statusChange', ({ status }) => {
-    if (status === 'readyToPlay' && onVideoLoad) {
-      onVideoLoad();
-    }
-  });
-
   // Render mascot avatar slot
   const renderMascotAvatar = () => {
     if (!isMascot) return null;
@@ -87,11 +69,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     return (
       <View style={styles.avatarSlot}>
         {mascotVideoSource ? (
-          <VideoView
-            player={player}
+          <LottieView
+            source={mascotVideoSource}
+            autoPlay
+            loop
+            resizeMode="cover"
             style={[styles.avatarVideo, videoStyle]}
-            contentFit="cover"
-            nativeControls={false}
+            onAnimationLoaded={onVideoLoad}
           />
         ) : (
           // Fallback placeholder

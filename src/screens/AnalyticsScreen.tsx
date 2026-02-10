@@ -20,6 +20,7 @@ import {
   getThemeColors,
   ChallengeTypeColors,
   ChallengeTypeName,
+  Color,
 } from "../constants/GlobalStyles";
 import PieChart from "react-native-pie-chart";
 
@@ -653,7 +654,7 @@ interface AnalyticsScreenProps {
 export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
   onNavigate,
 }) => {
-  const { userData } = useAuthStore();
+  const { userData, isPremium } = useAuthStore();
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const insets = useSafeAreaInsets();
@@ -712,6 +713,114 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
   }, [dreams]);
 
   const bottomPadding = 60 + Math.max(insets.bottom, 8) + 20;
+
+  // Premium paywall overlay
+  if (!isPremium) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
+        <BottomNavbar onNavigate={onNavigate} activeTab="analytics" />
+
+        {/* Fixed Header row: title + streak chip */}
+        <View
+          style={{
+            position: "absolute",
+            top: insets.top,
+            left: 0,
+            right: 0,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingHorizontal: 20,
+            paddingTop: 16,
+            paddingBottom: 12,
+            zIndex: 100,
+            backgroundColor: themeColors.bg_primary,
+          }}>
+          <Text
+            style={[styles.screenTitle, { color: themeColors.text_primary }]}>
+            Analytics
+          </Text>
+          {streakData && streakData.current_streak > 0 && (
+            <StreakBadge
+              streakCount={streakData.current_streak}
+              size="medium"
+            />
+          )}
+        </View>
+
+        {/* Premium Paywall Overlay */}
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 32,
+            paddingBottom: bottomPadding,
+          }}>
+          <View
+            style={{
+              backgroundColor: theme === "dark" ? "#2B2D56" : "#fff",
+              borderRadius: 24,
+              padding: 32,
+              alignItems: "center",
+              maxWidth: 400,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.1,
+              shadowRadius: 12,
+              elevation: 8,
+            }}>
+            <Text style={{ fontSize: 48, marginBottom: 16 }}>📊</Text>
+            <Text
+              style={{
+                fontSize: 24,
+                fontWeight: "800",
+                fontFamily: "InstrumentSans-Bold",
+                color: themeColors.text_primary,
+                textAlign: "center",
+                marginBottom: 12,
+              }}>
+              Analytics is Premium Only
+            </Text>
+            <Text
+              style={{
+                fontSize: 16,
+                fontFamily: "InstrumentSans-Regular",
+                color: themeColors.text_secondary,
+                textAlign: "center",
+                lineHeight: 24,
+                marginBottom: 24,
+              }}>
+              Unlock detailed insights into your progress, streaks, and dream journey with Premium.
+            </Text>
+            <TouchableOpacity
+              onPress={() => onNavigate("Paywall")}
+              style={{
+                backgroundColor: Color.colorOrangered,
+                paddingHorizontal: 32,
+                paddingVertical: 14,
+                borderRadius: 12,
+                shadowColor: Color.colorOrangered,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 6,
+              }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  fontFamily: "InstrumentSans-Bold",
+                  color: "#fff",
+                }}>
+                Upgrade to Premium
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>

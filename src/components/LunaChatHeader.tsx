@@ -1,106 +1,44 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import { useEventListener } from 'expo';
+import LottieView from 'lottie-react-native';
 
 type ChatStatus = 'rendering' | 'waiting' | 'sending';
 
+// Chatbox animation segments at 30fps
+const ANIMATION_SEGMENTS = {
+  rendering: { start: 0, end: 135 },      // 0s - 4.5s (AI typing)
+  waiting: { start: 150, end: 285 },      // 5s - 9.5s (user input)
+  sending: { start: 330, end: 420 },      // 11s - 14s (processing)
+};
+
 interface LunaChatHeaderProps {
-  chatStatus: ChatStatus;
+  chatStatus?: ChatStatus;
   borderColor?: string;
 }
 
-const videoSource = require('../assets/animations/chatbox/Chatbox.mp4');
-
 export const LunaChatHeader: React.FC<LunaChatHeaderProps> = ({
-  chatStatus,
+  chatStatus = 'waiting',
   borderColor = 'rgba(255,255,255,0.1)',
 }) => {
-  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const isSeeking = useRef(false);
-  const chatStatusRef = useRef(chatStatus);
-  chatStatusRef.current = chatStatus;
+  const lottieRef = useRef<LottieView>(null);
 
-  const player = useVideoPlayer(videoSource, (player) => {
-    player.muted = true;
-    player.audioMixingMode = 'mixWithOthers';
-    player.loop = false;
-    player.timeUpdateEventInterval = 0.1;
-    player.play();
-  });
-
-  // Handle chat status changes and jump to appropriate video segment
+  // Control Lottie animation segments based on chat status
   useEffect(() => {
-    if (!isVideoLoaded || isSeeking.current) return;
+    if (!lottieRef.current) return;
 
-    isSeeking.current = true;
-    try {
-      switch (chatStatus) {
-        case 'rendering':
-          player.currentTime = 0;
-          break;
-        case 'waiting':
-          player.currentTime = 5;
-          break;
-        case 'sending':
-          player.currentTime = 11;
-          break;
-      }
-    } catch (error) {
-      console.debug('[LunaChatHeader] seek interrupted (normal during state changes)');
-    } finally {
-      setTimeout(() => { isSeeking.current = false; }, 100);
-    }
-  }, [chatStatus, isVideoLoaded]);
-
-  // Track when video is loaded
-  useEventListener(player, 'statusChange', ({ status }) => {
-    if (status === 'readyToPlay' && !isVideoLoaded) {
-      setIsVideoLoaded(true);
-    }
-  });
-
-  // Handle playback time updates for manual looping
-  useEventListener(player, 'timeUpdate', ({ currentTime }) => {
-    if (isSeeking.current) return;
-
-    try {
-      switch (chatStatusRef.current) {
-        case 'rendering':
-          if (currentTime >= 4.5) {
-            isSeeking.current = true;
-            player.currentTime = 0;
-            setTimeout(() => { isSeeking.current = false; }, 100);
-          }
-          break;
-        case 'waiting':
-          if (currentTime >= 9.5) {
-            isSeeking.current = true;
-            player.currentTime = 5;
-            setTimeout(() => { isSeeking.current = false; }, 100);
-          }
-          break;
-        case 'sending':
-          if (currentTime >= 14) {
-            isSeeking.current = true;
-            player.currentTime = 11;
-            setTimeout(() => { isSeeking.current = false; }, 100);
-          }
-          break;
-      }
-    } catch (error) {
-      isSeeking.current = false;
-    }
-  });
+    const segment = ANIMATION_SEGMENTS[chatStatus];
+    lottieRef.current.play(segment.start, segment.end);
+  }, [chatStatus]);
 
   return (
     <View style={[styles.headerContainer, { borderBottomColor: borderColor }]}>
       <View style={styles.portal}>
-        <VideoView
-          player={player}
+        <LottieView
+          ref={lottieRef}
+          source={require('../assets/animations/chatbox/Chatbox.json')}
+          loop
+          resizeMode="cover"
           style={styles.video}
-          contentFit="cover"
-          nativeControls={false}
         />
       </View>
     </View>

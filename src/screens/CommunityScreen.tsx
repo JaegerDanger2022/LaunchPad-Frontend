@@ -68,7 +68,7 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate, hi
   const insets = useSafeAreaInsets();
 
   // Get current user
-  const { user } = useAuthStore();
+  const { user, isPremium } = useAuthStore();
 
   // Get filters and actions from store (NO victory caching)
   const {
@@ -343,6 +343,18 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate, hi
 
   // Me Too handler with optimistic update
   const handleMeToo = async (victoryId: string) => {
+    // Check premium status
+    if (!isPremium) {
+      Toast.show({
+        type: 'info',
+        text1: 'Premium Feature',
+        text2: 'Upgrade to resonate with victories',
+        visibilityTime: 3000,
+        onPress: () => onNavigate?.('Paywall'),
+      });
+      return;
+    }
+
     const feedItem = feedItems.find(item => item.id === victoryId);
     if (!feedItem) return;
 
@@ -403,6 +415,18 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate, hi
   const handlePin = async (itemId: string) => {
     if (!user?.uid) return;
 
+    // Check premium status
+    if (!isPremium) {
+      Toast.show({
+        type: 'info',
+        text1: 'Premium Feature',
+        text2: 'Upgrade to save victories to inspiration',
+        visibilityTime: 3000,
+        onPress: () => onNavigate?.('Paywall'),
+      });
+      return;
+    }
+
     const wasPinned = pinnedItems.has(itemId);
 
     // Optimistic UI update
@@ -460,8 +484,8 @@ export const CommunityScreen: React.FC<CommunityScreenProps> = ({ onNavigate, hi
   // Permission slip handlers
   const handlePermissionClick = (victoryId: string) => {
     const feedItem = feedItems.find(item => item.id === victoryId);
-    if (feedItem && feedItem.type === 'victory_card') {
-      setSelectedVictoryForPermission(feedItem);
+    if (feedItem) {
+      setSelectedVictoryForPermission(feedItem as VictoryCard);
       setShowPermissionModal(true);
     }
   };
