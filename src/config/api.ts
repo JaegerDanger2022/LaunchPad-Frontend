@@ -1622,24 +1622,24 @@ export async function fetchDreamDetails(
         // Try to get raw text
         try {
           const rawText = await response.text();
-          console.error("[fetchDreamDetails] Raw error response:", rawText);
+          // console.error("[fetchDreamDetails] Raw error response:", rawText);
         } catch (textError) {
-          console.error("[fetchDreamDetails] Could not get raw text");
+          // console.error("[fetchDreamDetails] Could not get raw text");
         }
       }
       throw new Error(errorMessage);
     }
 
     const dreamData = await response.json();
-    console.log("[fetchDreamDetails] Dream details fetched successfully");
-    console.log("[fetchDreamDetails] Dream structure:", {
-      thread_id: dreamData.thread_id,
-      dream: dreamData.dream,
-      status: dreamData.status,
-      is_custom: dreamData.is_custom,
-      roadmap_exists: !!dreamData.roadmap,
-      milestones_count: dreamData.roadmap?.milestones?.length || 0,
-    });
+    // console.log("[fetchDreamDetails] Dream details fetched successfully");
+    // console.log("[fetchDreamDetails] Dream structure:", {
+    //   thread_id: dreamData.thread_id,
+    //   dream: dreamData.dream,
+    //   status: dreamData.status,
+    //   is_custom: dreamData.is_custom,
+    //   roadmap_exists: !!dreamData.roadmap,
+    //   milestones_count: dreamData.roadmap?.milestones?.length || 0,
+    // });
 
     // Auto-generate sequential dependencies if needed (skip for custom dreams)
     if (dreamData?.roadmap?.milestones && !dreamData.is_custom) {
@@ -2087,9 +2087,7 @@ export async function fetchUserPersonalData(
       },
     );
 
-    console.log(
-      `[fetchUserPersonalData] Response status: ${response.status}`,
-    );
+    console.log(`[fetchUserPersonalData] Response status: ${response.status}`);
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -2180,9 +2178,7 @@ export async function exportDreamsData(
   userId: string,
 ): Promise<DreamsExportResponse> {
   try {
-    console.log(
-      `[exportDreamsData] Exporting dreams data for user: ${userId}`,
-    );
+    console.log(`[exportDreamsData] Exporting dreams data for user: ${userId}`);
 
     const response = await fetch(
       `${API_BASE_URL}/users/${userId}/export-dreams`,

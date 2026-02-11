@@ -155,17 +155,29 @@ const LoginScreen = ({ navigation }: any) => {
       />
 
       {/* Blur Overlay */}
-      <BlurView
-        intensity={50}
-        experimentalBlurMethod="dimezisBlurView"
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        }}
-      />
+      {Platform.OS === "android" ? (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(255, 255, 255, 0.75)",
+          }}
+        />
+      ) : (
+        <BlurView
+          intensity={50}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
+        />
+      )}
 
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}

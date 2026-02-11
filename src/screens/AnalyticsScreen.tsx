@@ -306,21 +306,21 @@ function StreakCard({
           <LinearGradient
             colors={["#A855F7", "#6366F1"]}
             style={[styles.statPill, { flex: 1 }]}>
-            <Text style={styles.statPillIcon}>{'\u{1F525}'}</Text>
+            <Text style={styles.statPillIcon}>{"\u{1F525}"}</Text>
             <Text style={styles.statPillNum}>{streakData.current_streak}</Text>
             <Text style={styles.statPillSub}>Current</Text>
           </LinearGradient>
           <LinearGradient
             colors={["#A855F7", "#6366F1"]}
             style={[styles.statPill, { flex: 1 }]}>
-            <Text style={styles.statPillIcon}>{'\u{1F3C6}'}</Text>
+            <Text style={styles.statPillIcon}>{"\u{1F3C6}"}</Text>
             <Text style={styles.statPillNum}>{streakData.longest_streak}</Text>
             <Text style={styles.statPillSub}>Best</Text>
           </LinearGradient>
           <LinearGradient
             colors={["#A855F7", "#6366F1"]}
             style={[styles.statPill, { flex: 1 }]}>
-            <Text style={styles.statPillIcon}>{'\u{2705}'}</Text>
+            <Text style={styles.statPillIcon}>{"\u{2705}"}</Text>
             <Text style={styles.statPillNum}>
               {streakData.total_completions}
             </Text>
@@ -332,17 +332,17 @@ function StreakCard({
           {
             label: "3-Day Streaks",
             count: streakData.milestone_achievements.three_day_count,
-            icon: '\u{1F525}',
+            icon: "\u{1F525}",
           },
           {
             label: "7-Day Streaks",
             count: streakData.milestone_achievements.seven_day_count,
-            icon: '\u{1F3C6}',
+            icon: "\u{1F3C6}",
           },
           {
             label: "30-Day Streaks",
             count: streakData.milestone_achievements.thirty_day_count,
-            icon: '\u{1F451}',
+            icon: "\u{1F451}",
           },
         ].map((a) => (
           <View
@@ -717,7 +717,8 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
   // Premium paywall overlay
   if (!isPremium) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: themeColors.bg_primary }}>
         <BottomNavbar onNavigate={onNavigate} activeTab="analytics" />
 
         {/* Fixed Header row: title + streak chip */}
@@ -780,7 +781,7 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
                 textAlign: "center",
                 marginBottom: 12,
               }}>
-              Analytics is Premium Only
+              Analytics is Pro Only
             </Text>
             <Text
               style={{
@@ -791,7 +792,8 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
                 lineHeight: 24,
                 marginBottom: 24,
               }}>
-              Unlock detailed insights into your progress, streaks, and dream journey with Premium.
+              Unlock detailed insights into your progress, streaks, and dream
+              journey with Premium.
             </Text>
             <TouchableOpacity
               onPress={() => onNavigate("Paywall")}
@@ -813,7 +815,7 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
                   fontFamily: "InstrumentSans-Bold",
                   color: "#fff",
                 }}>
-                Upgrade to Premium
+                Upgrade to Pro
               </Text>
             </TouchableOpacity>
           </View>
@@ -842,15 +844,11 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
           zIndex: 100,
           backgroundColor: themeColors.bg_primary,
         }}>
-        <Text
-          style={[styles.screenTitle, { color: themeColors.text_primary }]}>
+        <Text style={[styles.screenTitle, { color: themeColors.text_primary }]}>
           Analytics
         </Text>
         {streakData && streakData.current_streak > 0 && (
-          <StreakBadge
-            streakCount={streakData.current_streak}
-            size="medium"
-          />
+          <StreakBadge streakCount={streakData.current_streak} size="medium" />
         )}
       </View>
 
@@ -862,7 +860,6 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({
           paddingBottom: bottomPadding,
         }}
         showsVerticalScrollIndicator={false}>
-
         {/* Time range pills */}
         <TimeRangePills selected={timeRange} onChange={setTimeRange} />
 

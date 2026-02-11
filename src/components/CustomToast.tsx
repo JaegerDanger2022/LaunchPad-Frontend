@@ -12,6 +12,7 @@ export const toastConfig = {
       <View style={styles.toastWrapper}>
         <BlurView
           intensity={80}
+          experimentalBlurMethod="dimezisBlurView"
           tint={theme === "dark" ? "dark" : "light"}
           style={[
             styles.toastContainer,
@@ -57,6 +58,7 @@ export const toastConfig = {
       <View style={styles.toastWrapper}>
         <BlurView
           intensity={80}
+          experimentalBlurMethod="dimezisBlurView"
           tint={theme === "dark" ? "dark" : "light"}
           style={[
             styles.toastContainer,
@@ -102,6 +104,7 @@ export const toastConfig = {
       <View style={styles.toastWrapper}>
         <BlurView
           intensity={80}
+          experimentalBlurMethod="dimezisBlurView"
           tint={theme === "dark" ? "dark" : "light"}
           style={[
             styles.toastContainer,
