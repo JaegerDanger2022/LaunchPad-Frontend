@@ -9,21 +9,24 @@
       "distribution": "internal",
       "channel": "development",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://launchpad-backend-production.up.railway.app/api"
+        "EXPO_PUBLIC_API_URL": "https://launchpad-backend-production.up.railway.app/api",
+        "EXPO_PUBLIC_REVENUECAT_API_KEY": "test_QBNWPiBhdYTPiRTtNxgeFJLVdWr"
       }
     },
     "preview": {
       "distribution": "internal",
       "channel": "preview",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://launchpad-backend-production.up.railway.app/api"
+        "EXPO_PUBLIC_API_URL": "https://launchpad-backend-production.up.railway.app/api",
+        "EXPO_PUBLIC_REVENUECAT_API_KEY": "goog_rlKawwNGwBFMSUQpiHFLYEHovTN"
       }
     },
     "production": {
       "autoIncrement": true,
       "channel": "production",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://launchpad-backend-production.up.railway.app/api"
+        "EXPO_PUBLIC_API_URL": "https://launchpad-backend-production.up.railway.app/api",
+        "EXPO_PUBLIC_REVENUECAT_API_KEY": "goog_rlKawwNGwBFMSUQpiHFLYEHovTN"
       }
     }
   },
