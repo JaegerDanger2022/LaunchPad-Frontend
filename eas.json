@@ -10,6 +10,7 @@
       "channel": "development",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://launchpad-backend-production.up.railway.app/api",
+        "EXPO_PUBLIC_FALLBACK_API_URL": "https://launchpad-backend-7ndd.onrender.com/api",
         "EXPO_PUBLIC_REVENUECAT_API_KEY": "test_QBNWPiBhdYTPiRTtNxgeFJLVdWr"
       }
     },
@@ -18,6 +19,7 @@
       "channel": "preview",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://launchpad-backend-production.up.railway.app/api",
+        "EXPO_PUBLIC_FALLBACK_API_URL": "https://launchpad-backend-7ndd.onrender.com/api",
         "EXPO_PUBLIC_REVENUECAT_API_KEY": "goog_iotUTNDuCAKYkLQEGpQkEeVnqyz",
         "REVENUECAT_API_KEY": "goog_iotUTNDuCAKYkLQEGpQkEeVnqyz"
       }
@@ -27,6 +29,7 @@
       "channel": "production",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://launchpad-backend-production.up.railway.app/api",
+        "EXPO_PUBLIC_FALLBACK_API_URL": "https://launchpad-backend-7ndd.onrender.com/api",
         "EXPO_PUBLIC_REVENUECAT_API_KEY": "goog_iotUTNDuCAKYkLQEGpQkEeVnqyz",
         "REVENUECAT_API_KEY": "goog_iotUTNDuCAKYkLQEGpQkEeVnqyz"
       }

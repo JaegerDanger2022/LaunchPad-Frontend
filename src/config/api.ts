@@ -3,6 +3,8 @@
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000";
 
+const FALLBACK_API_URL = process.env.EXPO_PUBLIC_FALLBACK_API_URL || "";
+
 import { useAppStore } from "../store/appStore";
 import { StreakData } from "../types/index";
 import {
@@ -24,18 +26,93 @@ import {
 const SERVER_ERROR_CODES = new Set([502, 503, 504]);
 
 /**
- * Wrapper around fetch that intercepts server errors (502/503/504) from Railway
- * and surfaces a user-facing modal. All other behaviour is identical to fetch.
+ * Whether we've already switched to the fallback backend for this session.
+ * Once set, all subsequent requests go directly to the fallback URL to avoid
+ * repeatedly hitting a dead primary and adding latency.
+ */
+let usingFallback = false;
+
+/**
+ * Wrapper around fetch with automatic backend failover.
+ *
+ * 1. Try the primary backend (Railway).
+ * 2. If the request fails with a network error or a 502/503/504, retry the
+ *    same request against the fallback backend (Render).
+ * 3. If the fallback also fails, show the server-error modal.
  */
 async function apiFetch(
   input: RequestInfo | URL,
   init?: RequestInit,
 ): Promise<Response> {
-  const response = await fetch(input, init);
-  if (SERVER_ERROR_CODES.has(response.status)) {
-    useAppStore.getState().showServerError();
+  const url = input.toString();
+
+  // If we already know primary is down, skip straight to fallback
+  if (usingFallback && FALLBACK_API_URL) {
+    const fallbackUrl = url.replace(API_BASE_URL, FALLBACK_API_URL);
+    try {
+      const fallbackResponse = await fetch(fallbackUrl, init);
+      if (SERVER_ERROR_CODES.has(fallbackResponse.status)) {
+        useAppStore.getState().showServerError();
+      }
+      return fallbackResponse;
+    } catch {
+      useAppStore.getState().showServerError();
+      throw new Error("Both primary and fallback backends are unreachable");
+    }
   }
-  return response;
+
+  // Try primary backend
+  try {
+    const response = await fetch(url, init);
+
+    if (SERVER_ERROR_CODES.has(response.status) && FALLBACK_API_URL) {
+      // Primary returned a server error — try fallback
+      console.warn(
+        `[apiFetch] Primary returned ${response.status}, trying fallback...`,
+      );
+      return attemptFallback(url, init);
+    }
+
+    return response;
+  } catch (primaryError) {
+    // Network error on primary (DNS failure, timeout, connection refused, etc.)
+    if (FALLBACK_API_URL) {
+      console.warn(
+        "[apiFetch] Primary unreachable, trying fallback...",
+        (primaryError as Error).message,
+      );
+      return attemptFallback(url, init);
+    }
+
+    // No fallback configured — show modal and re-throw
+    useAppStore.getState().showServerError();
+    throw primaryError;
+  }
+}
+
+async function attemptFallback(
+  originalUrl: string,
+  init?: RequestInit,
+): Promise<Response> {
+  const fallbackUrl = originalUrl.replace(API_BASE_URL, FALLBACK_API_URL);
+  try {
+    const fallbackResponse = await fetch(fallbackUrl, init);
+
+    if (SERVER_ERROR_CODES.has(fallbackResponse.status)) {
+      // Both backends are returning server errors
+      useAppStore.getState().showServerError();
+      return fallbackResponse;
+    }
+
+    // Fallback succeeded — latch onto it for the rest of this session
+    usingFallback = true;
+    console.log("[apiFetch] Switched to fallback backend for this session");
+    return fallbackResponse;
+  } catch {
+    // Both backends are completely unreachable
+    useAppStore.getState().showServerError();
+    throw new Error("Both primary and fallback backends are unreachable");
+  }
 }
 
 export interface UpNextMilestone {
