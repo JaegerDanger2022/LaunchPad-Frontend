@@ -249,10 +249,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   return (
     <SafeAreaView
-      style={[
-        styles.container,
-        { backgroundColor: themeColors.bg_primary },
-      ]}>
+      style={[styles.container, { backgroundColor: themeColors.bg_primary }]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -260,11 +257,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           style={styles.backButton}>
           <ChevronLeft size={24} color={themeColors.text_primary} />
         </TouchableOpacity>
-        <Text
-          style={[
-            styles.headerTitle,
-            { color: themeColors.text_primary },
-          ]}>
+        <Text style={[styles.headerTitle, { color: themeColors.text_primary }]}>
           Settings
         </Text>
         <View style={{ width: 24 }} />
@@ -272,23 +265,20 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: 40 },
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 40 }]}
         showsVerticalScrollIndicator={false}>
-            {/* Profile Header */}
-            {userData && (
-              <ProfileHeader
-                firstname={userData.firstname || "User"}
-                lastname={userData.lastname || ""}
-                email={userData.email || user?.email || ""}
-                createdAt={userData.created_at}
-              />
-            )}
+        {/* Profile Header */}
+        {userData && (
+          <ProfileHeader
+            firstname={userData.firstname || "User"}
+            lastname={userData.lastname || ""}
+            email={userData.email || user?.email || ""}
+            createdAt={userData.created_at}
+          />
+        )}
 
-            {/* Stats Section */}
-            {/* <View style={styles.section}>
+        {/* Stats Section */}
+        {/* <View style={styles.section}>
           <Text
             style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
             Your Stats
@@ -315,239 +305,227 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           </View>
         </View> */}
 
-            {/* Premium Section */}
-            <View style={styles.section}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: themeColors.text_primary },
-                ]}>
-                Premium
-              </Text>
-              <View
-                style={[
-                  styles.card,
-                  {
-                    borderColor:
-                      theme === "dark"
-                        ? "rgba(255, 255, 255, 0.2)"
-                        : "rgba(0, 0, 0, 0.1)",
-                  },
-                ]}>
-                <BlurView
-                  intensity={60}
-                  tint={theme === "dark" ? "dark" : "light"}
-                  style={{
-                    backgroundColor:
-                      theme === "dark"
-                        ? "rgba(255, 255, 255, 0.1)"
-                        : "rgba(0, 0, 0, 0.05)",
-                  }}>
-                  {isPremium ? (
-                    <>
-                      <SettingRow icon="⭐" label="Subscription" value="Pro" />
-                      <SettingRow
-                        icon="⚙️"
-                        label="Manage Subscription"
-                        showArrow
-                        onPress={handleManageSubscription}
-                      />
-                    </>
-                  ) : (
-                    <SettingRow
-                      icon="⭐"
-                      label="Upgrade to Pro"
-                      showArrow
-                      onPress={handleUpgradeToPremium}
-                    />
-                  )}
-                </BlurView>
-              </View>
-            </View>
+        {/* Premium Section */}
+        <View style={styles.section}>
+          <Text
+            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
+            Premium
+          </Text>
+          <View
+            style={[
+              styles.card,
+              {
+                borderColor:
+                  theme === "dark"
+                    ? "rgba(255, 255, 255, 0.2)"
+                    : "rgba(0, 0, 0, 0.1)",
+              },
+            ]}>
+            <BlurView
+              intensity={60}
+              tint={theme === "dark" ? "dark" : "light"}
+              style={{
+                backgroundColor:
+                  theme === "dark"
+                    ? "rgba(255, 255, 255, 0.1)"
+                    : "rgba(0, 0, 0, 0.05)",
+              }}>
+              {isPremium ? (
+                <>
+                  <SettingRow icon="⭐" label="Subscription" value="Pro" />
+                  <SettingRow
+                    icon="⚙️"
+                    label="Manage Subscription"
+                    showArrow
+                    onPress={handleManageSubscription}
+                  />
+                </>
+              ) : (
+                <SettingRow
+                  icon="⭐"
+                  label="Upgrade to Pro"
+                  showArrow
+                  onPress={handleUpgradeToPremium}
+                />
+              )}
+            </BlurView>
+          </View>
+        </View>
 
-            {/* Preferences Section */}
-            <View style={styles.section}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: themeColors.text_primary },
-                ]}>
-                Preferences
-              </Text>
-              <View
-                style={[
-                  styles.card,
-                  {
-                    borderColor:
-                      theme === "dark"
-                        ? "rgba(255, 255, 255, 0.2)"
-                        : "rgba(0, 0, 0, 0.1)",
-                  },
-                ]}>
-                <BlurView
-                  intensity={60}
-                  tint={theme === "dark" ? "dark" : "light"}
-                  style={{
-                    backgroundColor:
-                      theme === "dark"
-                        ? "rgba(255, 255, 255, 0.1)"
-                        : "rgba(0, 0, 0, 0.05)",
-                  }}>
-                  <SettingRow
-                    icon="🎨"
-                    label="Theme"
-                    value={theme === "light" ? "Light" : "Dark"}
-                    isSwitch
-                    switchValue={theme === "dark"}
-                    onSwitchChange={(value) => {
-                      toggleTheme();
-                      Toast.show({
-                        type: "success",
-                        text1: `${value ? "Dark" : "Light"} Mode Enabled`,
-                        visibilityTime: 1500,
-                      });
-                    }}
-                  />
-                  <SettingRow
-                    icon="🌍"
-                    label="Timezone"
-                    value={getTimezoneLabel(userData?.pref_timezone || null)}
-                    showArrow
-                    onPress={() => setShowTimezoneModal(true)}
-                  />
-                  <SettingRow
-                    icon="🔔"
-                    label="Daily Reminders"
-                    value={getNotificationTimeLabel(
-                      userData?.pref_notification_time || null,
-                    )}
-                    showArrow
-                    onPress={() => setShowNotificationModal(true)}
-                  />
-                </BlurView>
-              </View>
-            </View>
+        {/* Preferences Section */}
+        <View style={styles.section}>
+          <Text
+            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
+            Preferences
+          </Text>
+          <View
+            style={[
+              styles.card,
+              {
+                borderColor:
+                  theme === "dark"
+                    ? "rgba(255, 255, 255, 0.2)"
+                    : "rgba(0, 0, 0, 0.1)",
+              },
+            ]}>
+            <BlurView
+              intensity={60}
+              tint={theme === "dark" ? "dark" : "light"}
+              style={{
+                backgroundColor:
+                  theme === "dark"
+                    ? "rgba(255, 255, 255, 0.1)"
+                    : "rgba(0, 0, 0, 0.05)",
+              }}>
+              <SettingRow
+                icon="🎨"
+                label="Theme"
+                value={theme === "light" ? "Light" : "Dark"}
+                isSwitch
+                switchValue={theme === "dark"}
+                onSwitchChange={(value) => {
+                  toggleTheme();
+                  Toast.show({
+                    type: "success",
+                    text1: `${value ? "Dark" : "Light"} Mode Enabled`,
+                    visibilityTime: 1500,
+                  });
+                }}
+              />
+              <SettingRow
+                icon="🌍"
+                label="Timezone"
+                value={getTimezoneLabel(userData?.pref_timezone || null)}
+                showArrow
+                onPress={() => setShowTimezoneModal(true)}
+              />
+              <SettingRow
+                icon="🔔"
+                label="Daily Reminders"
+                value={getNotificationTimeLabel(
+                  userData?.pref_notification_time || null,
+                )}
+                showArrow
+                onPress={() => setShowNotificationModal(true)}
+              />
+            </BlurView>
+          </View>
+        </View>
 
-            {/* Timezone Picker Modal */}
-            <TimezonePickerModal
-              visible={showTimezoneModal}
-              currentTimezone={userData?.pref_timezone || null}
-              onSelect={handleTimezoneChange}
-              onClose={() => setShowTimezoneModal(false)}
-              theme={theme}
-            />
+        {/* Timezone Picker Modal */}
+        <TimezonePickerModal
+          visible={showTimezoneModal}
+          currentTimezone={userData?.pref_timezone || null}
+          onSelect={handleTimezoneChange}
+          onClose={() => setShowTimezoneModal(false)}
+          theme={theme}
+        />
 
-            {/* Notification Time Picker Modal */}
-            <NotificationTimePickerModal
-              visible={showNotificationModal}
-              currentTime={userData?.pref_notification_time || null}
-              currentEnabled={!!userData?.pref_notification_time}
-              onSelect={handleNotificationChange}
-              onClose={() => setShowNotificationModal(false)}
-              theme={theme}
-            />
+        {/* Notification Time Picker Modal */}
+        <NotificationTimePickerModal
+          visible={showNotificationModal}
+          currentTime={userData?.pref_notification_time || null}
+          currentEnabled={!!userData?.pref_notification_time}
+          onSelect={handleNotificationChange}
+          onClose={() => setShowNotificationModal(false)}
+          theme={theme}
+        />
 
-            {/* About Section */}
-            <View style={styles.section}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: themeColors.text_primary },
-                ]}>
-                About
-              </Text>
-              <View
-                style={[
-                  styles.card,
-                  {
-                    borderColor:
-                      theme === "dark"
-                        ? "rgba(255, 255, 255, 0.2)"
-                        : "rgba(0, 0, 0, 0.1)",
-                  },
-                ]}>
-                <BlurView
-                  intensity={60}
-                  tint={theme === "dark" ? "dark" : "light"}
-                  style={{
-                    backgroundColor:
-                      theme === "dark"
-                        ? "rgba(255, 255, 255, 0.1)"
-                        : "rgba(0, 0, 0, 0.05)",
-                  }}>
-                  <SettingRow icon="ℹ️" label="App Version" value="0.10" />
-                  <SettingRow
-                    icon="📄"
-                    label="Terms of Service"
-                    showArrow
-                    onPress={() => handleOpenLink("Terms of Service")}
-                  />
-                  <SettingRow
-                    icon="🔒"
-                    label="Privacy Policy"
-                    showArrow
-                    onPress={() => handleOpenLink("Privacy Policy")}
-                  />
-                  <SettingRow
-                    icon="❓"
-                    label="Help & Support"
-                    showArrow
-                    onPress={() => handleOpenLink("Help & Support")}
-                  />
-                </BlurView>
-              </View>
-            </View>
+        {/* About Section */}
+        <View style={styles.section}>
+          <Text
+            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
+            About
+          </Text>
+          <View
+            style={[
+              styles.card,
+              {
+                borderColor:
+                  theme === "dark"
+                    ? "rgba(255, 255, 255, 0.2)"
+                    : "rgba(0, 0, 0, 0.1)",
+              },
+            ]}>
+            <BlurView
+              intensity={60}
+              tint={theme === "dark" ? "dark" : "light"}
+              style={{
+                backgroundColor:
+                  theme === "dark"
+                    ? "rgba(255, 255, 255, 0.1)"
+                    : "rgba(0, 0, 0, 0.05)",
+              }}>
+              <SettingRow icon="ℹ️" label="App Version" value="0.11" />
+              <SettingRow
+                icon="📄"
+                label="Terms of Service"
+                showArrow
+                onPress={() => handleOpenLink("Terms of Service")}
+              />
+              <SettingRow
+                icon="🔒"
+                label="Privacy Policy"
+                showArrow
+                onPress={() => handleOpenLink("Privacy Policy")}
+              />
+              <SettingRow
+                icon="❓"
+                label="Help & Support"
+                showArrow
+                onPress={() => handleOpenLink("Help & Support")}
+              />
+            </BlurView>
+          </View>
+        </View>
 
-            {/* Account Section */}
-            <View style={styles.section}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  { color: themeColors.text_primary },
-                ]}>
-                Account
-              </Text>
-              <View
-                style={[
-                  styles.card,
-                  {
-                    borderColor:
-                      theme === "dark"
-                        ? "rgba(255, 255, 255, 0.2)"
-                        : "rgba(0, 0, 0, 0.1)",
-                  },
-                ]}>
-                <BlurView
-                  intensity={60}
-                  tint={theme === "dark" ? "dark" : "light"}
-                  style={{
-                    backgroundColor:
-                      theme === "dark"
-                        ? "rgba(255, 255, 255, 0.1)"
-                        : "rgba(0, 0, 0, 0.05)",
-                  }}>
-                  <SettingRow
-                    icon="🔑"
-                    label="Change Password"
-                    showArrow
-                    onPress={handleChangePassword}
-                  />
-                  <SettingRow
-                    icon="📊"
-                    label="Your Data"
-                    value="View, export, or delete"
-                    showArrow
-                    onPress={() => onNavigate?.("DataScreen")}
-                  />
-                  <SettingRow
-                    icon="🚪"
-                    label="Logout"
-                    showArrow
-                    onPress={handleLogout}
-                  />
-                </BlurView>
-              </View>
-            </View>
+        {/* Account Section */}
+        <View style={styles.section}>
+          <Text
+            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
+            Account
+          </Text>
+          <View
+            style={[
+              styles.card,
+              {
+                borderColor:
+                  theme === "dark"
+                    ? "rgba(255, 255, 255, 0.2)"
+                    : "rgba(0, 0, 0, 0.1)",
+              },
+            ]}>
+            <BlurView
+              intensity={60}
+              tint={theme === "dark" ? "dark" : "light"}
+              style={{
+                backgroundColor:
+                  theme === "dark"
+                    ? "rgba(255, 255, 255, 0.1)"
+                    : "rgba(0, 0, 0, 0.05)",
+              }}>
+              <SettingRow
+                icon="🔑"
+                label="Change Password"
+                showArrow
+                onPress={handleChangePassword}
+              />
+              <SettingRow
+                icon="📊"
+                label="Your Data"
+                value="View, export, or delete"
+                showArrow
+                onPress={() => onNavigate?.("DataScreen")}
+              />
+              <SettingRow
+                icon="🚪"
+                label="Logout"
+                showArrow
+                onPress={handleLogout}
+              />
+            </BlurView>
+          </View>
+        </View>
 
         {/* Bottom spacing */}
         <View style={{ height: 40 }} />

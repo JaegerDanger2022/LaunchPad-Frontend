@@ -371,7 +371,7 @@ export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({
             protect your data{"\n"}•{" "}
             <Text style={styles.bold}>Terms of Service:</Text> Understand your
             rights and responsibilities{"\n"}•{" "}
-            <Text style={styles.bold}>App Version:</Text> 0.10 (check Settings
+            <Text style={styles.bold}>App Version:</Text> 0.11 (check Settings
             for updates){"\n\n"}
             For feature requests, bug reports, or general inquiries, email us at
             support@launchpadapp.awsapps.com — we typically respond within 24-48

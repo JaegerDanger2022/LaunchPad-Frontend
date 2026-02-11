@@ -3,7 +3,7 @@
     "name": "LaunchPad",
     "slug": "launchpad",
     "scheme": "launchpad",
-    "version": "0.10",
+    "version": "0.11",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -56,7 +56,8 @@
     "extra": {
       "eas": {
         "projectId": "ef3df6f3-7491-4b4d-a230-e3288bb64014",
-        "REVENUECAT_API_KEY": "goog_rlKawwNGwBFMSUQpiHFLYEHovTN"
+        "REVENUECAT_API_KEY": "goog_iotUTNDuCAKYkLQEGpQkEeVnqyz",
+        "EXPO_PUBLIC_REVENUECAT_API_KEY": "goog_iotUTNDuCAKYkLQEGpQkEeVnqyz"
       }
     }
   }
