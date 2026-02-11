@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { View, Alert, Platform, Animated } from 'react-native';
-import { NavigationContainer, useIsFocused } from '@react-navigation/native';
+import { NavigationContainer, useIsFocused, DefaultTheme, DarkTheme as NavDarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as SplashScreen from 'expo-splash-screen';
@@ -34,7 +34,7 @@ import { DataScreen } from './src/screens/DataScreen';
 import { useAuthStore } from './src/store/authStore';
 import { useThemeStore } from './src/store/themeStore';
 import { useNotificationStore } from './src/store/notificationStore';
-import { Color } from './src/constants/GlobalStyles';
+import { Color, LightTheme, DarkTheme } from './src/constants/GlobalStyles';
 import Toast from 'react-native-toast-message';
 import { toastConfig } from './src/components/CustomToast';
 import { configureRevenueCat } from './src/config/revenuecat';
@@ -87,24 +87,24 @@ const TAB_SCREENS = new Set<string>(['Home', 'AllDreams', 'EvidenceBoard', 'Comm
 // Fade-in animation wrapper for tab screens
 const FadeInTabWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isFocused = useIsFocused();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0.7)).current;
+  const { theme } = useThemeStore();
+  const bgColor = theme === 'light' ? LightTheme.bg_primary : DarkTheme.bg_primary;
 
   useEffect(() => {
     if (isFocused) {
-      // Fade in when screen becomes focused
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 300,
+        duration: 150,
         useNativeDriver: true,
       }).start();
     } else {
-      // Reset opacity when screen loses focus
-      fadeAnim.setValue(0);
+      fadeAnim.setValue(0.7);
     }
   }, [isFocused, fadeAnim]);
 
   return (
-    <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+    <Animated.View style={{ flex: 1, opacity: fadeAnim, backgroundColor: bgColor }}>
       {children}
     </Animated.View>
   );
@@ -533,6 +533,14 @@ export default function App() {
   // Check for OTA updates
   useEffect(() => {
     async function checkForUpdates() {
+      console.log('[Updates] Starting update check...');
+      console.log('[Updates] __DEV__:', __DEV__);
+      console.log('[Updates] Updates.isEnabled:', Updates.isEnabled);
+      console.log('[Updates] Updates.channel:', Updates.channel);
+      console.log('[Updates] Updates.runtimeVersion:', Updates.runtimeVersion);
+      console.log('[Updates] Updates.updateId:', Updates.updateId);
+      console.log('[Updates] Updates.createdAt:', Updates.createdAt);
+
       if (__DEV__) {
         console.log('[Updates] Skipping update check in development mode');
         return;
@@ -545,7 +553,9 @@ export default function App() {
       }
 
       try {
+        console.log('[Updates] Calling checkForUpdateAsync...');
         const update = await Updates.checkForUpdateAsync();
+        console.log('[Updates] Check result:', update);
 
         if (update.isAvailable) {
           console.log('[Updates] Update available, fetching...');
