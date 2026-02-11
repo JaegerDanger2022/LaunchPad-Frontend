@@ -19,7 +19,9 @@ const withRemoveMediaPlaybackPermission = (config) => {
           const name = permission.$?.['android:name'];
           return name !== 'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK' &&
                  name !== 'android.permission.RECORD_AUDIO' &&
-                 name !== 'android.permission.MODIFY_AUDIO_SETTINGS';
+                 name !== 'android.permission.MODIFY_AUDIO_SETTINGS' &&
+                 name !== 'android.permission.READ_MEDIA_VIDEO' &&
+                 name !== 'android.permission.READ_MEDIA_AUDIO';
         }
       );
     }
