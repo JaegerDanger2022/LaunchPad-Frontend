@@ -348,56 +348,6 @@ const LoginScreen = ({ navigation }: any) => {
             </LinearGradient>
           </TouchableOpacity>
 
-          {/* Divider */}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginVertical: 24,
-              gap: 12,
-            }}>
-            <View style={{ flex: 1, height: 1, backgroundColor: "#E0E0E0" }} />
-            <Text
-              style={{
-                fontSize: 13,
-                color: "#A0A0A0",
-                fontFamily: "InstrumentSans-Regular",
-              }}>
-              or continue with
-            </Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: "#E0E0E0" }} />
-          </View>
-
-          {/* Google Sign-In */}
-          <TouchableOpacity
-            onPress={handleGoogleSignIn}
-            disabled={loading}
-            activeOpacity={0.8}
-            style={{ opacity: loading ? 0.5 : 1 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#FFFFFF",
-                borderWidth: 1,
-                borderColor: "#E0E0E0",
-                borderRadius: 12,
-                paddingVertical: 15,
-                gap: 10,
-              }}>
-              <GoogleIcon />
-              <Text
-                style={{
-                  fontSize: 16,
-                  color: "#1A1A1A",
-                  fontFamily: "InstrumentSans-Bold",
-                  fontWeight: "600",
-                }}>
-                Sign in with Google
-              </Text>
-            </View>
-          </TouchableOpacity>
 
           {/* Sign Up Link */}
           <View

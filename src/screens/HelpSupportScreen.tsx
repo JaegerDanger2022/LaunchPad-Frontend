@@ -1,7 +1,20 @@
 import React from "react";
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, Alert } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Linking,
+  Alert,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChevronLeft, Mail, MessageCircle, ExternalLink } from "lucide-react-native";
+import {
+  ChevronLeft,
+  Mail,
+  MessageCircle,
+  ExternalLink,
+} from "lucide-react-native";
 import { useThemeStore } from "../store/themeStore";
 import { getThemeColors } from "../constants/GlobalStyles";
 import Toast from "react-native-toast-message";
@@ -10,14 +23,16 @@ interface HelpSupportScreenProps {
   onNavigate?: (screen: string) => void;
 }
 
-export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({ onNavigate }) => {
+export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({
+  onNavigate,
+}) => {
   const { theme } = useThemeStore();
   const themeColors = getThemeColors(theme);
   const isDark = theme === "dark";
 
   const handleEmailSupport = () => {
     const email = "support@launchpadapp.click";
-    const subject = "PacksLight Support Request";
+    const subject = "LaunchPad Support Request";
     const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
 
     Linking.openURL(mailtoUrl).catch(() => {
@@ -41,11 +56,21 @@ export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({ onNavigate
     });
   };
 
-  const FAQItem = ({ question, answer }: { question: string; answer: string }) => (
-    <View style={[styles.faqCard, {
-      backgroundColor: isDark ? "#2B2D56" : "#f8f9fa",
-      borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"
-    }]}>
+  const FAQItem = ({
+    question,
+    answer,
+  }: {
+    question: string;
+    answer: string;
+  }) => (
+    <View
+      style={[
+        styles.faqCard,
+        {
+          backgroundColor: isDark ? "#2B2D56" : "#f8f9fa",
+          borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+        },
+      ]}>
       <Text style={[styles.faqQuestion, { color: themeColors.text_primary }]}>
         {question}
       </Text>
@@ -57,19 +82,29 @@ export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({ onNavigate
 
   const SupportButton = ({ icon, title, subtitle, onPress }: any) => (
     <TouchableOpacity
-      style={[styles.supportButton, {
-        backgroundColor: isDark ? "#2B2D56" : "#f8f9fa",
-        borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"
-      }]}
-      onPress={onPress}
-    >
+      style={[
+        styles.supportButton,
+        {
+          backgroundColor: isDark ? "#2B2D56" : "#f8f9fa",
+          borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+        },
+      ]}
+      onPress={onPress}>
       <View style={styles.supportButtonContent}>
         {icon}
         <View style={styles.supportButtonText}>
-          <Text style={[styles.supportButtonTitle, { color: themeColors.text_primary }]}>
+          <Text
+            style={[
+              styles.supportButtonTitle,
+              { color: themeColors.text_primary },
+            ]}>
             {title}
           </Text>
-          <Text style={[styles.supportButtonSubtitle, { color: themeColors.text_secondary }]}>
+          <Text
+            style={[
+              styles.supportButtonSubtitle,
+              { color: themeColors.text_secondary },
+            ]}>
             {subtitle}
           </Text>
         </View>
@@ -79,13 +114,13 @@ export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({ onNavigate
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.bg_primary }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: themeColors.bg_primary }]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => onNavigate?.("Settings")}
-          style={styles.backButton}
-        >
+          style={styles.backButton}>
           <ChevronLeft size={24} color={themeColors.text_primary} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: themeColors.text_primary }]}>
@@ -97,11 +132,11 @@ export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({ onNavigate
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+        showsVerticalScrollIndicator={false}>
         {/* Contact Support Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
+          <Text
+            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
             Get in Touch
           </Text>
 
@@ -115,7 +150,8 @@ export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({ onNavigate
 
         {/* FAQ Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
+          <Text
+            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
             Frequently Asked Questions
           </Text>
 
@@ -136,7 +172,7 @@ export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({ onNavigate
 
           <FAQItem
             question="What are the different challenge types?"
-            answer="PacksLight has 7 challenge types: Power Move (bold action), Knowledge Quest (learning), Prep Ritual (preparation), Courage Check (facing fears), Skill Flex (practice), Decision Point (choices), and Celebration Moment (milestones)."
+            answer="LaunchPad has 7 challenge types: Power Move (bold action), Knowledge Quest (learning), Prep Ritual (preparation), Courage Check (facing fears), Skill Flex (practice), Decision Point (choices), and Celebration Moment (milestones)."
           />
 
           <FAQItem
@@ -190,114 +226,187 @@ export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({ onNavigate
           />
 
           <FAQItem
-            question="Can I use PacksLight offline?"
+            question="Can I use LaunchPad offline?"
             answer="Some features like viewing your existing dreams and milestones work offline. However, creating new dreams, syncing data, and using Luna require an internet connection."
           />
 
           <FAQItem
             question="What devices are supported?"
-            answer="PacksLight is available on iOS (iPhone and iPad) and Android devices. We recommend keeping your OS updated to the latest version for the best experience."
+            answer="LaunchPad is available on iOS (iPhone and iPad) and Android devices. We recommend keeping your OS updated to the latest version for the best experience."
           />
         </View>
 
         {/* Troubleshooting Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
+          <Text
+            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
             Troubleshooting
           </Text>
 
-          <View style={[styles.troubleshootCard, {
-            backgroundColor: isDark ? "#2B2D56" : "#f8f9fa",
-            borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"
-          }]}>
-            <Text style={[styles.troubleshootTitle, { color: themeColors.text_primary }]}>
+          <View
+            style={[
+              styles.troubleshootCard,
+              {
+                backgroundColor: isDark ? "#2B2D56" : "#f8f9fa",
+                borderColor: isDark
+                  ? "rgba(255,255,255,0.1)"
+                  : "rgba(0,0,0,0.1)",
+              },
+            ]}>
+            <Text
+              style={[
+                styles.troubleshootTitle,
+                { color: themeColors.text_primary },
+              ]}>
               App Not Loading or Crashing
             </Text>
-            <Text style={[styles.troubleshootText, { color: themeColors.text_secondary }]}>
-              • Force quit the app and restart it{'\n'}
-              • Check for app updates in your app store{'\n'}
-              • Ensure you have a stable internet connection{'\n'}
-              • Restart your device{'\n'}
-              • Reinstall the app (your data is cloud-synced)
+            <Text
+              style={[
+                styles.troubleshootText,
+                { color: themeColors.text_secondary },
+              ]}>
+              • Force quit the app and restart it{"\n"}• Check for app updates
+              in your app store{"\n"}• Ensure you have a stable internet
+              connection{"\n"}• Restart your device{"\n"}• Reinstall the app
+              (your data is cloud-synced)
             </Text>
           </View>
 
-          <View style={[styles.troubleshootCard, {
-            backgroundColor: isDark ? "#2B2D56" : "#f8f9fa",
-            borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"
-          }]}>
-            <Text style={[styles.troubleshootTitle, { color: themeColors.text_primary }]}>
+          <View
+            style={[
+              styles.troubleshootCard,
+              {
+                backgroundColor: isDark ? "#2B2D56" : "#f8f9fa",
+                borderColor: isDark
+                  ? "rgba(255,255,255,0.1)"
+                  : "rgba(0,0,0,0.1)",
+              },
+            ]}>
+            <Text
+              style={[
+                styles.troubleshootTitle,
+                { color: themeColors.text_primary },
+              ]}>
               Not Receiving Notifications
             </Text>
-            <Text style={[styles.troubleshootText, { color: themeColors.text_secondary }]}>
-              • Check Settings → Daily Reminders is enabled{'\n'}
-              • Verify notification permissions in device settings{'\n'}
-              • Ensure Do Not Disturb mode is off{'\n'}
-              • Check your notification time is set correctly for your timezone
+            <Text
+              style={[
+                styles.troubleshootText,
+                { color: themeColors.text_secondary },
+              ]}>
+              • Check Settings → Daily Reminders is enabled{"\n"}• Verify
+              notification permissions in device settings{"\n"}• Ensure Do Not
+              Disturb mode is off{"\n"}• Check your notification time is set
+              correctly for your timezone
             </Text>
           </View>
 
-          <View style={[styles.troubleshootCard, {
-            backgroundColor: isDark ? "#2B2D56" : "#f8f9fa",
-            borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"
-          }]}>
-            <Text style={[styles.troubleshootTitle, { color: themeColors.text_primary }]}>
+          <View
+            style={[
+              styles.troubleshootCard,
+              {
+                backgroundColor: isDark ? "#2B2D56" : "#f8f9fa",
+                borderColor: isDark
+                  ? "rgba(255,255,255,0.1)"
+                  : "rgba(0,0,0,0.1)",
+              },
+            ]}>
+            <Text
+              style={[
+                styles.troubleshootTitle,
+                { color: themeColors.text_primary },
+              ]}>
               Luna Not Responding
             </Text>
-            <Text style={[styles.troubleshootText, { color: themeColors.text_secondary }]}>
-              • Wait a few seconds — Luna may be processing{'\n'}
-              • Check your internet connection{'\n'}
-              • Try closing and reopening the dream creation modal{'\n'}
-              • If the issue persists, contact support
+            <Text
+              style={[
+                styles.troubleshootText,
+                { color: themeColors.text_secondary },
+              ]}>
+              • Wait a few seconds — Luna may be processing{"\n"}• Check your
+              internet connection{"\n"}• Try closing and reopening the dream
+              creation modal{"\n"}• If the issue persists, contact support
             </Text>
           </View>
 
-          <View style={[styles.troubleshootCard, {
-            backgroundColor: isDark ? "#2B2D56" : "#f8f9fa",
-            borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"
-          }]}>
-            <Text style={[styles.troubleshootTitle, { color: themeColors.text_primary }]}>
+          <View
+            style={[
+              styles.troubleshootCard,
+              {
+                backgroundColor: isDark ? "#2B2D56" : "#f8f9fa",
+                borderColor: isDark
+                  ? "rgba(255,255,255,0.1)"
+                  : "rgba(0,0,0,0.1)",
+              },
+            ]}>
+            <Text
+              style={[
+                styles.troubleshootTitle,
+                { color: themeColors.text_primary },
+              ]}>
               Subscription Issues
             </Text>
-            <Text style={[styles.troubleshootText, { color: themeColors.text_secondary }]}>
-              • Allow up to 5 minutes for subscription changes to sync{'\n'}
-              • Log out and log back in to refresh your subscription status{'\n'}
-              • Check your App Store/Play Store purchase history{'\n'}
-              • Contact support with your receipt/order number
+            <Text
+              style={[
+                styles.troubleshootText,
+                { color: themeColors.text_secondary },
+              ]}>
+              • Allow up to 5 minutes for subscription changes to sync{"\n"}•
+              Log out and log back in to refresh your subscription status{"\n"}•
+              Check your App Store/Play Store purchase history{"\n"}• Contact
+              support with your receipt/order number
             </Text>
           </View>
         </View>
 
         {/* Additional Resources */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
+          <Text
+            style={[styles.sectionTitle, { color: themeColors.text_primary }]}>
             Additional Resources
           </Text>
-          <Text style={[styles.paragraph, { color: themeColors.text_secondary }]}>
-            • <Text style={styles.bold}>Privacy Policy:</Text> Learn how we protect your data{'\n'}
-            • <Text style={styles.bold}>Terms of Service:</Text> Understand your rights and responsibilities{'\n'}
-            • <Text style={styles.bold}>App Version:</Text> 0.10 (check Settings for updates){'\n\n'}
-
-            For feature requests, bug reports, or general inquiries, email us at support@launchpadapp.click — we typically respond within 24-48 hours.
+          <Text
+            style={[styles.paragraph, { color: themeColors.text_secondary }]}>
+            • <Text style={styles.bold}>Privacy Policy:</Text> Learn how we
+            protect your data{"\n"}•{" "}
+            <Text style={styles.bold}>Terms of Service:</Text> Understand your
+            rights and responsibilities{"\n"}•{" "}
+            <Text style={styles.bold}>App Version:</Text> 0.10 (check Settings
+            for updates){"\n\n"}
+            For feature requests, bug reports, or general inquiries, email us at
+            support@launchpadapp.click — we typically respond within 24-48
+            hours.
           </Text>
         </View>
 
         {/* Contact Card */}
-        <View style={[styles.contactCard, {
-          backgroundColor: isDark ? "rgba(168, 85, 247, 0.15)" : "rgba(168, 85, 247, 0.1)",
-          borderColor: "rgba(168, 85, 247, 0.3)"
-        }]}>
-          <MessageCircle size={32} color="#A855F7" style={{ marginBottom: 12 }} />
-          <Text style={[styles.contactTitle, { color: themeColors.text_primary }]}>
+        <View
+          style={[
+            styles.contactCard,
+            {
+              backgroundColor: isDark
+                ? "rgba(168, 85, 247, 0.15)"
+                : "rgba(168, 85, 247, 0.1)",
+              borderColor: "rgba(168, 85, 247, 0.3)",
+            },
+          ]}>
+          <MessageCircle
+            size={32}
+            color="#A855F7"
+            style={{ marginBottom: 12 }}
+          />
+          <Text
+            style={[styles.contactTitle, { color: themeColors.text_primary }]}>
             Still Need Help?
           </Text>
-          <Text style={[styles.contactText, { color: themeColors.text_secondary }]}>
-            Our support team is here to help you achieve your dreams. Reach out anytime!
+          <Text
+            style={[styles.contactText, { color: themeColors.text_secondary }]}>
+            Our support team is here to help you achieve your dreams. Reach out
+            anytime!
           </Text>
           <TouchableOpacity
             style={styles.contactButton}
-            onPress={handleEmailSupport}
-          >
+            onPress={handleEmailSupport}>
             <Text style={styles.contactButtonText}>Contact Support</Text>
           </TouchableOpacity>
         </View>

@@ -68,7 +68,7 @@ export const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({
           </Text>
           <Text
             style={[styles.paragraph, { color: themeColors.text_secondary }]}>
-            PacksLight provides a mobile application that enables users to:
+            LaunchPad provides a mobile application that enables users to:
             {"\n\n"}• <Text style={styles.bold}>Dream Creation:</Text> Set
             personal goals ("Dreams") either through AI-assisted chat with our
             Luna assistant or custom manual creation{"\n"}•{" "}
@@ -95,7 +95,7 @@ export const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({
           <Text
             style={[styles.paragraph, { color: themeColors.text_secondary }]}>
             <Text style={styles.bold}>Age Requirement:</Text> You must be at
-            least 13 years old to use PacksLight. Users under 18 should have
+            least 13 years old to use LaunchPad. Users under 18 should have
             parental consent.{"\n\n"}
             <Text style={styles.bold}>Account Security:</Text> You are
             responsible for:{"\n"}• Maintaining the confidentiality of your
@@ -232,7 +232,7 @@ export const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({
             style={[styles.paragraph, { color: themeColors.text_secondary }]}>
             <Text style={styles.bold}>Our Content:</Text> All app design, code,
             logos, "Luna" branding, animations, and original content are owned
-            by PacksLight and protected by copyright, trademark, and other
+            by LaunchPad and protected by copyright, trademark, and other
             intellectual property laws.{"\n\n"}
             <Text style={styles.bold}>Restrictions:</Text> You may not:{"\n"}•
             Copy, modify, or distribute our proprietary materials{"\n"}• Use our
@@ -248,7 +248,7 @@ export const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({
           </Text>
           <Text
             style={[styles.paragraph, { color: themeColors.text_secondary }]}>
-            PacksLight integrates with third-party services:{"\n"}•{" "}
+            LaunchPad integrates with third-party services:{"\n"}•{" "}
             <Text style={styles.bold}>Firebase:</Text> Authentication & database
             {"\n"}• <Text style={styles.bold}>AWS Bedrock:</Text> AI coaching
             {"\n"}• <Text style={styles.bold}>RevenueCat:</Text> Subscription
@@ -267,7 +267,7 @@ export const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({
           </Text>
           <Text
             style={[styles.paragraph, { color: themeColors.text_secondary }]}>
-            <Text style={styles.bold}>AS-IS Service:</Text> PacksLight is
+            <Text style={styles.bold}>AS-IS Service:</Text> LaunchPad is
             provided "AS IS" and "AS AVAILABLE" without warranties of any kind,
             express or implied.{"\n\n"}
             <Text style={styles.bold}>No Guarantees:</Text> We do not guarantee:
@@ -275,7 +275,7 @@ export const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({
             will meet your specific requirements{"\n"}• Achievement of your
             personal goals{"\n"}• Data accuracy or AI response quality{"\n\n"}
             <Text style={styles.bold}>Limitation of Liability:</Text> To the
-            maximum extent permitted by law, PacksLight shall not be liable for:
+            maximum extent permitted by law, LaunchPad shall not be liable for:
             {"\n"}• Indirect, incidental, consequential, or punitive damages
             {"\n"}• Lost profits, data, or opportunities{"\n"}• Service
             interruptions or data loss{"\n\n"}
@@ -292,7 +292,7 @@ export const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({
           </Text>
           <Text
             style={[styles.paragraph, { color: themeColors.text_secondary }]}>
-            You agree to indemnify and hold harmless PacksLight, its officers,
+            You agree to indemnify and hold harmless LaunchPad, its officers,
             directors, employees, and agents from any claims, damages, losses,
             or expenses (including legal fees) arising from:{"\n"}• Your use of
             the Service{"\n"}• Your User Content{"\n"}• Your violation of these
@@ -379,7 +379,7 @@ export const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({
           <Text
             style={[styles.paragraph, { color: themeColors.text_secondary }]}>
             <Text style={styles.bold}>Entire Agreement:</Text> These Terms
-            constitute the entire agreement between you and PacksLight.{"\n\n"}
+            constitute the entire agreement between you and LaunchPad.{"\n\n"}
             <Text style={styles.bold}>Severability:</Text> If any provision is
             found unenforceable, the remaining provisions remain in effect.
             {"\n\n"}
@@ -407,8 +407,8 @@ export const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({
 
         <View style={styles.section}>
           <Text style={[styles.consent, { color: themeColors.text_tertiary }]}>
-            By creating an account and using PacksLight, you acknowledge that
-            you have read, understood, and agree to be bound by these Terms of
+            By creating an account and using LaunchPad, you acknowledge that you
+            have read, understood, and agree to be bound by these Terms of
             Service.
           </Text>
         </View>
