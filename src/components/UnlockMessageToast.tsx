@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Text, StyleSheet, Animated } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeBlurView } from './SafeBlurView';
 import { Color } from '../constants/GlobalStyles';
 
 interface UnlockMessageToastProps {
@@ -16,6 +17,7 @@ export const UnlockMessageToast: React.FC<UnlockMessageToastProps> = ({
   onComplete,
   duration = 4000,
 }) => {
+  const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(300)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -63,20 +65,19 @@ export const UnlockMessageToast: React.FC<UnlockMessageToastProps> = ({
     <Animated.View
       style={[
         styles.container,
-        { transform: [{ translateY }], opacity },
+        { bottom: 20 + insets.bottom, transform: [{ translateY }], opacity },
       ]}
       pointerEvents="none"
       accessibilityElementsHidden={true}
     >
-      <LinearGradient
-        colors={['#A78BFA', '#D8B4FE']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
+      <SafeBlurView
+        intensity={80}
+        tint="dark"
         style={styles.toast}
       >
         <Text style={styles.emoji}>✨</Text>
         <Text style={styles.text}>{message}</Text>
-      </LinearGradient>
+      </SafeBlurView>
     </Animated.View>
   );
 };
@@ -84,7 +85,7 @@ export const UnlockMessageToast: React.FC<UnlockMessageToastProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 0,
     left: 20,
     right: 20,
     zIndex: 9999,
@@ -99,6 +100,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
     gap: 12,
+    backgroundColor: 'rgba(210, 120, 20, 0.85)',
+    overflow: 'hidden',
     shadowColor: Color.colorBlack,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,

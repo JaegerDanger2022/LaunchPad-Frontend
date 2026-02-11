@@ -1,24 +1,29 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet, Platform } from "react-native";
 import { SafeBlurView } from "./SafeBlurView";
 import { BaseToast, ErrorToast, InfoToast } from "react-native-toast-message";
 import { useThemeStore } from "../store/themeStore";
 
+const isAndroid = Platform.OS === "android";
+
 export const toastConfig = {
   success: (props: any) => {
     const { theme } = useThemeStore();
+    const isDark = theme === "dark";
 
     return (
       <View style={styles.toastWrapper}>
         <SafeBlurView
           intensity={80}
           experimentalBlurMethod="dimezisBlurView"
-          tint={theme === "dark" ? "dark" : "light"}
+          tint={isDark ? "dark" : "light"}
           style={[
             styles.toastContainer,
             {
-              borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
-              backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+              borderColor: isDark ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
+              backgroundColor: isAndroid
+                ? (isDark ? "rgba(30, 30, 30, 0.95)" : "rgba(255, 255, 255, 0.95)")
+                : (isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)"),
             },
           ]}>
           <BaseToast
@@ -38,12 +43,12 @@ export const toastConfig = {
               fontSize: 15,
               fontWeight: "700",
               fontFamily: "InstrumentSans-Bold",
-              color: theme === "dark" ? "#FFFFFF" : "#000000",
+              color: isDark ? "#FFFFFF" : "#000000",
             }}
             text2Style={{
               fontSize: 13,
               fontFamily: "InstrumentSans-Regular",
-              color: theme === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
+              color: isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
             }}
           />
         </SafeBlurView>
@@ -53,18 +58,21 @@ export const toastConfig = {
 
   error: (props: any) => {
     const { theme } = useThemeStore();
+    const isDark = theme === "dark";
 
     return (
       <View style={styles.toastWrapper}>
         <SafeBlurView
           intensity={80}
           experimentalBlurMethod="dimezisBlurView"
-          tint={theme === "dark" ? "dark" : "light"}
+          tint={isDark ? "dark" : "light"}
           style={[
             styles.toastContainer,
             {
-              borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
-              backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+              borderColor: isDark ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
+              backgroundColor: isAndroid
+                ? (isDark ? "rgba(30, 30, 30, 0.95)" : "rgba(255, 255, 255, 0.95)")
+                : (isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)"),
             },
           ]}>
           <ErrorToast
@@ -84,12 +92,12 @@ export const toastConfig = {
               fontSize: 15,
               fontWeight: "700",
               fontFamily: "InstrumentSans-Bold",
-              color: theme === "dark" ? "#FFFFFF" : "#000000",
+              color: isDark ? "#FFFFFF" : "#000000",
             }}
             text2Style={{
               fontSize: 13,
               fontFamily: "InstrumentSans-Regular",
-              color: theme === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
+              color: isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
             }}
           />
         </SafeBlurView>
@@ -99,18 +107,21 @@ export const toastConfig = {
 
   info: (props: any) => {
     const { theme } = useThemeStore();
+    const isDark = theme === "dark";
 
     return (
       <View style={styles.toastWrapper}>
         <SafeBlurView
           intensity={80}
           experimentalBlurMethod="dimezisBlurView"
-          tint={theme === "dark" ? "dark" : "light"}
+          tint={isDark ? "dark" : "light"}
           style={[
             styles.toastContainer,
             {
-              borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
-              backgroundColor: theme === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+              borderColor: isDark ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
+              backgroundColor: isAndroid
+                ? (isDark ? "rgba(30, 30, 30, 0.95)" : "rgba(255, 255, 255, 0.95)")
+                : (isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)"),
             },
           ]}>
           <InfoToast
@@ -130,12 +141,12 @@ export const toastConfig = {
               fontSize: 15,
               fontWeight: "700",
               fontFamily: "InstrumentSans-Bold",
-              color: theme === "dark" ? "#FFFFFF" : "#000000",
+              color: isDark ? "#FFFFFF" : "#000000",
             }}
             text2Style={{
               fontSize: 13,
               fontFamily: "InstrumentSans-Regular",
-              color: theme === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
+              color: isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
             }}
           />
         </SafeBlurView>

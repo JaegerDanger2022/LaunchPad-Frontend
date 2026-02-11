@@ -458,9 +458,10 @@ const HomeScreen = ({
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor="white"
-            colors={["white"]}
-            progressBackgroundColor="transparent"
+            tintColor={themeColors.text_primary}
+            colors={[themeColors.text_primary]}
+            progressBackgroundColor={themeColors.bg_secondary}
+            progressViewOffset={60}
           />
         }>
         <View

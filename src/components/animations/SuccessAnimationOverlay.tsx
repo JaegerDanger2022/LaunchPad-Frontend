@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import { View, StyleSheet, Animated } from "react-native";
 import LottieView from "lottie-react-native";
+import { useThemeStore } from "../../store/themeStore";
+import { getThemeColors } from "../../constants/GlobalStyles";
 
 interface SuccessAnimationOverlayProps {
   visible: boolean;
@@ -11,6 +13,8 @@ interface SuccessAnimationOverlayProps {
 export const SuccessAnimationOverlay: React.FC<
   SuccessAnimationOverlayProps
 > = ({ visible, onComplete, duration = 3000 }) => {
+  const { theme } = useThemeStore();
+  const themeColors = getThemeColors(theme);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const lottieRef = useRef<LottieView>(null);
   const animationTriggeredRef = useRef(false);
@@ -80,7 +84,7 @@ export const SuccessAnimationOverlay: React.FC<
 
   return (
     <Animated.View
-      style={[styles.overlay, { opacity: fadeAnim }]}
+      style={[styles.overlay, { opacity: fadeAnim, backgroundColor: themeColors.bg_primary }]}
       pointerEvents="none">
       <LottieView
         ref={lottieRef}
@@ -103,7 +107,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     zIndex: 9999,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    backgroundColor: "transparent",
   },
   animation: {
     width: 300,
