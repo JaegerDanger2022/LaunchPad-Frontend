@@ -38,6 +38,7 @@ import { Color } from './src/constants/GlobalStyles';
 import Toast from 'react-native-toast-message';
 import { toastConfig } from './src/components/CustomToast';
 import { configureRevenueCat } from './src/config/revenuecat';
+import { ServerErrorModal } from './src/components/ServerErrorModal';
 
 export type RootStackParamList = {
   // Auth screens
@@ -476,7 +477,7 @@ function AppNavigator() {
           name="Paywall"
           component={PaywallScreenWrapper}
           options={{
-            presentation: 'transparentModal',
+            presentation: Platform.OS === 'android' ? 'modal' : 'transparentModal',
             headerShown: false,
             animation: 'slide_from_bottom',
           }}
@@ -627,6 +628,7 @@ export default function App() {
         )}
         <StatusBar style={theme === 'light' ? 'dark' : 'light'} backgroundColor={theme === 'light' ? Color.colorSnow : '#050938'} />
         <Toast config={toastConfig} />
+        <ServerErrorModal />
       </NavigationContainer>
       {!splashComplete && (
         <AnimatedSplashScreen

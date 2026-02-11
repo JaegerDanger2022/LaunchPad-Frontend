@@ -3,6 +3,7 @@
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000";
 
+import { useAppStore } from "../store/appStore";
 import { StreakData } from "../types/index";
 import {
   SHOWCASE_UID,
@@ -19,6 +20,23 @@ import {
   CommunityStats,
   DreamCategory,
 } from "../types/community";
+
+const SERVER_ERROR_CODES = new Set([502, 503, 504]);
+
+/**
+ * Wrapper around fetch that intercepts server errors (502/503/504) from Railway
+ * and surfaces a user-facing modal. All other behaviour is identical to fetch.
+ */
+async function apiFetch(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  const response = await fetch(input, init);
+  if (SERVER_ERROR_CODES.has(response.status)) {
+    useAppStore.getState().showServerError();
+  }
+  return response;
+}
 
 export interface UpNextMilestone {
   milestone_id: string;
@@ -62,7 +80,7 @@ export async function registerUserToDatabase(
     );
     console.log("Payload:", data);
 
-    const response = await fetch(`${API_BASE_URL}/users/register`, {
+    const response = await apiFetch(`${API_BASE_URL}/users/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -140,7 +158,7 @@ export async function fetchUserData(
       `Attempting to fetch user data for userId: ${userId} (fields: ${options.fields || "essential"})`,
     );
 
-    const response = await fetch(url.toString(), {
+    const response = await apiFetch(url.toString(), {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -206,7 +224,7 @@ export async function createDream(
 
     console.log("Dream payload:", dreamPayload);
 
-    const response = await fetch(`${API_BASE_URL}/dreams/create`, {
+    const response = await apiFetch(`${API_BASE_URL}/dreams/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -293,7 +311,7 @@ export async function createCustomDream(
       })),
     };
 
-    const response = await fetch(`${API_BASE_URL}/dreams/create-custom`, {
+    const response = await apiFetch(`${API_BASE_URL}/dreams/create-custom`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -360,7 +378,7 @@ export async function startConversation(
     payload.pref_timezone = prefTimezone;
   }
 
-  const response = await fetch(`${API_BASE_URL}/conversation/start`, {
+  const response = await apiFetch(`${API_BASE_URL}/conversation/start`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -388,7 +406,7 @@ export async function sendConversationTurn(
   // React Native's fetch doesn't support response.body streaming, and XHR
   // onprogress is unreliable across platforms.  Fetch the full SSE payload,
   // then replay all chunk events into onChunk so the UI still updates.
-  const response = await fetch(`${API_BASE_URL}/conversation/turn`, {
+  const response = await apiFetch(`${API_BASE_URL}/conversation/turn`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ session_id: sessionId, user_id: userId, message }),
@@ -481,7 +499,7 @@ export async function updateRecents(
     const url = `${API_BASE_URL}/users/${userId}/recents`;
     // console.log("Full URL being called:", url);
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -536,7 +554,7 @@ export async function updateMilestoneStatus(
     const url = `${API_BASE_URL}/milestone/update-status/${userId}/${threadId}/${milestoneId}`;
     // console.log("Full URL being called:", url);
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -594,7 +612,7 @@ export async function updateUpNext(
     const url = `${API_BASE_URL}/users/${userId}/up_next`;
     // console.log("Full URL being called:", url);
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -655,7 +673,7 @@ export async function updateStreak(
     console.log("[updateStreak] Calling streak endpoint:", url);
     console.log("[updateStreak] Request data:", data);
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -722,7 +740,7 @@ export async function getStreak(userId: string): Promise<GetStreakResponse> {
     const url = `${API_BASE_URL}/users/${userId}/streak`;
     // console.log("[getStreak] Fetching streak for user:", userId);
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -766,7 +784,7 @@ export async function getStreak(userId: string): Promise<GetStreakResponse> {
 
 export async function updatePlan(userId: string, plan: string): Promise<void> {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}/plan`, {
+    const response = await apiFetch(`${API_BASE_URL}/users/${userId}/plan`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ plan }),
@@ -792,7 +810,7 @@ export async function updateUserTimezone(
   timezone: string,
 ): Promise<void> {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}/timezone`, {
+    const response = await apiFetch(`${API_BASE_URL}/users/${userId}/timezone`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ pref_timezone: timezone }),
@@ -815,7 +833,7 @@ export async function updateUserNotificationPreferences(
   notificationTime: string | null,
 ): Promise<void> {
   try {
-    const response = await fetch(
+    const response = await apiFetch(
       `${API_BASE_URL}/users/${userId}/notification-preferences`,
       {
         method: "PATCH",
@@ -865,7 +883,7 @@ export async function fetchVictories(
 
     console.log("[fetchVictories] Fetching from:", url.toString());
 
-    const response = await fetch(url.toString(), {
+    const response = await apiFetch(url.toString(), {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -924,7 +942,7 @@ export async function createVictory(
     console.log("[createVictory] Creating victory at:", url);
     console.log("[createVictory] Payload:", data);
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -967,7 +985,7 @@ export async function giveCourageBoost(
       console.log("[giveCourageBoost] Boosting victory at:", url);
     }
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
@@ -1026,7 +1044,7 @@ export async function givePermissionSlip(
       console.log("[givePermissionSlip] Payload:", data);
     }
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -1073,7 +1091,7 @@ export async function getVictoryPermissions(
     const url = `${API_BASE_URL}/victories/${victoryId}/permissions`;
     console.log("[getVictoryPermissions] Fetching permissions from:", url);
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -1117,7 +1135,7 @@ export async function toggleMeToo(
       console.log("[toggleMeToo] Toggling Me Too at:", url);
     }
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
@@ -1164,7 +1182,7 @@ export async function togglePinInspiration(
       console.log("[togglePinInspiration] Toggling pin at:", url);
     }
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
@@ -1208,7 +1226,7 @@ export async function getUserCommunityStats(
     const url = `${API_BASE_URL}/users/${userId}/community-stats`;
     console.log("[getUserCommunityStats] Fetching stats from:", url);
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -1249,7 +1267,7 @@ export async function checkVictoryExists(
       console.log("[checkVictoryExists] Checking victory existence:", url);
     }
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -1290,7 +1308,7 @@ export async function fetchInspirationVictories(
       // console.log("[fetchInspirationVictories] Fetching from:", url);
     }
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -1354,7 +1372,7 @@ export async function boostJourneyRecap(
     const url = `${API_BASE_URL}/journey-recaps/${journeyRecapId}/boost?giver_user_id=${encodeURIComponent(giverUserId)}`;
     console.log("[boostJourneyRecap] Boosting at:", url);
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     });
@@ -1390,7 +1408,7 @@ export async function giveJourneyRecapPermission(
     const url = `${API_BASE_URL}/journey-recaps/${journeyRecapId}/permission?giver_user_id=${encodeURIComponent(giverUserId)}`;
     console.log("[giveJourneyRecapPermission] Giving permission at:", url);
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -1429,7 +1447,7 @@ export async function toggleJourneyRecapMeToo(
     const url = `${API_BASE_URL}/journey-recaps/${journeyRecapId}/metoo?user_id=${encodeURIComponent(userId)}`;
     console.log("[toggleJourneyRecapMeToo] Toggling at:", url);
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     });
@@ -1463,7 +1481,7 @@ export async function getJourneyRecapPermissions(
     const url = `${API_BASE_URL}/journey-recaps/${journeyRecapId}/permissions`;
     console.log("[getJourneyRecapPermissions] Fetching from:", url);
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -1545,7 +1563,7 @@ async function updateDreamDependencies(
   try {
     console.log(`[API] Updating dependencies for dream ${threadId}`);
 
-    const response = await fetch(`${API_BASE_URL}/dreams-crud/${threadId}`, {
+    const response = await apiFetch(`${API_BASE_URL}/dreams-crud/${threadId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -1595,7 +1613,7 @@ export async function fetchDreamDetails(
     );
 
     // Fetch from dreams CRUD collection endpoint
-    const response = await fetch(`${API_BASE_URL}/dreams-crud/${threadId}`, {
+    const response = await apiFetch(`${API_BASE_URL}/dreams-crud/${threadId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -1727,7 +1745,7 @@ export async function fetchDreamsList(
     }
 
     // Fetch from dreams CRUD collection endpoint
-    const response = await fetch(
+    const response = await apiFetch(
       `${API_BASE_URL}/dreams-crud?${params.toString()}`,
       {
         method: "GET",
@@ -1792,7 +1810,7 @@ export async function addMilestoneToRoadmap(
     const url = `${API_BASE_URL}/dreams-crud/${threadId}/milestones`;
     console.log("[addMilestoneToRoadmap] POST:", url, data);
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1846,7 +1864,7 @@ export async function createJourneyRecap(
 
     console.log("[createJourneyRecap] Cleaned payload:", cleanedData);
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(cleanedData),
@@ -1888,7 +1906,7 @@ export async function savePushToken(
   try {
     console.log(`[savePushToken] Saving push token for user: ${userId}`);
 
-    const response = await fetch(`${API_BASE_URL}/users/${userId}/push-token`, {
+    const response = await apiFetch(`${API_BASE_URL}/users/${userId}/push-token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1927,7 +1945,7 @@ export async function sendWelcomeNotification(userId: string): Promise<void> {
       `[sendWelcomeNotification] Sending welcome notification for user: ${userId}`,
     );
 
-    const response = await fetch(
+    const response = await apiFetch(
       `${API_BASE_URL}/users/${userId}/welcome-notification`,
       {
         method: "POST",
@@ -1969,7 +1987,7 @@ export async function updateLastActivity(userId: string): Promise<void> {
       `[updateLastActivity] Updating last activity for user: ${userId}`,
     );
 
-    const response = await fetch(`${API_BASE_URL}/users/${userId}/activity`, {
+    const response = await apiFetch(`${API_BASE_URL}/users/${userId}/activity`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -2016,7 +2034,7 @@ export async function updateNotificationPreferences(
       `[updateNotificationPreferences] Updating preferences for user: ${userId}`,
     );
 
-    const response = await fetch(
+    const response = await apiFetch(
       `${API_BASE_URL}/users/${userId}/notification-preferences`,
       {
         method: "PUT",
@@ -2079,7 +2097,7 @@ export async function fetchUserPersonalData(
       `[fetchUserPersonalData] Fetching personal data for user: ${userId}`,
     );
 
-    const response = await fetch(
+    const response = await apiFetch(
       `${API_BASE_URL}/users/${userId}/personal-data`,
       {
         method: "GET",
@@ -2125,7 +2143,7 @@ export async function requestDataExport(
       `[requestDataExport] Requesting data export for user: ${userId}, format: ${format}`,
     );
 
-    const response = await fetch(
+    const response = await apiFetch(
       `${API_BASE_URL}/users/${userId}/data-export`,
       {
         method: "POST",
@@ -2180,7 +2198,7 @@ export async function exportDreamsData(
   try {
     console.log(`[exportDreamsData] Exporting dreams data for user: ${userId}`);
 
-    const response = await fetch(
+    const response = await apiFetch(
       `${API_BASE_URL}/users/${userId}/export-dreams`,
       {
         method: "GET",
@@ -2222,7 +2240,7 @@ export async function deleteUserAccount(
   try {
     console.log(`[deleteUserAccount] Deleting account for user: ${userId}`);
 
-    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    const response = await apiFetch(`${API_BASE_URL}/users/${userId}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
     });

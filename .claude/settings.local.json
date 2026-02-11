@@ -71,7 +71,8 @@
       "Bash(eas build:view:*)",
       "Bash(eas init:*)",
       "Bash(eas project:create:*)",
-      "Bash(eas build:configure:*)"
+      "Bash(eas build:configure:*)",
+      "WebFetch(domain:support.google.com)"
     ]
   }
 }

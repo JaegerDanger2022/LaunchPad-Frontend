@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Modal, View, Text, TouchableOpacity, Alert, Platform, ActivityIndicator } from "react-native";
+import { Modal, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
@@ -77,10 +77,11 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
     try {
       setIsCapturing(true);
 
-      // Capture the view as an image
+      // Capture the view as an image (use fileName on Android to avoid hardware bitmap crash)
       const uri = await captureRef(viewRef, {
         format: "png",
         quality: 1,
+        ...(Platform.OS === "android" && { fileName: "journey-share-" + Date.now() }),
       });
 
       // Check if sharing is available
@@ -128,10 +129,11 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
         return;
       }
 
-      // Capture the view as an image
+      // Capture the view as an image (use fileName on Android to avoid hardware bitmap crash)
       const uri = await captureRef(viewRef, {
         format: "png",
         quality: 1,
+        ...(Platform.OS === "android" && { fileName: "journey-save-" + Date.now() }),
       });
 
       // Save to media library
@@ -179,6 +181,7 @@ export const JourneyRecapModal: React.FC<JourneyRecapModalProps> = ({
           }}>
           <View
             ref={viewRef}
+            renderToHardwareTextureAndroid
             style={{
               width: "100%",
               maxWidth: 400,

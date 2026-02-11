@@ -5,7 +5,7 @@ import Constants from "expo-constants";
 
 // RevenueCat Configuration
 // const REVENUECAT_API_KEY = Constants.expoConfig?.extra?.REVENUECAT_API_KEY || process.env.EXPO_PUBLIC_REVENUECAT_API_KEY || "";
-const REVENUECAT_API_KEY = "goog_iotUTNDuCAKYkLQEGpQkEeVnqyz";
+const REVENUECAT_API_KEY = "test_QBNWPiBhdYTPiRTtNxgeFJLVdWr";
 
 /**
  * Initialize RevenueCat SDK

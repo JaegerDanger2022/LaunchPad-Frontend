@@ -5,12 +5,15 @@ interface AppState {
   completedSteps: number;
   milestoneCompletions: Record<string, number>; // Track completions per milestone ID
   dismissedShareButtons: Record<string, boolean>; // Track which milestones had their share button dismissed
+  serverErrorVisible: boolean;
   setCurrentScreen: (screen: string) => void;
   setCompletedSteps: (steps: number) => void;
   setMilestoneCompletions: (milestoneId: string, steps: number) => void;
   getMilestoneCompletions: (milestoneId: string) => number;
   dismissShareButton: (milestoneId: string) => void;
   isShareButtonDismissed: (milestoneId: string) => boolean;
+  showServerError: () => void;
+  hideServerError: () => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -18,6 +21,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   completedSteps: 0,
   milestoneCompletions: {},
   dismissedShareButtons: {},
+  serverErrorVisible: false,
   setCurrentScreen: (screen: string) => set({ currentScreen: screen }),
   setCompletedSteps: (steps: number) => set({ completedSteps: steps }),
   setMilestoneCompletions: (milestoneId: string, steps: number) =>
@@ -42,4 +46,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     const state = get();
     return state.dismissedShareButtons[milestoneId] || false;
   },
+  showServerError: () => set({ serverErrorVisible: true }),
+  hideServerError: () => set({ serverErrorVisible: false }),
 }));
