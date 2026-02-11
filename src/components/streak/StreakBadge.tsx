@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { SafeBlurView } from '../SafeBlurView';
 import { Color } from '../../constants/GlobalStyles';
 import { useThemeStore } from '../../store/themeStore';
 
@@ -25,7 +25,7 @@ export const StreakBadge: React.FC<StreakBadgeProps> = ({
   const { width, height, fontSize } = dimensions[size];
 
   return (
-    <BlurView
+    <SafeBlurView
       intensity={isDark ? 20 : 40}
       tint={isDark ? "dark" : "light"}
       style={[
@@ -40,7 +40,7 @@ export const StreakBadge: React.FC<StreakBadgeProps> = ({
     >
       <Text style={{ fontSize }}>{'\u{1F525}'}</Text>
       <Text style={[styles.text, { fontSize, color: isDark ? Color.colorWhite : '#1F2937' }]}>{streakCount}</Text>
-    </BlurView>
+    </SafeBlurView>
   );
 };
 

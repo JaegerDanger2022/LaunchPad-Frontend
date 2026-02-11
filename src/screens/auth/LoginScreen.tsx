@@ -10,7 +10,7 @@ import {
   ScrollView,
   Animated,
 } from "react-native";
-import { BlurView } from "expo-blur";
+import { SafeBlurView } from "../../components/SafeBlurView";
 import { LinearGradient } from "expo-linear-gradient";
 import { EyeIcon, EyeOffIcon } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
@@ -167,7 +167,7 @@ const LoginScreen = ({ navigation }: any) => {
           }}
         />
       ) : (
-        <BlurView
+        <SafeBlurView
           intensity={50}
           style={{
             position: "absolute",

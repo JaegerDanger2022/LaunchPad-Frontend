@@ -3,11 +3,10 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Platform,
   StyleSheet,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BlurView } from "expo-blur";
+import { SafeBlurView } from "./SafeBlurView";
 import { HomeIcon, EvidenceIcon } from "./icons/SVGIcons";
 import { Color, getThemeColors } from "../constants/GlobalStyles";
 import { useThemeStore } from "../store/themeStore";
@@ -46,7 +45,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = React.memo(({
 
   return (
     <View style={[styles.wrapper, { bottom: insets.bottom > 0 ? insets.bottom + 4 : 12 }]}>
-      <BlurView
+      <SafeBlurView
         intensity={60}
         tint={theme === "dark" ? "dark" : "light"}
         style={[
@@ -114,7 +113,7 @@ export const BottomNavbar: React.FC<BottomNavbarProps> = React.memo(({
             </TouchableOpacity>
           );
         })}
-      </BlurView>
+      </SafeBlurView>
     </View>
   );
 });

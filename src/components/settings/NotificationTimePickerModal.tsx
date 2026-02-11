@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { SafeBlurView } from '../SafeBlurView';
 import { getThemeColors } from '../../constants/GlobalStyles';
 
 interface NotificationTimePickerModalProps {

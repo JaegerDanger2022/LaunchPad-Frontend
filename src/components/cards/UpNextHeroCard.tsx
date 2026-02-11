@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Animated } from "react-native";
-import { BlurView } from "expo-blur";
+import { SafeBlurView } from "../SafeBlurView";
 import { Lock } from "lucide-react-native";
 import { LightningIcon, ArrowRightIcon } from "../icons/SVGIcons";
 import { Color, ChallengeTypeColors } from "../../constants/GlobalStyles";
@@ -80,7 +80,7 @@ export const UpNextHeroCard: React.FC<UpNextHeroCardProps> = ({
         borderWidth: 1,
         borderColor: cardColor,
       }}>
-      <BlurView
+      <SafeBlurView
         intensity={isDark ? 40 : 60}
         tint={isDark ? "dark" : "light"}
         style={{
@@ -190,7 +190,7 @@ export const UpNextHeroCard: React.FC<UpNextHeroCardProps> = ({
           </TouchableOpacity>
         </View>
       </View>
-      </BlurView>
+      </SafeBlurView>
 
       {/* Locked Overlay */}
       {isLocked && (

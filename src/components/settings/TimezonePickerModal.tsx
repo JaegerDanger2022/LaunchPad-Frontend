@@ -8,7 +8,7 @@ import {
   SectionList,
   Dimensions,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { SafeBlurView } from '../SafeBlurView';
 import * as Haptics from 'expo-haptics';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');

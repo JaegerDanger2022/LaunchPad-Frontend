@@ -11,7 +11,7 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BlurView } from "expo-blur";
+import { SafeBlurView } from "../components/SafeBlurView";
 import { ChevronLeft, X } from "lucide-react-native";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
@@ -472,7 +472,7 @@ export const DataScreen: React.FC<DataScreenProps> = ({ onNavigate }) => {
                   : "rgba(0, 0, 0, 0.1)",
               },
             ]}>
-            <BlurView
+            <SafeBlurView
               intensity={60}
               tint={isDark ? "dark" : "light"}
               style={{
@@ -513,7 +513,7 @@ export const DataScreen: React.FC<DataScreenProps> = ({ onNavigate }) => {
                 showArrow
                 onPress={handleExportDreams}
               />
-            </BlurView>
+            </SafeBlurView>
           </View>
         </View>
 
@@ -535,7 +535,7 @@ export const DataScreen: React.FC<DataScreenProps> = ({ onNavigate }) => {
                   : "rgba(0, 0, 0, 0.1)",
               },
             ]}>
-            <BlurView
+            <SafeBlurView
               intensity={60}
               tint={isDark ? "dark" : "light"}
               style={{
@@ -550,7 +550,7 @@ export const DataScreen: React.FC<DataScreenProps> = ({ onNavigate }) => {
                 showArrow
                 onPress={handleNotificationOptOut}
               />
-            </BlurView>
+            </SafeBlurView>
           </View>
         </View>
 
@@ -566,7 +566,7 @@ export const DataScreen: React.FC<DataScreenProps> = ({ onNavigate }) => {
                 borderColor: "rgba(255, 68, 68, 0.3)",
               },
             ]}>
-            <BlurView
+            <SafeBlurView
               intensity={60}
               tint={isDark ? "dark" : "light"}
               style={{
@@ -585,7 +585,7 @@ export const DataScreen: React.FC<DataScreenProps> = ({ onNavigate }) => {
                 showArrow
                 onPress={handleDeleteAccount}
               />
-            </BlurView>
+            </SafeBlurView>
           </View>
         </View>
 

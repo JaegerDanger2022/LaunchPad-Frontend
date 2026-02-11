@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { SafeBlurView } from './SafeBlurView';
 import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
 
@@ -112,18 +112,18 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               end={{ x: 1, y: 1 }}
               style={StyleSheet.absoluteFill}
             />
-            <BlurView
+            <SafeBlurView
               intensity={colors.blurIntensity}
               tint={colors.blurTint}
               style={[styles.glassOverlay, styles.bubbleContent]}>
               <Text style={[styles.messageText, { color: colors.textColor }]}>
                 {text}
               </Text>
-            </BlurView>
+            </SafeBlurView>
           </>
         ) : (
           // User message: Glassmorphism only
-          <BlurView
+          <SafeBlurView
             intensity={colors.blurIntensity}
             tint={colors.blurTint}
             style={[styles.glassOverlay, styles.bubbleContent]}>
@@ -136,7 +136,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
             <Text style={[styles.messageText, { color: colors.textColor }]}>
               {text}
             </Text>
-          </BlurView>
+          </SafeBlurView>
         )}
       </View>
     </View>

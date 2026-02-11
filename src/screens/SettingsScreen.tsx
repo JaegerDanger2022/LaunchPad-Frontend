@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BlurView } from "expo-blur";
+import { SafeBlurView } from "../components/SafeBlurView";
 import { ChevronLeft } from "lucide-react-native";
 import { ProfileHeader } from "../components/settings/ProfileHeader";
 import { SettingRow } from "../components/settings/SettingRow";
@@ -290,7 +290,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 borderColor: theme === "dark" ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)",
               },
             ]}>
-            <BlurView
+            <SafeBlurView
               intensity={60}
               tint={theme === "dark" ? "dark" : "light"}
               style={{
@@ -301,7 +301,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 dreamCount={dreamCount}
                 completedMilestones={completedMilestones}
               />
-            </BlurView>
+            </SafeBlurView>
           </View>
         </View> */}
 
@@ -321,7 +321,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     : "rgba(0, 0, 0, 0.1)",
               },
             ]}>
-            <BlurView
+            <SafeBlurView
               intensity={60}
               tint={theme === "dark" ? "dark" : "light"}
               style={{
@@ -348,7 +348,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   onPress={handleUpgradeToPremium}
                 />
               )}
-            </BlurView>
+            </SafeBlurView>
           </View>
         </View>
 
@@ -368,7 +368,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     : "rgba(0, 0, 0, 0.1)",
               },
             ]}>
-            <BlurView
+            <SafeBlurView
               intensity={60}
               tint={theme === "dark" ? "dark" : "light"}
               style={{
@@ -408,7 +408,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 showArrow
                 onPress={() => setShowNotificationModal(true)}
               />
-            </BlurView>
+            </SafeBlurView>
           </View>
         </View>
 
@@ -447,7 +447,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     : "rgba(0, 0, 0, 0.1)",
               },
             ]}>
-            <BlurView
+            <SafeBlurView
               intensity={60}
               tint={theme === "dark" ? "dark" : "light"}
               style={{
@@ -475,7 +475,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 showArrow
                 onPress={() => handleOpenLink("Help & Support")}
               />
-            </BlurView>
+            </SafeBlurView>
           </View>
         </View>
 
@@ -495,7 +495,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     : "rgba(0, 0, 0, 0.1)",
               },
             ]}>
-            <BlurView
+            <SafeBlurView
               intensity={60}
               tint={theme === "dark" ? "dark" : "light"}
               style={{
@@ -523,7 +523,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 showArrow
                 onPress={handleLogout}
               />
-            </BlurView>
+            </SafeBlurView>
           </View>
         </View>
 

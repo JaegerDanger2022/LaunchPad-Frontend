@@ -9,7 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
+import { SafeBlurView } from './SafeBlurView';
 import { Pencil } from 'lucide-react-native';
 import LottieView from 'lottie-react-native';
 import { getThemeColors } from '../constants/GlobalStyles';
@@ -110,7 +110,7 @@ export const DreamChoiceModal: React.FC<DreamChoiceModalProps> = ({
                         : 'rgba(251, 99, 34, 0.2)',
                     },
                   ]}>
-                  <BlurView
+                  <SafeBlurView
                     intensity={isDark ? 20 : 60}
                     tint={isDark ? 'dark' : 'light'}
                     style={[
@@ -150,7 +150,7 @@ export const DreamChoiceModal: React.FC<DreamChoiceModalProps> = ({
                     <View style={styles.recommendedBadge}>
                       <Text style={styles.recommendedText}>Recommended</Text>
                     </View>
-                  </BlurView>
+                  </SafeBlurView>
                 </TouchableOpacity>
 
                 {/* DIY */}
@@ -165,7 +165,7 @@ export const DreamChoiceModal: React.FC<DreamChoiceModalProps> = ({
                         : 'rgba(0, 0, 0, 0.1)',
                     },
                   ]}>
-                  <BlurView
+                  <SafeBlurView
                     intensity={isDark ? 20 : 60}
                     tint={isDark ? 'dark' : 'light'}
                     style={[
@@ -202,7 +202,7 @@ export const DreamChoiceModal: React.FC<DreamChoiceModalProps> = ({
                       Create your dream manually by adding a title and custom
                       milestones yourself.
                     </Text>
-                  </BlurView>
+                  </SafeBlurView>
                 </TouchableOpacity>
               </View>
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { BlurView } from "expo-blur";
+import { SafeBlurView } from "../SafeBlurView";
 import { LinearGradient } from "expo-linear-gradient";
 import { Bookmark } from "lucide-react-native";
 import { VictoryCard as VictoryCardType } from "../../types/community";
@@ -80,7 +80,7 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
         onPress={onPress}
         activeOpacity={0.85}
         style={{ overflow: 'hidden', borderRadius: 20 }}>
-        <BlurView
+        <SafeBlurView
           intensity={isDark ? 80 : 60}
           tint={isDark ? "dark" : "light"}
           style={[
@@ -234,7 +234,7 @@ export const VictoryCard: React.FC<VictoryCardProps> = ({
             </TouchableOpacity>
           )}
         </View>
-      </BlurView>
+      </SafeBlurView>
       </TouchableOpacity>
     </View>
   );

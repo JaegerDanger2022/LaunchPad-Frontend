@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { BlurView } from "expo-blur";
+import { SafeBlurView } from "./SafeBlurView";
 import { BaseToast, ErrorToast, InfoToast } from "react-native-toast-message";
 import { useThemeStore } from "../store/themeStore";
 
@@ -10,7 +10,7 @@ export const toastConfig = {
 
     return (
       <View style={styles.toastWrapper}>
-        <BlurView
+        <SafeBlurView
           intensity={80}
           experimentalBlurMethod="dimezisBlurView"
           tint={theme === "dark" ? "dark" : "light"}
@@ -46,7 +46,7 @@ export const toastConfig = {
               color: theme === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
             }}
           />
-        </BlurView>
+        </SafeBlurView>
       </View>
     );
   },
@@ -56,7 +56,7 @@ export const toastConfig = {
 
     return (
       <View style={styles.toastWrapper}>
-        <BlurView
+        <SafeBlurView
           intensity={80}
           experimentalBlurMethod="dimezisBlurView"
           tint={theme === "dark" ? "dark" : "light"}
@@ -92,7 +92,7 @@ export const toastConfig = {
               color: theme === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
             }}
           />
-        </BlurView>
+        </SafeBlurView>
       </View>
     );
   },
@@ -102,7 +102,7 @@ export const toastConfig = {
 
     return (
       <View style={styles.toastWrapper}>
-        <BlurView
+        <SafeBlurView
           intensity={80}
           experimentalBlurMethod="dimezisBlurView"
           tint={theme === "dark" ? "dark" : "light"}
@@ -138,7 +138,7 @@ export const toastConfig = {
               color: theme === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
             }}
           />
-        </BlurView>
+        </SafeBlurView>
       </View>
     );
   },

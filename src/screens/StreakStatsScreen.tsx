@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { View, Text, ScrollView, StyleSheet, Animated, PanResponder, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
+import { SafeBlurView } from '../components/SafeBlurView';
 import { Color, getThemeColors } from '../constants/GlobalStyles';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
@@ -116,7 +116,7 @@ export const StreakStatsScreen = ({ onNavigate }: { onNavigate?: (screen: string
 
           <ScrollView style={styles.container}>
         {/* Current Streak Card */}
-        <BlurView
+        <SafeBlurView
           intensity={40}
           tint="dark"
           style={styles.statCard}
@@ -124,12 +124,12 @@ export const StreakStatsScreen = ({ onNavigate }: { onNavigate?: (screen: string
           <Text style={styles.statEmoji}>🔥</Text>
           <Text style={styles.statNumber}>{streakData.current_streak}</Text>
           <Text style={styles.statLabel}>Day Streak</Text>
-        </BlurView>
+        </SafeBlurView>
 
         {/* Stats Grid */}
         <View style={styles.grid}>
           {/* Longest Streak */}
-          <BlurView
+          <SafeBlurView
             intensity={40}
             tint="dark"
             style={styles.gridCard}
@@ -137,10 +137,10 @@ export const StreakStatsScreen = ({ onNavigate }: { onNavigate?: (screen: string
             <Text style={styles.gridEmoji}>🏆</Text>
             <Text style={styles.gridNumber}>{streakData.longest_streak}</Text>
             <Text style={styles.gridLabel}>Best Streak</Text>
-          </BlurView>
+          </SafeBlurView>
 
           {/* Total Completions */}
-          <BlurView
+          <SafeBlurView
             intensity={40}
             tint="dark"
             style={styles.gridCard}
@@ -148,7 +148,7 @@ export const StreakStatsScreen = ({ onNavigate }: { onNavigate?: (screen: string
             <Text style={styles.gridEmoji}>✅</Text>
             <Text style={styles.gridNumber}>{streakData.total_completions}</Text>
             <Text style={styles.gridLabel}>Completed</Text>
-          </BlurView>
+          </SafeBlurView>
         </View>
 
         {/* Achievements Section */}

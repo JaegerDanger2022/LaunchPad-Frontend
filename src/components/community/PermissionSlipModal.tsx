@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
+import { SafeBlurView } from '../SafeBlurView';
 import { X } from 'lucide-react-native';
 import { DreamCategory, PermissionType } from '../../types/community';
 import { getPermissionOptions } from '../../utils/permissionUtils';

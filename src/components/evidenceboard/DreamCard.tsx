@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { BlurView } from "expo-blur";
+import { SafeBlurView } from "../SafeBlurView";
 import { LinearGradient } from "expo-linear-gradient";
 import { EvidenceBoardColors } from "../../constants/GlobalStyles";
 
@@ -71,7 +71,7 @@ export const DreamCard: React.FC<DreamCardProps> = ({
           shadowOpacity: isDark ? 1 : 0.1,
         }
       ]}>
-      <BlurView
+      <SafeBlurView
         intensity={isDark ? 80 : 20}
         tint={isDark ? "dark" : "light"}
         style={styles.blurContainer}>
@@ -112,7 +112,7 @@ export const DreamCard: React.FC<DreamCardProps> = ({
             </Text>
           </View>
         </View>
-      </BlurView>
+      </SafeBlurView>
     </TouchableOpacity>
   );
 };
