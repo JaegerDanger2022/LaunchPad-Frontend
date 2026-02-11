@@ -252,6 +252,9 @@ const EvidenceBoardScreen = ({
           fontSize: 14,
           color: "rgba(255, 255, 255, 0.9)",
         }}
+        stickyHeaderTitleStyle={{
+          color: isDark ? Color.colorWhite : Color.colorBlack,
+        }}
         parallaxHeight={220}
         headerHeight={90}
         contentContainerStyle={{
@@ -741,10 +744,19 @@ const EvidenceBoardScreen = ({
                                   : "#14B8A6";
 
                               const handleNextMission = () => {
-                                if (nextMilestone?.id) {
+                                const milestoneId = nextMilestone?.id || nextMilestone?.milestone_id;
+                                console.log('[EvidenceBoard] Next Mission clicked:', {
+                                  nextMilestone,
+                                  milestoneId,
+                                  dreamId: dream.id,
+                                });
+                                if (milestoneId) {
                                   onNavigate("Milestone", {
-                                    milestoneId: nextMilestone.id,
+                                    milestoneId: String(milestoneId),
+                                    threadId: String(dream.id),
                                   });
+                                } else {
+                                  console.error('[EvidenceBoard] No milestone ID found');
                                 }
                               };
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from "react-native";
 import { SafeBlurView } from "../SafeBlurView";
 import { LinearGradient } from "expo-linear-gradient";
 import { Bookmark } from "lucide-react-native";
@@ -70,7 +70,9 @@ export const JourneyRecapCard: React.FC<JourneyRecapCardProps> = ({
           style={[
             styles.glassBody,
             {
-              backgroundColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)",
+              backgroundColor: Platform.OS === "android"
+                ? (isDark ? "rgba(30, 41, 59, 0.95)" : "rgba(255, 255, 255, 0.92)")
+                : (isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)"),
             }
           ]}>
         {/* Top row: star badge + category tag + pin */}

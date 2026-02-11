@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Animated } from "react-native";
+import { View, Text, TouchableOpacity, Animated, Platform } from "react-native";
 import { SafeBlurView } from "../SafeBlurView";
 import { Lock } from "lucide-react-native";
 import { LightningIcon, ArrowRightIcon } from "../icons/SVGIcons";
@@ -86,9 +86,9 @@ export const UpNextHeroCard: React.FC<UpNextHeroCardProps> = ({
         style={{
           flex: 1,
           borderRadius: 15,
-          backgroundColor: isDark
-            ? "rgba(43,45,86,0.6)"
-            : "rgba(255,255,255,0.6)",
+          backgroundColor: Platform.OS === "android"
+            ? (isDark ? "rgba(43,45,86,0.95)" : "rgba(255,255,255,0.92)")
+            : (isDark ? "rgba(43,45,86,0.6)" : "rgba(255,255,255,0.6)"),
           overflow: "hidden",
         }}>
         <View
