@@ -219,7 +219,7 @@ export const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({
             {"\n\n"}
             <Text style={styles.bold}>Reporting:</Text> If you see content that
             violates our guidelines, please report it to
-            support@launchpadapp.click
+            support@launchpadapp.awsapps.com
           </Text>
         </View>
 
@@ -346,7 +346,7 @@ export const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({
           <Text
             style={[styles.paragraph, { color: themeColors.text_secondary }]}>
             <Text style={styles.bold}>Informal Resolution:</Text> Before filing
-            a claim, please contact us at support@launchpadapp.click to attempt
+            a claim, please contact us at support@launchpadapp.awsapps.com to attempt
             informal resolution.{"\n\n"}
             <Text style={styles.bold}>Arbitration:</Text> Any disputes shall be
             resolved through binding arbitration in accordance with the rules of
@@ -399,7 +399,7 @@ export const TermsOfServiceScreen: React.FC<TermsOfServiceScreenProps> = ({
             style={[styles.paragraph, { color: themeColors.text_secondary }]}>
             For questions about these Terms of Service:{"\n\n"}
             Email: legal@launchpadapp.click{"\n"}
-            Support: support@launchpadapp.click{"\n\n"}
+            Support: support@launchpadapp.awsapps.com{"\n\n"}
             Company: LaunchPad{"\n"}
             Address: Accra, Ghana
           </Text>

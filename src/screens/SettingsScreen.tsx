@@ -533,6 +533,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                     onPress={handleChangePassword}
                   />
                   <SettingRow
+                    icon="📊"
+                    label="Your Data"
+                    value="View, export, or delete"
+                    showArrow
+                    onPress={() => onNavigate?.("DataScreen")}
+                  />
+                  <SettingRow
                     icon="🚪"
                     label="Logout"
                     showArrow

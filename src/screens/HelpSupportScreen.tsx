@@ -31,7 +31,7 @@ export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({
   const isDark = theme === "dark";
 
   const handleEmailSupport = () => {
-    const email = "support@launchpadapp.click";
+    const email = "support@launchpadapp.awsapps.com";
     const subject = "LaunchPad Support Request";
     const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
 
@@ -39,7 +39,7 @@ export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({
       Toast.show({
         type: "error",
         text1: "Unable to Open Email",
-        text2: "Please email us at support@launchpadapp.click",
+        text2: "Please email us at support@launchpadapp.awsapps.com",
         visibilityTime: 3000,
       });
     });
@@ -143,7 +143,7 @@ export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({
           <SupportButton
             icon={<Mail size={24} color="#A855F7" />}
             title="Email Support"
-            subtitle="support@launchpadapp.click"
+            subtitle="support@launchpadapp.awsapps.com"
             onPress={handleEmailSupport}
           />
         </View>
@@ -374,7 +374,7 @@ export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({
             <Text style={styles.bold}>App Version:</Text> 0.10 (check Settings
             for updates){"\n\n"}
             For feature requests, bug reports, or general inquiries, email us at
-            support@launchpadapp.click — we typically respond within 24-48
+            support@launchpadapp.awsapps.com — we typically respond within 24-48
             hours.
           </Text>
         </View>

@@ -2049,3 +2049,206 @@ export async function updateNotificationPreferences(
     throw error;
   }
 }
+
+// ============================================================================
+// DATA MANAGEMENT ENDPOINTS (Your Data screen)
+// ============================================================================
+
+export interface PersonalDataResponse {
+  user_id: string;
+  firstname: string;
+  lastname: string;
+  email: string;
+  created_at?: string;
+  pref_timezone?: string;
+  pref_notification_time?: string | null;
+  streak?: StreakData;
+  dreams_count: number;
+  completed_milestones_count: number;
+  total_milestones_count: number;
+  community_posts_count: number;
+  last_activity?: string;
+  push_token_registered: boolean;
+}
+
+export async function fetchUserPersonalData(
+  userId: string,
+): Promise<PersonalDataResponse> {
+  try {
+    console.log(
+      `[fetchUserPersonalData] Fetching personal data for user: ${userId}`,
+    );
+
+    const response = await fetch(
+      `${API_BASE_URL}/users/${userId}/personal-data`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+
+    console.log(
+      `[fetchUserPersonalData] Response status: ${response.status}`,
+    );
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log("[fetchUserPersonalData] Success");
+    return result as PersonalDataResponse;
+  } catch (error: any) {
+    console.error("[fetchUserPersonalData] Error:", error.message);
+    throw error;
+  }
+}
+
+export interface DataExportResponse {
+  success: boolean;
+  message: string;
+  data: any;
+  export_date: string;
+}
+
+export async function requestDataExport(
+  userId: string,
+  format: "json" | "csv" = "json",
+): Promise<DataExportResponse> {
+  try {
+    console.log(
+      `[requestDataExport] Requesting data export for user: ${userId}, format: ${format}`,
+    );
+
+    const response = await fetch(
+      `${API_BASE_URL}/users/${userId}/data-export`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ format }),
+      },
+    );
+
+    console.log(`[requestDataExport] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log("[requestDataExport] Success");
+    return result as DataExportResponse;
+  } catch (error: any) {
+    console.error("[requestDataExport] Error:", error.message);
+    throw error;
+  }
+}
+
+export interface DreamsExportResponse {
+  success: boolean;
+  dreams: Array<{
+    dream_title: string;
+    status: string;
+    created_at: string;
+    completed_at?: string;
+    milestones: Array<{
+      title: string;
+      status: string;
+      challenge_type: string;
+      completed_at?: string;
+    }>;
+  }>;
+  streak_data?: StreakData;
+  export_date: string;
+}
+
+export async function exportDreamsData(
+  userId: string,
+): Promise<DreamsExportResponse> {
+  try {
+    console.log(
+      `[exportDreamsData] Exporting dreams data for user: ${userId}`,
+    );
+
+    const response = await fetch(
+      `${API_BASE_URL}/users/${userId}/export-dreams`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+
+    console.log(`[exportDreamsData] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log("[exportDreamsData] Success");
+    return result as DreamsExportResponse;
+  } catch (error: any) {
+    console.error("[exportDreamsData] Error:", error.message);
+    throw error;
+  }
+}
+
+export interface DeleteAccountResponse {
+  success: boolean;
+  message: string;
+  deletion_scheduled?: string;
+}
+
+export async function deleteUserAccount(
+  userId: string,
+): Promise<DeleteAccountResponse> {
+  try {
+    console.log(`[deleteUserAccount] Deleting account for user: ${userId}`);
+
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    console.log(`[deleteUserAccount] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (parseError) {
+        // Silent fail
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    console.log("[deleteUserAccount] Success");
+    return result as DeleteAccountResponse;
+  } catch (error: any) {
+    console.error("[deleteUserAccount] Error:", error.message);
+    throw error;
+  }
+}

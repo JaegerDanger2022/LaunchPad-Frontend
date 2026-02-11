@@ -141,7 +141,7 @@ export const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavi
             • Opt-out of push notifications{'\n'}
             • Control community visibility settings{'\n\n'}
 
-            To exercise your rights, use the in-app settings or contact us at privacy@launchpad.app
+            To exercise your rights, use the in-app settings or contact us at privacy@launchpadapp.awsapps.com
           </Text>
         </View>
 
@@ -180,7 +180,7 @@ export const PrivacyPolicyScreen: React.FC<PrivacyPolicyScreenProps> = ({ onNavi
           </Text>
           <Text style={[styles.paragraph, { color: themeColors.text_secondary }]}>
             If you have questions or concerns about this Privacy Policy:{'\n\n'}
-            Email: privacy@launchpad.app{'\n'}
+            Email: privacy@launchpadapp.awsapps.com{'\n'}
             Support: support@launchpad.app
           </Text>
         </View>

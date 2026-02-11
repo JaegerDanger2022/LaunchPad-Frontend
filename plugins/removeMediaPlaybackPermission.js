@@ -1,23 +1,25 @@
 const { withAndroidManifest } = require('@expo/config-plugins');
 
 /**
- * Custom config plugin to remove FOREGROUND_SERVICE_MEDIA_PLAYBACK permission
+ * Custom config plugin to remove deprecated audio permissions
  *
- * This permission is added by expo-audio but we don't need it because:
- * - Our audio recording happens only in the foreground
- * - Our video playback is only in the foreground
- * - We don't play media in the background
+ * This plugin removes audio-related permissions that are no longer needed:
+ * - RECORD_AUDIO: Audio recording feature has been deprecated
+ * - MODIFY_AUDIO_SETTINGS: No longer needed
+ * - FOREGROUND_SERVICE_MEDIA_PLAYBACK: We don't play media in the background
  */
 const withRemoveMediaPlaybackPermission = (config) => {
   return withAndroidManifest(config, async (config) => {
     const androidManifest = config.modResults;
 
-    // Remove FOREGROUND_SERVICE_MEDIA_PLAYBACK permission
+    // Remove deprecated audio permissions
     if (androidManifest.manifest['uses-permission']) {
       androidManifest.manifest['uses-permission'] = androidManifest.manifest['uses-permission'].filter(
         (permission) => {
           const name = permission.$?.['android:name'];
-          return name !== 'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK';
+          return name !== 'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK' &&
+                 name !== 'android.permission.RECORD_AUDIO' &&
+                 name !== 'android.permission.MODIFY_AUDIO_SETTINGS';
         }
       );
     }

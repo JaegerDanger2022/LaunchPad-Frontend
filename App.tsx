@@ -30,6 +30,7 @@ import { ChangePasswordScreen } from './src/screens/auth/ChangePasswordScreen';
 import { PrivacyPolicyScreen } from './src/screens/PrivacyPolicyScreen';
 import { TermsOfServiceScreen } from './src/screens/TermsOfServiceScreen';
 import { HelpSupportScreen } from './src/screens/HelpSupportScreen';
+import { DataScreen } from './src/screens/DataScreen';
 import { useAuthStore } from './src/store/authStore';
 import { useThemeStore } from './src/store/themeStore';
 import { useNotificationStore } from './src/store/notificationStore';
@@ -62,6 +63,7 @@ export type RootStackParamList = {
   PrivacyPolicy: undefined;
   TermsOfService: undefined;
   HelpSupport: undefined;
+  DataScreen: undefined;
 };
 
 export type TabParamList = {
@@ -225,7 +227,7 @@ const SettingsModalWrapper = React.memo(({ navigation }: any) => {
       setTimeout(() => {
         navigation.navigate('HomeTabs', { screen: screen as keyof TabParamList });
       }, 100);
-    } else if (screen === 'PrivacyPolicy' || screen === 'TermsOfService' || screen === 'HelpSupport' || screen === 'ChangePassword') {
+    } else if (screen === 'PrivacyPolicy' || screen === 'TermsOfService' || screen === 'HelpSupport' || screen === 'ChangePassword' || screen === 'DataScreen') {
       // Navigate to info screens on top of Settings modal (don't close Settings first)
       navigation.navigate(screen as keyof RootStackParamList);
     } else {
@@ -327,6 +329,17 @@ const HelpSupportScreenWrapper = React.memo(({ navigation }: any) => {
     }
   }, [navigation]);
   return <HelpSupportScreen onNavigate={onNavigate} />;
+});
+
+const DataScreenWrapper = React.memo(({ navigation }: any) => {
+  const onNavigate = useCallback((screen: string) => {
+    if (screen === 'Settings') {
+      navigation.goBack();
+    } else {
+      navigation.navigate(screen as keyof RootStackParamList);
+    }
+  }, [navigation]);
+  return <DataScreen onNavigate={onNavigate} />;
 });
 
 // Auth Navigator
@@ -496,6 +509,10 @@ function AppNavigator() {
         <Stack.Screen
           name="ChangePassword"
           component={ChangePasswordScreenWrapper}
+        />
+        <Stack.Screen
+          name="DataScreen"
+          component={DataScreenWrapper}
         />
       </Stack.Group>
     </Stack.Navigator>
