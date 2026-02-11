@@ -65,7 +65,13 @@
       "Bash(git rm:*)",
       "Bash(test -f:*)",
       "Bash(git restore:*)",
-      "Bash(npx expo config:*)"
+      "Bash(npx expo config:*)",
+      "Bash(eas build:*)",
+      "Bash(wsl node:*)",
+      "Bash(eas build:view:*)",
+      "Bash(eas init:*)",
+      "Bash(eas project:create:*)",
+      "Bash(eas build:configure:*)"
     ]
   }
 }

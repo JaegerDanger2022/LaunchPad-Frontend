@@ -157,6 +157,7 @@ const LoginScreen = ({ navigation }: any) => {
       {/* Blur Overlay */}
       <BlurView
         intensity={50}
+        experimentalBlurMethod="dimezisBlurView"
         style={{
           position: "absolute",
           top: 0,
