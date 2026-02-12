@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Text, StyleSheet, Animated } from 'react-native';
+import { Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeBlurView } from './SafeBlurView';
 import { Color } from '../constants/GlobalStyles';
@@ -18,12 +18,39 @@ export const UnlockMessageToast: React.FC<UnlockMessageToastProps> = ({
   duration = 4000,
 }) => {
   const insets = useSafeAreaInsets();
-  const translateY = useRef(new Animated.Value(300)).current;
+  const translateY = useRef(new Animated.Value(-300)).current;
   const opacity = useRef(new Animated.Value(0)).current;
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const dismissToast = () => {
+    // Clear the auto-dismiss timer
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    // Animate out
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: -300,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      onComplete();
+    });
+  };
+
 
   useEffect(() => {
     if (visible) {
-      // Slide up from bottom and fade in
+      console.log('[UnlockMessageToast] Showing toast with message:', message);
+      // Slide down from top and fade in
       Animated.parallel([
         Animated.timing(translateY, {
           toValue: 0,
@@ -38,46 +65,46 @@ export const UnlockMessageToast: React.FC<UnlockMessageToastProps> = ({
       ]).start();
 
       // Auto-dismiss
-      const timer = setTimeout(() => {
-        Animated.parallel([
-          Animated.timing(translateY, {
-            toValue: 300,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-          Animated.timing(opacity, {
-            toValue: 0,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-        ]).start(() => {
-          onComplete();
-        });
+      timerRef.current = setTimeout(() => {
+        dismissToast();
       }, duration);
 
-      return () => clearTimeout(timer);
+      return () => {
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+          timerRef.current = null;
+        }
+      };
     }
   }, [visible, duration, translateY, opacity, onComplete]);
 
   if (!visible) return null;
 
+  if (!message) return null;
+
   return (
     <Animated.View
       style={[
         styles.container,
-        { bottom: 20 + insets.bottom, transform: [{ translateY }], opacity },
+        { top: 20 + insets.top, transform: [{ translateY }], opacity },
       ]}
-      pointerEvents="none"
-      accessibilityElementsHidden={true}
     >
-      <SafeBlurView
-        intensity={80}
-        tint="dark"
-        style={styles.toast}
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={dismissToast}
+        style={{ width: '100%', alignItems: 'center' }}
       >
-        <Text style={styles.emoji}>✨</Text>
-        <Text style={styles.text}>{message}</Text>
-      </SafeBlurView>
+        <SafeBlurView
+          intensity={80}
+          tint="dark"
+          style={styles.toast}
+        >
+          <Text style={styles.emoji}>✨</Text>
+          <Text style={styles.text} numberOfLines={3}>
+            {message}
+          </Text>
+        </SafeBlurView>
+      </TouchableOpacity>
     </Animated.View>
   );
 };
@@ -85,13 +112,12 @@ export const UnlockMessageToast: React.FC<UnlockMessageToastProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 0,
+    top: 0,
     left: 20,
     right: 20,
     zIndex: 9999,
     alignItems: 'center',
     justifyContent: 'center',
-    pointerEvents: 'none',
   },
   toast: {
     flexDirection: 'row',
@@ -100,14 +126,14 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
     gap: 12,
-    backgroundColor: 'rgba(210, 120, 20, 0.85)',
-    overflow: 'hidden',
+    backgroundColor: 'rgba(210, 120, 20, 0.95)',
     shadowColor: Color.colorBlack,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-    maxWidth: '100%',
+    minWidth: 200,
+    maxWidth: '90%',
   },
   emoji: {
     fontSize: 24,

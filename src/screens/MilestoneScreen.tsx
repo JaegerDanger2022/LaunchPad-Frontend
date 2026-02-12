@@ -28,8 +28,9 @@ import { RepeatableGoal } from "../components/milestonescreen/RepeatableGoal";
 import { OneTimeGoal } from "../components/milestonescreen/OneTimeGoal";
 import { SuccessAnimationOverlay } from "../components/animations/SuccessAnimationOverlay";
 import { DreamCompleteVideoOverlay } from "../components/animations/DreamCompleteVideoOverlay";
-import { UnlockMessageToast } from "../components/UnlockMessageToast";
+import { PlanThisWeekButton } from "../components/calendar/PlanThisWeekButton";
 import { fetchDreamDetails } from "../config/api";
+import Toast from "react-native-toast-message";
 
 const { height: screenHeight } = Dimensions.get("window");
 
@@ -76,29 +77,37 @@ const FormattedDescription = ({
 
     urlRegex.lastIndex = 0;
     while ((match = urlRegex.exec(segment)) !== null) {
+      // Add text before link
       if (match.index > lastIndex) {
         parts.push(
           <Text key={`${keyPrefix}-t-${lastIndex}`}>
             {segment.slice(lastIndex, match.index)}
-          </Text>,
+          </Text>
         );
       }
+      // Add clickable link
       const url = match[0];
       parts.push(
-        <Text
+        <TouchableOpacity
           key={`${keyPrefix}-l-${match.index}`}
-          style={{ textDecorationLine: "underline", fontWeight: "600" }}
-          onPress={() => Linking.openURL(url)}>
-          {url}
-        </Text>,
+          onPress={() => {
+            console.log('Opening URL:', url);
+            Linking.openURL(url).catch(err => console.error('Failed to open URL:', err));
+          }}
+          activeOpacity={0.7}>
+          <Text style={{ textDecorationLine: "underline", fontWeight: "600", color: "#0066CC" }}>
+            {url}
+          </Text>
+        </TouchableOpacity>
       );
       lastIndex = match.index + url.length;
     }
+    // Add remaining text
     if (lastIndex < segment.length) {
       parts.push(
         <Text key={`${keyPrefix}-t-${lastIndex}`}>
           {segment.slice(lastIndex)}
-        </Text>,
+        </Text>
       );
     }
     return parts;
@@ -139,36 +148,54 @@ const FormattedDescription = ({
   return (
     <View style={[{ width: "100%" }, style]}>
       {blocks.map((block, i) => {
+        const textStyle = {
+          color: Color.colorBlack,
+          fontSize: 16,
+          lineHeight: 24,
+          opacity: 0.95,
+        };
+
         if (block.type === "step") {
           return (
-            <Text
+            <View
               key={`block-${i}`}
               style={{
-                color: Color.colorBlack,
-                fontSize: 14,
-                lineHeight: 22,
-                opacity: 0.95,
-                textAlign: "left",
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                alignItems: 'center',
                 paddingHorizontal: 8,
                 marginTop: i === 0 ? 0 : 8,
               }}>
-              {renderTextWithLinks(block.content, `b${i}`)}
-            </Text>
+              {renderTextWithLinks(block.content, `b${i}`).map((part, idx) => {
+                if (React.isValidElement(part) && part.type === TouchableOpacity) {
+                  return part;
+                }
+                return React.cloneElement(part as React.ReactElement, {
+                  style: [textStyle, (part as any).props?.style]
+                });
+              })}
+            </View>
           );
         }
         return (
-          <Text
+          <View
             key={`block-${i}`}
             style={{
-              color: Color.colorBlack,
-              fontSize: 14,
-              lineHeight: 22,
-              opacity: 0.95,
-              textAlign: hasSteps ? "left" : "center",
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: hasSteps ? "flex-start" : "center",
               paddingHorizontal: 8,
             }}>
-            {renderTextWithLinks(block.content, `b${i}`)}
-          </Text>
+            {renderTextWithLinks(block.content, `b${i}`).map((part, idx) => {
+              if (React.isValidElement(part) && part.type === TouchableOpacity) {
+                return part;
+              }
+              return React.cloneElement(part as React.ReactElement, {
+                style: [textStyle, (part as any).props?.style]
+              });
+            })}
+          </View>
         );
       })}
     </View>
@@ -200,8 +227,6 @@ const MilestoneScreen = ({
   const [isCompleted, setIsCompleted] = React.useState(false);
   const [showDreamCompleteAnimation, setShowDreamCompleteAnimation] =
     React.useState(false);
-  const [showUnlockToast, setShowUnlockToast] = React.useState(false);
-  const [unlockMessage, setUnlockMessage] = React.useState<string>("");
   const [isLoadingMilestone, setIsLoadingMilestone] = React.useState(true);
   const [currentDream, setCurrentDream] = React.useState<any>(null);
   const user = useAuthStore((state) => state.user);
@@ -291,26 +316,6 @@ const MilestoneScreen = ({
           setMilestone(enhancedMilestone);
           setThreadId(dreamDetails.thread_id || "");
           setCurrentDream(dreamDetails);
-
-          // Show unlock message toast if available (after 2 second delay)
-          if (foundMilestone.unlock_message) {
-            const messages = Array.isArray(foundMilestone.unlock_message)
-              ? foundMilestone.unlock_message
-              : [foundMilestone.unlock_message];
-
-            if (messages.length > 0) {
-              // Delay showing the toast by 2 seconds
-              const timer = setTimeout(() => {
-                // Pick a random message
-                const randomMessage =
-                  messages[Math.floor(Math.random() * messages.length)];
-                setUnlockMessage(randomMessage);
-                setShowUnlockToast(true);
-              }, 2000);
-
-              return () => clearTimeout(timer);
-            }
-          }
         } else {
           console.error('[MilestoneScreen] Milestone not found in dream:', {
             milestoneId,
@@ -406,24 +411,6 @@ const MilestoneScreen = ({
     <View style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" />
 
-      {/* Toast - positioned at root level to avoid layout shift */}
-      <View
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          pointerEvents: 'none',
-          zIndex: 9999,
-        }}>
-        <UnlockMessageToast
-          visible={showUnlockToast}
-          message={unlockMessage}
-          onComplete={() => setShowUnlockToast(false)}
-        />
-      </View>
-
       {/* Modal sliding from bottom */}
       <Animated.View
         style={{
@@ -444,7 +431,7 @@ const MilestoneScreen = ({
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={{
-            flex: 2,
+            flex: 5,
             borderBottomLeftRadius: 40,
             borderBottomRightRadius: 40,
           }}>
@@ -652,6 +639,26 @@ const MilestoneScreen = ({
                       style={{ marginBottom: 25 }}
                     />
 
+                    {/* Plan This Week Button */}
+                    {milestone && dreamThreadId && milestone?.status !== "completed" && (
+                      <PlanThisWeekButton
+                        milestoneId={milestone.id}
+                        threadId={dreamThreadId}
+                        weekPlanned={milestone.week_planned}
+                        onScheduleCreated={() => {
+                          // Update local milestone state to reflect week_planned
+                          setMilestone((prev: any) => ({
+                            ...prev,
+                            week_planned: true
+                          }));
+                          Toast.show({
+                            type: 'info',
+                            text1: 'Check your calendar to see the schedule!'
+                          });
+                        }}
+                      />
+                    )}
+
                     <View
                       style={{
                         width: 80,
@@ -683,7 +690,7 @@ const MilestoneScreen = ({
           // Skeleton for bottom action section
           <View
             style={{
-              flex: 3,
+              flex: 2,
               backgroundColor: themeColors.bg_secondary,
               paddingHorizontal: 24,
               paddingTop: 30,
@@ -723,27 +730,31 @@ const MilestoneScreen = ({
               }}
             />
           </View>
-        ) : milestone?.streak_eligible ? (
-          <RepeatableGoal
-            completedSteps={completedSteps}
-            onPress={handlePress}
-            milestoneId={milestoneId}
-            threadId={threadId}
-            milestoneStatus={milestone?.status}
-            milestone={milestone}
-            onDreamComplete={() => setShowDreamCompleteAnimation(true)}
-            onNavigate={onNavigate}
-          />
         ) : (
-          <OneTimeGoal
-            isCompleted={isCompleted || milestone?.status === "completed"}
-            onPress={() => setIsCompleted(true)}
-            milestoneId={milestoneId}
-            threadId={threadId}
-            milestone={milestone}
-            onDreamComplete={() => setShowDreamCompleteAnimation(true)}
-            onNavigate={onNavigate}
-          />
+          <View style={{ flex: 2 }}>
+            {milestone?.streak_eligible ? (
+              <RepeatableGoal
+                completedSteps={completedSteps}
+                onPress={handlePress}
+                milestoneId={milestoneId}
+                threadId={threadId}
+                milestoneStatus={milestone?.status}
+                milestone={milestone}
+                onDreamComplete={() => setShowDreamCompleteAnimation(true)}
+                onNavigate={onNavigate}
+              />
+            ) : (
+              <OneTimeGoal
+                isCompleted={isCompleted || milestone?.status === "completed"}
+                onPress={() => setIsCompleted(true)}
+                milestoneId={milestoneId}
+                threadId={threadId}
+                milestone={milestone}
+                onDreamComplete={() => setShowDreamCompleteAnimation(true)}
+                onNavigate={onNavigate}
+              />
+            )}
+          </View>
         )}
 
         {/* Dream Complete Animation Modal - FinalCelebration.mp4 */}

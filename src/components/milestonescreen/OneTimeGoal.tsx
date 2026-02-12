@@ -489,7 +489,7 @@ export const OneTimeGoal: React.FC<OneTimeGoalProps> = ({
               setShowShareButton(false);
               shareButtonOpacity.setValue(0);
             }}>
-            <Text style={{ color: themeColors.text_secondary, fontSize: 14 }}>
+            <Text style={{ color: themeColors.theme === 'dark' ? Color.colorWhite : Color.colorBlack, fontSize: 14, opacity: 0.7 }}>
               Skip for now
             </Text>
           </TouchableOpacity>
