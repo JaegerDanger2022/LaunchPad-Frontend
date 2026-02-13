@@ -33,7 +33,7 @@ export const SkeletonDreamCardsCarousel: React.FC = () => {
   });
 
   // Theme-aware skeleton colors - matches Community Wins skeleton
-  const skeletonBgColor = theme === 'dark' ? themeColors.bg_secondary : '#E0E0E0';
+  const skeletonBgColor = themeColors.bg_secondary;
   const skeletonColor = theme === 'dark' ? '#d1d1d1' : '#D0D0D0';
 
   const SkeletonCard = () => (

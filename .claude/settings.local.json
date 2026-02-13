@@ -72,7 +72,18 @@
       "Bash(eas init:*)",
       "Bash(eas project:create:*)",
       "Bash(eas build:configure:*)",
-      "WebFetch(domain:support.google.com)"
+      "WebFetch(domain:support.google.com)",
+      "Bash(railway logs:*)",
+      "Bash(npx:*)",
+      "Bash(python -m langgraph_cli:*)",
+      "Bash(python -m json.tool:*)",
+      "Bash(railway link:*)",
+      "Bash(railway status:*)",
+      "Bash(railway whoami:*)",
+      "Bash(railway service:*)",
+      "Bash(railway list:*)",
+      "Bash(railway variables:*)",
+      "Bash(timeout 30 bash -c 'while true; do curl -s \"\"https://launchpad-backend-production.up.railway.app/health\"\" && break || echo \"\"Waiting for deployment...\"\"; sleep 3; done')"
     ]
   }
 }

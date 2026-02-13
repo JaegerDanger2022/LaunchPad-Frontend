@@ -66,7 +66,7 @@ export const DreamCard: React.FC<DreamCardProps> = ({
         styles.cardWrapper,
         {
           borderColor: dream.dream_card_bg || "transparent",
-          backgroundColor: "#FFFFFF",
+          backgroundColor: "transparent",
           shadowColor: isDark ? "rgba(255, 255, 255, 0.12)" : "#000",
           shadowOpacity: isDark ? 1 : 0.1,
         }

@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -11,16 +11,38 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   updatePassword,
-} from 'firebase/auth';
-import { auth } from '../config/firebase';
-import { ensureGoogleSignInInitialized, isGoogleSignInAvailable } from '../config/googleSignIn';
-import { registerUserToDatabase, fetchUserData, UserData, updateRecents, updateUpNext as updateUpNextAPI, updateStreak as updateStreakAPI, getStreak, FetchUserDataOptions, fetchDreamDetails, fetchDreamsList, updatePlan, addMilestoneToRoadmap, updateUserTimezone, updateUserNotificationPreferences } from '../config/api';
-import { findNextIncompleteMilestone } from '../utils/upNextHelper';
-import { StreakData } from '../types/index';
-import * as SecureStore from 'expo-secure-store';
-import { identifyRevenueCatUser, logoutRevenueCatUser, checkEntitlement } from '../config/revenuecat';
+} from "firebase/auth";
+import { auth } from "../config/firebase";
+import {
+  ensureGoogleSignInInitialized,
+  isGoogleSignInAvailable,
+} from "../config/googleSignIn";
+import {
+  registerUserToDatabase,
+  fetchUserData,
+  UserData,
+  updateRecents,
+  updateUpNext as updateUpNextAPI,
+  updateStreak as updateStreakAPI,
+  getStreak,
+  FetchUserDataOptions,
+  fetchDreamDetails,
+  fetchDreamsList,
+  updatePlan,
+  addMilestoneToRoadmap,
+  updateUserTimezone,
+  updateUserNotificationPreferences,
+} from "../config/api";
+import { findNextIncompleteMilestone } from "../utils/upNextHelper";
+import { StreakData } from "../types/index";
+import * as SecureStore from "expo-secure-store";
+import {
+  identifyRevenueCatUser,
+  logoutRevenueCatUser,
+  checkEntitlement,
+} from "../config/revenuecat";
 
-const ENTITLEMENT_ID = 'Premium Subscription';
+const ENTITLEMENT_ID = "Premium Subscription";
 
 /**
  * Maps dreams_summary to dreams format for backward compatibility.
@@ -43,13 +65,13 @@ const mapDreamsSummaryToDreams = (userData: UserData): UserData => {
       roadmap: {
         status: summary.status,
         category: summary.category, // Category moved to roadmap
-        milestones: [] // Empty array - full data loaded separately when needed
+        milestones: [], // Empty array - full data loaded separately when needed
       },
       // Add milestone count metadata for UI display
       _metadata: {
         milestones_count: summary.milestones_count,
         completed_milestones_count: summary.completed_milestones_count,
-      }
+      },
     }));
   }
   return userData;
@@ -68,24 +90,49 @@ interface AuthState {
 
   // Actions
   refreshPremiumStatus: () => Promise<void>;
-  signUp: (email: string, password: string, firstName: string, lastName?: string, timezone?: string, notificationTime?: string | null) => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName?: string,
+    timezone?: string,
+    notificationTime?: string | null,
+  ) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   googleSignIn: () => Promise<void>;
-  completeGoogleOnboarding: (timezone: string, notificationTime?: string | null) => Promise<void>;
+  completeGoogleOnboarding: (
+    timezone: string,
+    notificationTime?: string | null,
+  ) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<void>;
   clearError: () => void;
   initializeAuth: () => void;
-  loadUserData: (userId: string, options?: FetchUserDataOptions) => Promise<void>;
-  updateMilestoneStatusLocal: (threadId: string, milestoneId: string, status: string) => void;
+  loadUserData: (
+    userId: string,
+    options?: FetchUserDataOptions,
+  ) => Promise<void>;
+  updateMilestoneStatusLocal: (
+    threadId: string,
+    milestoneId: string,
+    status: string,
+  ) => void;
   addToRecents: (threadId: string) => void;
   updateUpNext: () => void;
   updateStreakData: (streakData: StreakData) => void;
   updateCouragePoints: (amount: number) => void;
   loadFullDreams: (userId: string) => Promise<void>;
   refreshDreamsFromCrud: (userId: string) => Promise<void>;
-  addCustomMilestone: (threadId: string, title: string, challengeType: string, description?: string) => Promise<void>;
+  addCustomMilestone: (
+    threadId: string,
+    title: string,
+    challengeType: string,
+    description?: string,
+  ) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -106,7 +153,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     // Sync to backend so the dream-limit gate stays in sync
     const currentUser = useAuthStore.getState().user;
     if (currentUser?.uid) {
-      updatePlan(currentUser.uid, active ? 'pro' : 'free');
+      updatePlan(currentUser.uid, active ? "pro" : "free");
     }
   },
 
@@ -123,7 +170,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
           // Store user token securely
           const token = await user.getIdToken();
-          await SecureStore.setItemAsync('userToken', token);
+          await SecureStore.setItemAsync("userToken", token);
           set({ user, isAuthenticated: true });
 
           // Identify user in RevenueCat and check entitlement
@@ -131,13 +178,17 @@ export const useAuthStore = create<AuthState>((set) => ({
             await identifyRevenueCatUser(user.uid);
             await useAuthStore.getState().refreshPremiumStatus();
           } catch (error) {
-            console.error('[Auth] RevenueCat identification error:', error);
+            console.error("[Auth] RevenueCat identification error:", error);
             // Don't block auth flow on RevenueCat error
           }
 
           // Load user data from MongoDB - use 'essential' fields for faster initial load
-          console.log('Auth state changed - loading user data (essential fields only)');
-          const userData = await fetchUserData(user.uid, { fields: 'essential' });
+          console.log(
+            "Auth state changed - loading user data (essential fields only)",
+          );
+          const userData = await fetchUserData(user.uid, {
+            fields: "essential",
+          });
           if (userData) {
             const mappedData = mapDreamsSummaryToDreams(userData);
             set({ userData: mappedData, loading: false });
@@ -149,27 +200,43 @@ export const useAuthStore = create<AuthState>((set) => ({
             set({ loading: false });
           }
         } else {
-          await SecureStore.deleteItemAsync('userToken').catch(() => {});
-          set({ user: null, userData: null, isAuthenticated: false, loading: false });
+          await SecureStore.deleteItemAsync("userToken").catch(() => {});
+          set({
+            user: null,
+            userData: null,
+            isAuthenticated: false,
+            loading: false,
+          });
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        console.error("Auth initialization error:", error);
         set({ loading: false });
       }
     });
   },
 
-  signUp: async (email: string, password: string, firstName: string, lastName?: string, timezone?: string, notificationTime?: string | null) => {
+  signUp: async (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName?: string,
+    timezone?: string,
+    notificationTime?: string | null,
+  ) => {
     try {
       set({ loading: true, error: null });
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
 
       // Register user to MongoDB
       if (userCredential.user) {
         await registerUserToDatabase({
           user_id: userCredential.user.uid,
           firstname: firstName,
-          lastname: lastName || '',
+          lastname: lastName || "",
           email,
           pref_timezone: timezone,
           pref_notification_time: notificationTime,
@@ -179,16 +246,28 @@ export const useAuthStore = create<AuthState>((set) => ({
         try {
           await identifyRevenueCatUser(userCredential.user.uid);
         } catch (error) {
-          console.error('[SignUp] RevenueCat identification error:', error);
+          console.error("[SignUp] RevenueCat identification error:", error);
           // Don't block signup flow on RevenueCat error
         }
 
         // Load user data immediately after registration - use 'essential' fields
-        const userData = await fetchUserData(userCredential.user.uid, { fields: 'essential' });
+        const userData = await fetchUserData(userCredential.user.uid, {
+          fields: "essential",
+        });
         const mappedData = mapDreamsSummaryToDreams(userData);
-        set({ user: userCredential.user, userData: mappedData, isAuthenticated: true, loading: false, isNewSignup: true });
+        set({
+          user: userCredential.user,
+          userData: mappedData,
+          isAuthenticated: true,
+          loading: false,
+          isNewSignup: true,
+        });
       } else {
-        set({ user: userCredential.user, isAuthenticated: true, loading: false });
+        set({
+          user: userCredential.user,
+          isAuthenticated: true,
+          loading: false,
+        });
       }
     } catch (error: any) {
       const errorMessage = getErrorMessage(error.code);
@@ -200,20 +279,31 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email: string, password: string) => {
     try {
       set({ loading: true, error: null });
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
 
       // Identify user in RevenueCat
       try {
         await identifyRevenueCatUser(userCredential.user.uid);
       } catch (error) {
-        console.error('[Login] RevenueCat identification error:', error);
+        console.error("[Login] RevenueCat identification error:", error);
         // Don't block login flow on RevenueCat error
       }
 
       // Load user data from MongoDB - use 'essential' fields for faster login
-      const userData = await fetchUserData(userCredential.user.uid, { fields: 'essential' });
+      const userData = await fetchUserData(userCredential.user.uid, {
+        fields: "essential",
+      });
       const mappedData = mapDreamsSummaryToDreams(userData);
-      set({ user: userCredential.user, userData: mappedData, isAuthenticated: true, loading: false });
+      set({
+        user: userCredential.user,
+        userData: mappedData,
+        isAuthenticated: true,
+        loading: false,
+      });
       useAuthStore.getState().refreshDreamsFromCrud(userCredential.user.uid);
     } catch (error: any) {
       const errorMessage = getErrorMessage(error.code);
@@ -230,11 +320,14 @@ export const useAuthStore = create<AuthState>((set) => ({
       const isAvailable = await ensureGoogleSignInInitialized();
 
       if (!isAvailable) {
-        throw new Error('Google Sign-In is not available in this environment. Please build the app with: expo prebuild && npm run build:ios/android');
+        throw new Error(
+          "Google Sign-In is not available in this environment. Please build the app with: expo prebuild && npm run build:ios/android",
+        );
       }
 
       // Dynamically import Google Sign-In to handle Expo Go environments
-      const { GoogleSignin, statusCodes } = await import('@react-native-google-signin/google-signin');
+      const { GoogleSignin, statusCodes } =
+        await import("@react-native-google-signin/google-signin");
 
       // Ensure Google Sign-In is configured
       await GoogleSignin.hasPlayServices();
@@ -248,27 +341,32 @@ export const useAuthStore = create<AuthState>((set) => ({
         try {
           await identifyRevenueCatUser(userCredential.user.uid);
         } catch (error) {
-          console.error('[GoogleSignIn] RevenueCat identification error:', error);
+          console.error(
+            "[GoogleSignIn] RevenueCat identification error:",
+            error,
+          );
           // Don't block login flow on RevenueCat error
         }
 
         // Check if user already exists in MongoDB
-        let userData = await fetchUserData(userCredential.user.uid, { fields: 'essential' });
+        let userData = await fetchUserData(userCredential.user.uid, {
+          fields: "essential",
+        });
 
         // If no user doc exists, this is a first-time Google sign-in — register them
         // but DON'T authenticate yet. Route through onboarding first.
         if (!userData) {
           const firebaseUser = userCredential.user;
-          const displayName = firebaseUser.displayName || '';
-          const nameParts = displayName.split(' ');
-          const firstName = nameParts[0] || '';
-          const lastName = nameParts.slice(1).join(' ') || '';
+          const displayName = firebaseUser.displayName || "";
+          const nameParts = displayName.split(" ");
+          const firstName = nameParts[0] || "";
+          const lastName = nameParts.slice(1).join(" ") || "";
 
           await registerUserToDatabase({
             user_id: firebaseUser.uid,
             firstname: firstName,
             lastname: lastName,
-            email: firebaseUser.email || '',
+            email: firebaseUser.email || "",
           });
 
           // Don't set isAuthenticated — user needs to complete onboarding first
@@ -283,33 +381,45 @@ export const useAuthStore = create<AuthState>((set) => ({
 
         if (userData) {
           const mappedData = mapDreamsSummaryToDreams(userData);
-          set({ user: userCredential.user, userData: mappedData, isAuthenticated: true, loading: false });
-          useAuthStore.getState().refreshDreamsFromCrud(userCredential.user.uid);
+          set({
+            user: userCredential.user,
+            userData: mappedData,
+            isAuthenticated: true,
+            loading: false,
+          });
+          useAuthStore
+            .getState()
+            .refreshDreamsFromCrud(userCredential.user.uid);
         } else {
-          set({ user: userCredential.user, isAuthenticated: true, loading: false });
+          set({
+            user: userCredential.user,
+            isAuthenticated: true,
+            loading: false,
+          });
         }
       } else {
-        throw new Error('No ID token from Google Sign-In');
+        throw new Error("No ID token from Google Sign-In");
       }
     } catch (error: any) {
-      let errorMessage = 'Google Sign-In failed';
+      let errorMessage = "Google Sign-In failed";
 
       // Import statusCodes for error checking
       try {
-        const { statusCodes } = await import('@react-native-google-signin/google-signin');
+        const { statusCodes } =
+          await import("@react-native-google-signin/google-signin");
         if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-          errorMessage = 'Sign-in cancelled';
+          errorMessage = "Sign-in cancelled";
         } else if (error.code === statusCodes.IN_PROGRESS) {
-          errorMessage = 'Sign-in in progress';
+          errorMessage = "Sign-in in progress";
         } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-          errorMessage = 'Google Play Services not available';
-        } else if (error.message?.includes('not available')) {
+          errorMessage = "Google Play Services not available";
+        } else if (error.message?.includes("not available")) {
           errorMessage = error.message;
         } else if (error.message) {
           errorMessage = error.message;
         }
       } catch {
-        if (error.message?.includes('not available')) {
+        if (error.message?.includes("not available")) {
           errorMessage = error.message;
         } else if (error.message) {
           errorMessage = error.message;
@@ -321,22 +431,30 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  completeGoogleOnboarding: async (timezone: string, notificationTime?: string | null) => {
+  completeGoogleOnboarding: async (
+    timezone: string,
+    notificationTime?: string | null,
+  ) => {
     try {
       set({ loading: true, error: null });
       const pendingUser = useAuthStore.getState().pendingGoogleUser;
       if (!pendingUser) {
-        throw new Error('No pending Google user found');
+        throw new Error("No pending Google user found");
       }
 
       // Update timezone and notification preferences on the already-created user doc
       await updateUserTimezone(pendingUser.uid, timezone);
       if (notificationTime !== undefined) {
-        await updateUserNotificationPreferences(pendingUser.uid, notificationTime);
+        await updateUserNotificationPreferences(
+          pendingUser.uid,
+          notificationTime,
+        );
       }
 
       // Now load user data and authenticate
-      const userData = await fetchUserData(pendingUser.uid, { fields: 'essential' });
+      const userData = await fetchUserData(pendingUser.uid, {
+        fields: "essential",
+      });
       if (userData) {
         const mappedData = mapDreamsSummaryToDreams(userData);
         set({
@@ -358,7 +476,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         });
       }
     } catch (error: any) {
-      set({ error: error.message || 'Failed to complete onboarding', loading: false });
+      set({
+        error: error.message || "Failed to complete onboarding",
+        loading: false,
+      });
       throw error;
     }
   },
@@ -371,13 +492,20 @@ export const useAuthStore = create<AuthState>((set) => ({
       try {
         await logoutRevenueCatUser();
       } catch (error) {
-        console.error('[Logout] RevenueCat logout error:', error);
+        console.error("[Logout] RevenueCat logout error:", error);
         // Don't block logout flow on RevenueCat error
       }
 
       await signOut(auth);
-      await SecureStore.deleteItemAsync('userToken').catch(() => {});
-      set({ user: null, userData: null, isAuthenticated: false, loading: false, needsOnboarding: false, pendingGoogleUser: null });
+      await SecureStore.deleteItemAsync("userToken").catch(() => {});
+      set({
+        user: null,
+        userData: null,
+        isAuthenticated: false,
+        loading: false,
+        needsOnboarding: false,
+        pendingGoogleUser: null,
+      });
     } catch (error: any) {
       const errorMessage = getErrorMessage(error.code);
       set({ error: errorMessage, loading: false });
@@ -403,12 +531,15 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       const user = auth.currentUser;
       if (!user || !user.email) {
-        throw new Error('No user is currently signed in');
+        throw new Error("No user is currently signed in");
       }
 
       // Re-authenticate user with current password before changing password
       // This is a security requirement from Firebase
-      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      const credential = EmailAuthProvider.credential(
+        user.email,
+        currentPassword,
+      );
       await reauthenticateWithCredential(user, credential);
 
       // Update to new password
@@ -427,7 +558,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   loadUserData: async (userId: string, options?: FetchUserDataOptions) => {
     try {
       // Default to 'essential' for performance, but allow override
-      const fetchOptions = options || { fields: 'essential' };
+      const fetchOptions = options || { fields: "essential" };
       // console.log('[loadUserData] Loading user data for:', userId);
       const userData = await fetchUserData(userId, fetchOptions);
       if (userData) {
@@ -440,23 +571,30 @@ export const useAuthStore = create<AuthState>((set) => ({
             mappedData.dreams = state.userData.dreams;
           }
           return { userData: mappedData };
-        });;
+        });
 
         // Auto-recalculate streak to catch any missed days
-        console.log('[loadUserData] Auto-recalculating streak for:', userId);
+        console.log("[loadUserData] Auto-recalculating streak for:", userId);
         const streakResponse = await getStreak(userId);
         if (streakResponse.success && streakResponse.streak_data) {
-          console.log('[loadUserData] Streak recalculated:', streakResponse);
+          console.log("[loadUserData] Streak recalculated:", streakResponse);
           if (streakResponse.recalculated) {
-            console.log('[loadUserData] Streak was recalculated due to time passage');
+            console.log(
+              "[loadUserData] Streak was recalculated due to time passage",
+            );
           }
           if (streakResponse.streak_broken) {
-            console.log('[loadUserData] Streak was broken due to missed days');
+            console.log("[loadUserData] Streak was broken due to missed days");
           }
           // Update the streak data in state
           set((state) => {
             if (!state.userData) return state;
-            return { userData: { ...state.userData, streak: streakResponse.streak_data ?? undefined } as typeof state.userData };
+            return {
+              userData: {
+                ...state.userData,
+                streak: streakResponse.streak_data ?? undefined,
+              } as typeof state.userData,
+            };
           });
         }
 
@@ -472,18 +610,23 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  updateMilestoneStatusLocal: (threadId: string, milestoneId: string, status: string) => {
+  updateMilestoneStatusLocal: (
+    threadId: string,
+    milestoneId: string,
+    status: string,
+  ) => {
     set((state) => {
       if (!state.userData?.dreams) return state;
 
       const updatedDreams = state.userData.dreams.map((dream: any) => {
-        if (dream.thread_id !== threadId || !dream.roadmap?.milestones) return dream;
+        if (dream.thread_id !== threadId || !dream.roadmap?.milestones)
+          return dream;
         return {
           ...dream,
           roadmap: {
             ...dream.roadmap,
             milestones: dream.roadmap.milestones.map((m: any) =>
-              m.id === milestoneId ? { ...m, status } : m
+              m.id === milestoneId ? { ...m, status } : m,
             ),
           },
         };
@@ -493,7 +636,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
 
     // If milestone was completed, recalculate up_next
-    if (status === 'completed') {
+    if (status === "completed") {
       setTimeout(() => {
         useAuthStore.getState().updateUpNext();
       }, 0);
@@ -505,10 +648,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (!state.userData?.dreams || !state.user?.uid) return state;
 
       const dreamToAdd = state.userData.dreams.find(
-        (dream: any) => dream.thread_id === threadId
+        (dream: any) => dream.thread_id === threadId,
       );
 
-      if (!dreamToAdd || dreamToAdd.status !== 'active') {
+      if (!dreamToAdd || dreamToAdd.status !== "active") {
         return state;
       }
 
@@ -518,7 +661,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       // Call API to persist to database (fire and forget - don't block UI)
       updateRecents(state.user.uid, threadId).catch((error) => {
-        console.error('Failed to sync recents to database:', error);
+        console.error("Failed to sync recents to database:", error);
       });
 
       return { userData: { ...state.userData, recents: newRecents } };
@@ -547,17 +690,26 @@ export const useAuthStore = create<AuthState>((set) => ({
     set((state) => {
       if (!state.userData) return state;
 
-      return { userData: { ...state.userData, streak: streakData, last_activity: new Date().toISOString() } };
+      return {
+        userData: {
+          ...state.userData,
+          streak: streakData,
+          last_activity: new Date().toISOString(),
+        },
+      };
     });
 
     // Update notification store with last activity
     // Import is done dynamically to avoid circular dependencies
     setTimeout(() => {
       try {
-        const { useNotificationStore } = require('./notificationStore');
+        const { useNotificationStore } = require("./notificationStore");
         useNotificationStore.getState().updateLastActivity();
       } catch (error) {
-        console.error('[AuthStore] Failed to update notification store:', error);
+        console.error(
+          "[AuthStore] Failed to update notification store:",
+          error,
+        );
       }
     }, 0);
   },
@@ -566,7 +718,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     set((state) => {
       if (!state.userData) return state;
 
-      return { userData: { ...state.userData, couragePoints: (state.userData.couragePoints || 0) + amount } };
+      return {
+        userData: {
+          ...state.userData,
+          couragePoints: (state.userData.couragePoints || 0) + amount,
+        },
+      };
     });
   },
 
@@ -575,19 +732,27 @@ export const useAuthStore = create<AuthState>((set) => ({
   // then milestones appear as each fetch resolves.
   loadFullDreams: async (userId: string) => {
     // Collect thread_ids to fetch from a fresh snapshot
-    const threadIds = useAuthStore.getState().userData?.dreams
-      ?.map((d: any) => d.thread_id)
-      .filter(Boolean) ?? [];
+    const threadIds =
+      useAuthStore
+        .getState()
+        .userData?.dreams?.map((d: any) => d.thread_id)
+        .filter(Boolean) ?? [];
 
     if (threadIds.length === 0) return;
 
     for (const threadId of threadIds) {
       // Re-read current state each iteration — a previous set() or loadUserData
       // may have replaced userData; skip if milestones are already populated
-      const currentDream = useAuthStore.getState().userData?.dreams
-        ?.find((d: any) => d.thread_id === threadId);
+      const currentDream = useAuthStore
+        .getState()
+        .userData?.dreams?.find((d: any) => d.thread_id === threadId);
       if (!currentDream) continue;
-      if (currentDream.roadmap?.milestones && currentDream.roadmap.milestones.length > 0 && currentDream.metadata?.score !== undefined) continue;
+      if (
+        currentDream.roadmap?.milestones &&
+        currentDream.roadmap.milestones.length > 0 &&
+        currentDream.metadata?.score !== undefined
+      )
+        continue;
 
       try {
         const fullDream = await fetchDreamDetails(userId, threadId);
@@ -596,13 +761,18 @@ export const useAuthStore = create<AuthState>((set) => ({
             if (!prev.userData?.dreams) return prev;
             const updatedDreams = prev.userData.dreams.map((d: any) => {
               if (d.thread_id !== threadId) return d;
-              return { ...d, roadmap: fullDream.roadmap, metadata: fullDream.metadata, _lastUpdated: Date.now() };
+              return {
+                ...d,
+                roadmap: fullDream.roadmap,
+                metadata: fullDream.metadata,
+                _lastUpdated: Date.now(),
+              };
             });
             return { userData: { ...prev.userData, dreams: updatedDreams } };
           });
         }
       } catch (e) {
-        console.error('[loadFullDreams] Failed to fetch dream', threadId, e);
+        console.error("[loadFullDreams] Failed to fetch dream", threadId, e);
       }
     }
   },
@@ -640,12 +810,18 @@ export const useAuthStore = create<AuthState>((set) => ({
         // Preserve existing milestones so optimistic updates survive until
         // loadFullDreams patches in the authoritative data.
         const existingByThread = new Map(
-          (state.userData.dreams || []).map((d: any) => [d.thread_id, d])
+          (state.userData.dreams || []).map((d: any) => [d.thread_id, d]),
         );
         const merged = dreams.map((d: any) => {
           const existing: any = existingByThread.get(d.thread_id);
           if (existing?.roadmap?.milestones?.length) {
-            return { ...d, roadmap: { ...d.roadmap, milestones: existing.roadmap.milestones } };
+            return {
+              ...d,
+              roadmap: {
+                ...d.roadmap,
+                milestones: existing.roadmap.milestones,
+              },
+            };
           }
           return d;
         });
@@ -655,21 +831,26 @@ export const useAuthStore = create<AuthState>((set) => ({
       // Now that dreams are in state, patch in full milestones
       useAuthStore.getState().loadFullDreams(userId);
     } catch (e) {
-      console.error('[refreshDreamsFromCrud] Failed:', e);
+      console.error("[refreshDreamsFromCrud] Failed:", e);
     }
   },
 
   // Insert a user-created milestone before the last milestone (typically celebration_moment).
   // The backend handles positioning and dependency updates.
-  addCustomMilestone: async (threadId: string, title: string, challengeType: string, description?: string) => {
+  addCustomMilestone: async (
+    threadId: string,
+    title: string,
+    challengeType: string,
+    description?: string,
+  ) => {
     try {
       const result = await addMilestoneToRoadmap(threadId, {
         title,
         challenge_type: challengeType,
         description,
-        streak_eligible: false,  // ✅ ALWAYS false for custom milestones
+        streak_eligible: false, // ✅ ALWAYS false for custom milestones
       });
-      console.log('[addCustomMilestone] Persisted successfully:', result);
+      console.log("[addCustomMilestone] Persisted successfully:", result);
 
       // The backend returns the updated milestones array - update local state
       if (result.success && result.milestones) {
@@ -677,13 +858,16 @@ export const useAuthStore = create<AuthState>((set) => ({
           if (!state.userData?.dreams) return state;
           const updatedDreams = state.userData.dreams.map((d: any) => {
             if (d.thread_id !== threadId || !d.roadmap) return d;
-            return { ...d, roadmap: { ...d.roadmap, milestones: result.milestones } };
+            return {
+              ...d,
+              roadmap: { ...d.roadmap, milestones: result.milestones },
+            };
           });
           return { userData: { ...state.userData, dreams: updatedDreams } };
         });
       }
     } catch (e) {
-      console.error('[addCustomMilestone] Backend persist failed:', e);
+      console.error("[addCustomMilestone] Backend persist failed:", e);
       throw e; // Re-throw so UI can handle the error
     }
   },
@@ -695,23 +879,23 @@ export const checkGoogleSignInAvailable = isGoogleSignInAvailable;
 // Helper function to convert Firebase error codes to user-friendly messages
 export const getErrorMessage = (code: string): string => {
   switch (code) {
-    case 'auth/email-already-in-use':
-      return 'This email is already registered';
-    case 'auth/invalid-email':
-      return 'Invalid email address';
-    case 'auth/weak-password':
-      return 'Password must be at least 6 characters';
-    case 'auth/user-not-found':
-      return 'No account found with this email';
-    case 'auth/wrong-password':
-      return 'Incorrect password';
-    case 'auth/invalid-credential':
-      return 'Invalid email or password';
-    case 'auth/too-many-requests':
-      return 'Too many login attempts. Please try again later';
-    case 'auth/operation-not-allowed':
-      return 'Email/password accounts are not enabled';
+    case "auth/email-already-in-use":
+      return "This email is already registered";
+    case "auth/invalid-email":
+      return "Invalid email address";
+    case "auth/weak-password":
+      return "Password must be at least 6 characters";
+    case "auth/user-not-found":
+      return "No account found with this email";
+    case "auth/wrong-password":
+      return "Incorrect password";
+    case "auth/invalid-credential":
+      return "Invalid email or password";
+    case "auth/too-many-requests":
+      return "Too many login attempts. Please try again later";
+    case "auth/operation-not-allowed":
+      return "Email/password accounts are not enabled";
     default:
-      return 'An error occurred. Please try again';
+      return "An error occurred. Please try again";
   }
 };

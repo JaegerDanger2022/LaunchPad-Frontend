@@ -17,7 +17,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { Plus, Settings } from "lucide-react-native";
+import { Plus, Settings, Calendar } from "lucide-react-native";
 import {
   Color,
   getThemeColors,
@@ -40,6 +40,8 @@ import { VictoryCardSkeleton } from "../components/community/VictoryCardSkeleton
 import { CommunityWinCardSkeleton } from "../components/community/CommunityWinCardSkeleton";
 import { NoRecentsState } from "../components/NoRecentsState";
 import { StreakBadge } from "../components/streak/StreakBadge";
+import { CalendarButton } from "../components/calendar/CalendarButton";
+import { CalendarModal } from "../components/calendar/CalendarModal";
 import { VictoryCard } from "../components/community/VictoryCard";
 import { ResonanceIndicator } from "../components/community/ResonanceIndicator";
 import { useAuthStore } from "../store/authStore";
@@ -70,6 +72,7 @@ const HomeScreen = ({
     useState(false);
   const [isDIYDreamModalVisible, setIsDIYDreamModalVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [recentVictories, setRecentVictories] = useState<CommunityFeedItem[]>(
     [],
   );
@@ -412,7 +415,7 @@ const HomeScreen = ({
       <BottomNavbar onNavigate={onNavigate} activeTab="home" />
       {/* <DebugOverlay /> */}
 
-      {/* Fixed Top row: Settings gear (left) + Streak badge (right) */}
+      {/* Fixed Top row: Settings gear (left) + Calendar + Streak badge (right) */}
       <View
         style={{
           position: "absolute",
@@ -438,14 +441,28 @@ const HomeScreen = ({
             strokeWidth={2}
           />
         </TouchableOpacity>
-        {userData?.streak && userData.streak.current_streak > 0 ? (
-          <StreakBadge
-            streakCount={userData.streak.current_streak}
-            size="medium"
-          />
-        ) : (
-          <View />
-        )}
+
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <TouchableOpacity
+            onPress={() => setShowCalendarModal(true)}
+            activeOpacity={0.7}
+            style={{ padding: 4 }}>
+            <Calendar
+              size={30}
+              color={themeColors.text_secondary}
+              strokeWidth={2}
+            />
+          </TouchableOpacity>
+
+          {userData?.streak && userData.streak.current_streak > 0 ? (
+            <StreakBadge
+              streakCount={userData.streak.current_streak}
+              size="medium"
+            />
+          ) : (
+            <View />
+          )}
+        </View>
       </View>
 
       <Animated.ScrollView
@@ -1090,6 +1107,12 @@ const HomeScreen = ({
           </Animated.View>
         </View>
       </Animated.ScrollView>
+
+      {/* Calendar Modal */}
+      <CalendarModal
+        visible={showCalendarModal}
+        onClose={() => setShowCalendarModal(false)}
+      />
     </SafeAreaView>
   );
 };

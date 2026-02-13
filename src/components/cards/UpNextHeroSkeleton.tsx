@@ -1,10 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Animated } from 'react-native';
 import { useThemeStore } from '../../store/themeStore';
+import { getThemeColors } from '../../constants/GlobalStyles';
 
 export const UpNextHeroSkeleton: React.FC = () => {
   const shimmerAnim = useRef(new Animated.Value(0)).current;
   const { theme } = useThemeStore();
+  const themeColors = getThemeColors(theme);
 
   useEffect(() => {
     const shimmer = Animated.loop(
@@ -31,8 +33,8 @@ export const UpNextHeroSkeleton: React.FC = () => {
     outputRange: [0.3, 0.7],
   });
 
-  // Theme-aware skeleton colors
-  const skeletonBgColor = theme === 'dark' ? '#2A2A2A' : '#E0E0E0';
+  // Theme-aware skeleton colors - matches Community Wins skeleton
+  const skeletonBgColor = themeColors.bg_secondary;
   const skeletonColor = theme === 'dark' ? '#d1d1d1' : '#D0D0D0';
 
   return (

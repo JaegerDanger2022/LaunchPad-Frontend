@@ -56,8 +56,6 @@ export const GoalCard: React.FC<GoalCardProps> = React.memo(({ data, onPress }) 
             height: 88,
             borderBottomLeftRadius: 10,
             borderBottomRightRadius: 10,
-            borderTopWidth: 1,
-            borderTopColor: theme === "light" ? "rgba(255, 255, 255, 0.6)" : "rgba(255, 255, 255, 0.15)",
             borderLeftWidth: 0.5,
             borderLeftColor: theme === "light" ? "rgba(255, 255, 255, 0.3)" : "rgba(255, 255, 255, 0.1)",
             borderRightWidth: 0.5,
