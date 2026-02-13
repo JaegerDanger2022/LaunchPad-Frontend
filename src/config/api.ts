@@ -2343,3 +2343,118 @@ export async function deleteUserAccount(
     throw error;
   }
 }
+
+// ============================================================================
+// CALENDAR SCHEDULING ENDPOINTS
+// ============================================================================
+
+export interface ScheduledStep {
+  _id: string;
+  milestone_id: string;
+  dream_thread_id: string;
+  dream_title: string;
+  dream_color: string;
+  scheduled_date: string;
+  day_of_week: string;
+  step_description: string;
+  time_estimate_minutes: number;
+  completed: boolean;
+  order: number;
+}
+
+export interface WeeklySchedule {
+  week_start_date: string;
+  week_end_date: string;
+  days: Array<{
+    date: string;
+    day_of_week: string;
+    tasks: ScheduledStep[];
+  }>;
+}
+
+export async function planMilestone(
+  userId: string,
+  milestoneId: string,
+  threadId: string,
+  daysPerWeek: number,
+  weekStartDate: string
+): Promise<ScheduledStep[]> {
+  const payload = {
+    user_id: userId,
+    milestone_id: milestoneId,
+    thread_id: threadId,
+    days_per_week: daysPerWeek,
+    week_start_date: weekStartDate
+  };
+
+  console.log('[API] planMilestone called with:', payload);
+
+  const response = await apiFetch(`${API_BASE_URL}/schedule/plan-milestone`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  console.log('[API] planMilestone response status:', response.status);
+
+  if (!response.ok) {
+    const error = await response.json();
+    console.error('[API] planMilestone error response:', error);
+    throw new Error(error.detail || 'Failed to plan milestone');
+  }
+
+  const result = await response.json();
+  console.log('[API] planMilestone success:', result);
+  return result.scheduled_steps;
+}
+
+export async function markMilestoneWeekPlanned(
+  userId: string,
+  threadId: string,
+  milestoneId: string
+): Promise<void> {
+  const response = await apiFetch(
+    `${API_BASE_URL}/milestone/mark-week-planned/${userId}/${threadId}/${milestoneId}`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' }
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to mark milestone as week planned');
+  }
+}
+
+export async function fetchWeeklySchedule(
+  userId: string,
+  weekStart?: string
+): Promise<WeeklySchedule> {
+  const params = new URLSearchParams({ user_id: userId });
+  if (weekStart) {
+    params.append('week_start', weekStart);
+  }
+
+  const response = await apiFetch(`${API_BASE_URL}/schedule/weekly?${params}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch weekly schedule');
+  }
+
+  return response.json();
+}
+
+export async function updateScheduledStep(
+  stepId: string,
+  completed: boolean
+): Promise<void> {
+  const response = await apiFetch(`${API_BASE_URL}/schedule/step/${stepId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ completed })
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update step');
+  }
+}

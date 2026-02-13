@@ -37,6 +37,13 @@ export const PlanThisWeekButton: React.FC<PlanThisWeekButtonProps> = ({
     setLoading(true);
     try {
       const weekStart = getTodayDate();
+      console.log('[PlanThisWeekButton] Planning milestone with params:', {
+        userId: user.uid,
+        milestoneId,
+        threadId,
+        daysPerWeek,
+        weekStart
+      });
       await planMilestone(user.uid, milestoneId, threadId, daysPerWeek, weekStart);
 
       // Mark milestone as having its week planned
