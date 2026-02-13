@@ -1,13 +1,16 @@
-import React from 'react';
-import Svg, { Path, Circle } from 'react-native-svg';
-import { View } from 'react-native';
+import React from "react";
+import Svg, { Path, Circle } from "react-native-svg";
+import { View } from "react-native";
 
 interface IconProps {
   size?: number;
   color?: string;
 }
 
-export const BellIcon: React.FC<IconProps> = ({ size = 24, color = '#000' }) => (
+export const BellIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#000",
+}) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -18,18 +21,21 @@ export const BellIcon: React.FC<IconProps> = ({ size = 24, color = '#000' }) => 
   </View>
 );
 
-export const HomeIcon: React.FC<IconProps> = ({ size = 24, color = '#000' }) => (
+export const HomeIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#000",
+}) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"
-        fill={color}
-      />
+      <Path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill={color} />
     </Svg>
   </View>
 );
 
-export const MenuIcon: React.FC<IconProps> = ({ size = 24, color = '#000' }) => (
+export const MenuIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#000",
+}) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -40,7 +46,10 @@ export const MenuIcon: React.FC<IconProps> = ({ size = 24, color = '#000' }) => 
   </View>
 );
 
-export const ClockIcon: React.FC<IconProps> = ({ size = 20, color = '#000' }) => (
+export const ClockIcon: React.FC<IconProps> = ({
+  size = 20,
+  color = "#000",
+}) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -54,18 +63,21 @@ export const ClockIcon: React.FC<IconProps> = ({ size = 20, color = '#000' }) =>
   </View>
 );
 
-export const LightningIcon: React.FC<IconProps> = ({ size = 20, color = '#ff9000' }) => (
+export const LightningIcon: React.FC<IconProps> = ({
+  size = 20,
+  color = "#ffffff",
+}) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
-        fill={color}
-      />
+      <Path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill={color} />
     </Svg>
   </View>
 );
 
-export const ArrowRightIcon: React.FC<IconProps> = ({ size = 20, color = '#fff' }) => (
+export const ArrowRightIcon: React.FC<IconProps> = ({
+  size = 20,
+  color = "#fff",
+}) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -80,7 +92,10 @@ interface ProgressRingIconProps extends IconProps {
   progress?: number; // 0–100
 }
 
-export const ProgressRingIcon: React.FC<ProgressRingIconProps> = ({ size = 30, progress = 0 }) => {
+export const ProgressRingIcon: React.FC<ProgressRingIconProps> = ({
+  size = 30,
+  progress = 0,
+}) => {
   const radius = 13;
   const circumference = 2 * Math.PI * radius; // ≈ 81.68
   const clampedProgress = Math.min(100, Math.max(0, progress));
@@ -92,7 +107,14 @@ export const ProgressRingIcon: React.FC<ProgressRingIconProps> = ({ size = 30, p
         {/* Background circle fill */}
         <Circle cx="15" cy="15" r={radius} fill="#22C55E" fillOpacity="0.15" />
         {/* Background track stroke */}
-        <Circle cx="15" cy="15" r={radius} stroke="rgba(255,255,255,0.2)" strokeWidth="2" fill="none" />
+        <Circle
+          cx="15"
+          cy="15"
+          r={radius}
+          stroke="rgba(255,255,255,0.2)"
+          strokeWidth="2"
+          fill="none"
+        />
         {/* Progress arc — rotated so 0% starts at 12 o'clock */}
         <Circle
           cx="15"
@@ -111,7 +133,10 @@ export const ProgressRingIcon: React.FC<ProgressRingIconProps> = ({ size = 30, p
   );
 };
 
-export const AvatarIcon: React.FC<IconProps> = ({ size = 47, color = '#b4c5fd' }) => (
+export const AvatarIcon: React.FC<IconProps> = ({
+  size = 47,
+  color = "#b4c5fd",
+}) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
       <Path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
@@ -119,18 +144,30 @@ export const AvatarIcon: React.FC<IconProps> = ({ size = 47, color = '#b4c5fd' }
   </View>
 );
 
-export const HeroBgPlaceholder: React.FC<IconProps> = ({ size = 353, color = '#fff8f5' }) => (
+export const HeroBgPlaceholder: React.FC<IconProps> = ({
+  size = 353,
+  color = "#fff8f5",
+}) => (
   <View style={{ width: size, height: 184 }}>
     <Svg width={size} height={184} viewBox="0 0 353 184" fill="none">
       <Path d="M0 0h353v184H0z" fill={color} />
       <Circle cx="50" cy="50" r="8" fill="#eac375" opacity="0.3" />
       <Circle cx="300" cy="100" r="12" fill="#6dc0c3" opacity="0.2" />
-      <Path d="M100 150 L150 130 L200 150" stroke="#fb6322" strokeWidth="2" opacity="0.2" fill="none" />
+      <Path
+        d="M100 150 L150 130 L200 150"
+        stroke="#fb6322"
+        strokeWidth="2"
+        opacity="0.2"
+        fill="none"
+      />
     </Svg>
   </View>
 );
 
-export const GoalBgPlaceholder: React.FC<IconProps> = ({ size = 166, color = '#eac375' }) => (
+export const GoalBgPlaceholder: React.FC<IconProps> = ({
+  size = 166,
+  color = "#eac375",
+}) => (
   <View style={{ width: size, height: 120 }}>
     <Svg width={size} height={120} viewBox="0 0 166 120" fill="none">
       <Path d="M0 0h166v120H0z" fill={color} opacity="0.3" />
@@ -139,7 +176,10 @@ export const GoalBgPlaceholder: React.FC<IconProps> = ({ size = 166, color = '#e
   </View>
 );
 
-export const DreamsIcon: React.FC<IconProps> = ({ size = 24, color = '#000' }) => (
+export const DreamsIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#000",
+}) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -150,7 +190,10 @@ export const DreamsIcon: React.FC<IconProps> = ({ size = 24, color = '#000' }) =
   </View>
 );
 
-export const EvidenceIcon: React.FC<IconProps> = ({ size = 24, color = '#000' }) => (
+export const EvidenceIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#000",
+}) => (
   <View style={{ width: size, height: size }}>
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path

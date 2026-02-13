@@ -28,6 +28,7 @@ import { RepeatableGoal } from "../components/milestonescreen/RepeatableGoal";
 import { OneTimeGoal } from "../components/milestonescreen/OneTimeGoal";
 import { SuccessAnimationOverlay } from "../components/animations/SuccessAnimationOverlay";
 import { DreamCompleteVideoOverlay } from "../components/animations/DreamCompleteVideoOverlay";
+import { UnlockMessageToast } from "../components/UnlockMessageToast";
 import { PlanThisWeekButton } from "../components/calendar/PlanThisWeekButton";
 import { fetchDreamDetails } from "../config/api";
 import Toast from "react-native-toast-message";
@@ -162,7 +163,8 @@ const FormattedDescription = ({
               style={{
                 flexDirection: 'row',
                 flexWrap: 'wrap',
-                alignItems: 'center',
+                alignItems: 'flex-start',
+                width: '100%',
                 paddingHorizontal: 8,
                 marginTop: i === 0 ? 0 : 8,
               }}>
@@ -183,8 +185,9 @@ const FormattedDescription = ({
             style={{
               flexDirection: 'row',
               flexWrap: 'wrap',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               justifyContent: hasSteps ? "flex-start" : "center",
+              width: '100%',
               paddingHorizontal: 8,
             }}>
             {renderTextWithLinks(block.content, `b${i}`).map((part, idx) => {
@@ -219,6 +222,7 @@ const MilestoneScreen = ({
   const themeColors = getThemeColors(theme);
   const slideAnim = useRef(new Animated.Value(1000)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const contentFadeAnim = useRef(new Animated.Value(0)).current;
   const dragY = useRef(new Animated.Value(0)).current;
   const dragAmount = useRef(0).current;
   const handleScaleAnim = useRef(new Animated.Value(1)).current;
@@ -227,6 +231,8 @@ const MilestoneScreen = ({
   const [isCompleted, setIsCompleted] = React.useState(false);
   const [showDreamCompleteAnimation, setShowDreamCompleteAnimation] =
     React.useState(false);
+  const [showUnlockToast, setShowUnlockToast] = React.useState(false);
+  const [unlockMessage, setUnlockMessage] = React.useState<string>("");
   const [isLoadingMilestone, setIsLoadingMilestone] = React.useState(true);
   const [currentDream, setCurrentDream] = React.useState<any>(null);
   const user = useAuthStore((state) => state.user);
@@ -316,6 +322,24 @@ const MilestoneScreen = ({
           setMilestone(enhancedMilestone);
           setThreadId(dreamDetails.thread_id || "");
           setCurrentDream(dreamDetails);
+
+          // Show unlock message toast if available (after 2 second delay)
+          if (foundMilestone.unlock_message) {
+            const messages = Array.isArray(foundMilestone.unlock_message)
+              ? foundMilestone.unlock_message
+              : [foundMilestone.unlock_message];
+
+            if (messages.length > 0) {
+              // Delay showing the toast by 2 seconds
+              setTimeout(() => {
+                // Pick a random message
+                const randomMessage =
+                  messages[Math.floor(Math.random() * messages.length)];
+                setUnlockMessage(randomMessage);
+                setShowUnlockToast(true);
+              }, 2000);
+            }
+          }
         } else {
           console.error('[MilestoneScreen] Milestone not found in dream:', {
             milestoneId,
@@ -327,6 +351,12 @@ const MilestoneScreen = ({
         console.error('[MilestoneScreen] Error loading milestone:', error);
       } finally {
         setIsLoadingMilestone(false);
+        // Fade in content when loading completes
+        Animated.timing(contentFadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
       }
     };
 
@@ -410,6 +440,24 @@ const MilestoneScreen = ({
   return (
     <View style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" />
+
+      {/* Toast - positioned at root level to avoid layout shift */}
+      {/* <View
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          pointerEvents: 'none',
+          zIndex: 9999,
+        }}>
+        <UnlockMessageToast
+          visible={showUnlockToast}
+          message={unlockMessage}
+          onComplete={() => setShowUnlockToast(false)}
+        />
+      </View> */}
 
       {/* Modal sliding from bottom */}
       <Animated.View
@@ -602,7 +650,7 @@ const MilestoneScreen = ({
                   </>
                 ) : (
                   // Actual Content
-                  <>
+                  <Animated.View style={{ opacity: contentFadeAnim, alignItems: "center", width: "100%" }}>
                     {/* Challenge Type Animation - Above Title */}
                     {milestone?.challenge_type &&
                     challengeTypeAnimations[milestone.challenge_type] ? (
@@ -661,12 +709,19 @@ const MilestoneScreen = ({
 
                     <View
                       style={{
-                        width: 80,
-                        height: 2,
-                        backgroundColor: "rgba(255, 255, 255, 0.3)",
-                        marginBottom: 25,
+                        width: "100%",
+                        alignItems: "center",
+                        marginVertical: 25,
                       }}
-                    />
+                    >
+                      <View
+                        style={{
+                          width: 80,
+                          height: 2,
+                          backgroundColor: "rgba(255, 255, 255, 0.3)",
+                        }}
+                      />
+                    </View>
 
                     <Text
                       style={{
@@ -678,7 +733,7 @@ const MilestoneScreen = ({
                       {milestone?.motivation_hook ||
                         "Mark it as complete to progress!"}
                     </Text>
-                  </>
+                  </Animated.View>
                 )}
               </View>
             </ScrollView>

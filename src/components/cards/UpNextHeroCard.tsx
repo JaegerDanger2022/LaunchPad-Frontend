@@ -147,7 +147,7 @@ export const UpNextHeroCard: React.FC<UpNextHeroCardProps> = ({
               height: 32,
               paddingHorizontal: 10,
             }}>
-            <LightningIcon size={16} color="#ff9000" />
+            <LightningIcon size={16} />
             <Text
               style={{
                 color: Color.colorWhite,
